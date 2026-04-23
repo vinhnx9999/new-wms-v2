@@ -1,0 +1,370 @@
+@page
+@model Wms.Theme.Web.Pages.Outbound.SalesOrdersCreateModel
+@{
+    ViewData["Title"] = Html.Raw(L["CreateNewDispatchOrder"]);
+}
+@Html.AntiForgeryToken()
+
+<div class="max-w-7xl mx-auto p-6 space-y-6 pb-32">
+
+    <form method="post" asp-page-handler="AddDispatch" id="mainForm">
+
+        <!-- Section 1: General Information -->
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+
+                    @Html.Raw(L["SelectCustomer"])
+                </h3>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        @Html.Raw(L["Customer"]) <span class="text-red-500">*</span>
+                    </label>
+                    <select id="customerSelect"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                        <option value="">-- @Html.Raw(L["SelectCustomer"]) --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        @Html.Raw(L["DisplayCustomerName"])
+                    </label>
+                    <input type="text" id="displayCustomerName"
+                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white cursor-not-allowed"
+                        readonly />
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Detail Items (Combined Add + List) -->
+        <div class="pt-6 space-y-4">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+
+                        @Html.Raw(L["ListDetailOrders"])
+                    </h2>
+                    <button type="button" onclick="addDetailItem()"
+                        class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 flex items-center gap-2 transition shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                            </path>
+                        </svg>
+                        @Html.Raw(L["AddItem"])
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="detail-items-container" class="space-y-4 pb-4">
+                        <!-- Items will be rendered here -->
+                    </div>
+                    <div id="empty-message" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                        @Html.Raw(L["EmptyList"])
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="hiddenInputsContainer"></div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-end gap-3 w-full mt-6">
+            <a href="/Outbound/SalesOrders/Index"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 w-full md:w-auto text-center">
+                @Html.Raw(L["Cancel"])
+            </a>
+            <button type="submit"
+                class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/30 w-full md:w-auto transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                @Html.Raw(L["Submit"])
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // --- GLOBAL STATE ---
+        let globalSkuList = [];
+        let detailItemIndex = 0;
+
+        // --- DOM ELEMENTS ---
+        const customerSelect = document.getElementById('customerSelect');
+        const displayCustomerName = document.getElementById('displayCustomerName');
+        const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+        const mainForm = document.getElementById('mainForm');
+        const detailItemsContainer = document.getElementById('detail-items-container');
+        const emptyMessage = document.getElementById('empty-message');
+
+        /**
+         * Initialize page: load all required data using Promise.all for parallel loading.
+         */
+        document.addEventListener("DOMContentLoaded", function () {
+            Promise.all([
+                fetchData('?handler=CustomerList'),
+                fetchData('?handler=SkuSelected')
+            ]).then(([customersResult, skusResult]) => {
+                // Render Customers
+                const customers = Array.isArray(customersResult) ? customersResult : (customersResult?.data || []);
+                renderCustomerOptions(customers);
+
+                // Store SKUs globally for dynamic item generation
+                globalSkuList = Array.isArray(skusResult) ? skusResult : (skusResult?.rows || skusResult?.data || []);
+
+                // Add first item automatically
+                addDetailItem();
+            }).catch(err => {
+                console.error("Failed to load master data:", err);
+                Notify.error('@Html.Raw(L["FailedToLoadMasterData"])');
+            });
+
+            // Setup event listeners
+            customerSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const name = selectedOption.getAttribute('data-name') || '';
+                displayCustomerName.value = name;
+                // Update all hidden inputs with customer info
+                updateCustomerInputs();
+            });
+
+            mainForm.addEventListener('submit', function (e) {
+                if (!customerSelect.value) {
+                    e.preventDefault();
+                    Notify.warning('@Html.Raw(L["SelectCustomer"])');
+                    return;
+                }
+                const items = document.querySelectorAll('.detail-item');
+                if (items.length === 0) {
+                    e.preventDefault();
+                    Notify.warning('@Html.Raw(L["EmptyList"])');
+                    return;
+                }
+
+                // Check for duplicate SKUs
+                const skuIds = [];
+                let hasDuplicate = false;
+                items.forEach(item => {
+                    const skuSelect = item.querySelector('select[name*="SkuId"]');
+                    if (skuSelect && skuSelect.value) {
+                        if (skuIds.includes(skuSelect.value)) {
+                            hasDuplicate = true;
+                        } else {
+                            skuIds.push(skuSelect.value);
+                        }
+                    }
+                });
+                if (hasDuplicate) {
+                    e.preventDefault();
+                    Notify.error('@Html.Raw(L["ProductAlreadyInList"])');
+                    return;
+                }
+
+                // Check qty vs available qty
+                let qtyExceeded = false;
+                items.forEach(item => {
+                    const qtyInput = item.querySelector('input[name*="Qty"]');
+                    const skuSelect = item.querySelector('select[name*="SkuId"]');
+                    if (qtyInput && skuSelect && skuSelect.value) {
+                        const option = skuSelect.selectedOptions[0];
+                        const qtyAvailable = parseFloat(option.dataset.qtyAvailable || 0);
+                        const qty = parseFloat(qtyInput.value || 0);
+                        if (qty > qtyAvailable) {
+                            qtyExceeded = true;
+                            qtyInput.classList.add('border-red-500');
+                        }
+                    }
+                });
+                if (qtyExceeded) {
+                    e.preventDefault();
+                    Notify.error('@Html.Raw(L["QtyExceedsAvailable"])');
+                    return;
+                }
+            });
+
+            // Prevent invalid characters in number inputs
+            document.body.addEventListener('keypress', (e) => {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                    if (['e', 'E', '-', '+'].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        });
+
+        /**
+         * Fetches data from a given URL.
+         */
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        }
+
+        /**
+         * Renders customer options into the select dropdown.
+         */
+        function renderCustomerOptions(customers) {
+            customerSelect.innerHTML = '<option value="">-- @Html.Raw(L["SelectCustomer"]) --</option>';
+            customers.forEach(cust => {
+                const option = document.createElement('option');
+                option.value = cust.id;
+                option.textContent = cust.customer_name;
+                option.setAttribute('data-name', cust.customer_name);
+                customerSelect.appendChild(option);
+            });
+        }
+
+        /**
+         * Generates HTML for a single detail item row (card-style like PO Create).
+         */
+        function generateDetailItemHtml(index) {
+            let skuOptions = `<option value="">@Html.Raw(L["SelectProduct"])</option>`;
+            globalSkuList.forEach(s => {
+                const weight = s.weight ?? 0;
+                const volume = s.volume ?? 0;
+                const qtyAvailable = s.qty_available ?? 0;
+                skuOptions += `<option value="${s.sku_id}" data-code="${s.sku_code}" data-name="${s.sku_name}" data-unit="${s.unit}" data-spu="${s.spu_name}" data-qty-available="${qtyAvailable}" data-weight="${weight}" data-volume="${volume}">${s.sku_code} - ${s.sku_name}</option>`;
+            });
+
+            return `
+                            <div class="detail-item bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative" data-detail-index="${index}">
+                                <!-- First Row: Product (full width) with Delete button -->
+                                <div class="flex items-end gap-4 mb-4">
+                                    <div class="flex-1">
+                                        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["Product"]) <span class="text-red-500">*</span></label>
+                                        <select name="DispatchAddRequest[${index}].SkuId" required onchange="onSkuChange(this, ${index})" class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">${skuOptions}</select>
+                                    </div>
+                                    <button type="button" onclick="removeDetailItem(${index})" class="text-gray-400 hover:text-red-500 p-2 rounded-md transition mb-1" title="@Html.Raw(L["Delete"])">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+    
+                                <!-- Second Row: Unit, Qty, Weight, Volume -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["Unit"])</label>
+                                        <input type="text" id="unit-${index}" class="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm rounded-lg text-gray-600 dark:bg-gray-600 dark:text-gray-300" readonly />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["Qty"]) <span class="text-red-500">*</span></label>
+                                        <input name="DispatchAddRequest[${index}].Qty" id="qty-${index}" type="number" min="1" required
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0+/, ''); validateQty(${index});"
+                                            onkeydown="if(['-','+','e','E'].includes(event.key)) event.preventDefault();"
+                                            class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                        <span id="qty-helper-${index}" class="text-xs text-blue-600 dark:text-blue-400 mt-1 block"></span>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["Weight"])</label>
+                                        <input name="DispatchAddRequest[${index}].Weight" id="weight-${index}" type="number" min="0" step="0.01"
+                                            class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["Volume"])</label>
+                                        <input name="DispatchAddRequest[${index}].Volume" id="volume-${index}" type="number" min="0" step="0.001"
+                                            class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                    </div>
+                                </div>
+                                <input type="hidden" name="DispatchAddRequest[${index}].CustomerId" class="customer-id-input" />
+                                <input type="hidden" name="DispatchAddRequest[${index}].CustomerName" class="customer-name-input" />
+                            </div>
+                        `;
+        }
+
+        /**
+         * Handles SKU selection change, populating related fields.
+         */
+        function onSkuChange(select, index) {
+            const option = select.selectedOptions[0];
+            const unitInput = document.getElementById(`unit-${index}`);
+            const qtyHelper = document.getElementById(`qty-helper-${index}`);
+            const weightInput = document.getElementById(`weight-${index}`);
+            const volumeInput = document.getElementById(`volume-${index}`);
+
+            if (option.value) {
+                unitInput.value = option.dataset.unit || '';
+                const qtyAvailable = option.dataset.qtyAvailable || 0;
+                qtyHelper.textContent = `@Html.Raw(L["AvailableQty"]): ${GlobalFormatNumber(qtyAvailable)}`;
+                weightInput.value = option.dataset.weight || 0;
+                volumeInput.value = option.dataset.volume || 0;
+            } else {
+                unitInput.value = '';
+                qtyHelper.textContent = '';
+                weightInput.value = '';
+                volumeInput.value = '';
+            }
+        }
+
+        /**
+         * Validates qty input against available qty.
+         */
+        function validateQty(index) {
+            const qtyInput = document.getElementById(`qty-${index}`);
+            const container = qtyInput.closest('.detail-item');
+            const skuSelect = container.querySelector('select[name*="SkuId"]');
+            const qtyHelper = document.getElementById(`qty-helper-${index}`);
+
+            if (skuSelect && skuSelect.value) {
+                const option = skuSelect.selectedOptions[0];
+                const qtyAvailable = parseFloat(option.dataset.qtyAvailable || 0);
+                const qty = parseFloat(qtyInput.value || 0);
+
+                if (qty > qtyAvailable) {
+                    qtyInput.classList.add('border-red-500');
+                    qtyHelper.classList.remove('text-blue-600');
+                    qtyHelper.classList.add('text-red-500');
+                    qtyHelper.textContent = `@Html.Raw(L["QtyExceedsAvailable"]) (${GlobalFormatNumber(qtyAvailable)})`;
+                } else {
+                    qtyInput.classList.remove('border-red-500');
+                    qtyHelper.classList.remove('text-red-500');
+                    qtyHelper.classList.add('text-blue-600');
+                    qtyHelper.textContent = `@Html.Raw(L["AvailableQty"]): ${GlobalFormatNumber(qtyAvailable)}`;
+                }
+            }
+        }
+
+        /**
+         * Adds a new detail item row to the form.
+         */
+        function addDetailItem() {
+            detailItemsContainer.insertAdjacentHTML('beforeend', generateDetailItemHtml(detailItemIndex++));
+            updateEmptyMessage();
+            updateCustomerInputs();
+        }
+
+        /**
+         * Removes a detail item row from the form.
+         */
+        function removeDetailItem(index) {
+            const item = document.querySelector(`[data-detail-index="${index}"]`);
+            if (item) item.remove();
+            updateEmptyMessage();
+        }
+
+        /**
+         * Updates the empty message visibility.
+         */
+        function updateEmptyMessage() {
+            const items = document.querySelectorAll('.detail-item');
+            emptyMessage.style.display = items.length === 0 ? 'block' : 'none';
+        }
+
+        /**
+         * Updates customer ID/Name in all hidden inputs when customer changes.
+         */
+        function updateCustomerInputs() {
+            const customerId = customerSelect.value;
+            const customerName = displayCustomerName.value;
+            document.querySelectorAll('.customer-id-input').forEach(input => input.value = customerId);
+            document.querySelectorAll('.customer-name-input').forEach(input => input.value = customerName);
+        }
+
+        // Update customer inputs when customer changes
+        customerSelect?.addEventListener('change', updateCustomerInputs);
+    </script>
+}

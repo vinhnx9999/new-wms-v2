@@ -1,0 +1,403 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.Transfer.ReceiveModel
+@{
+}
+<h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2">Thông tin phiếu nhận kho</h2>
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+    <div class="flex flex-col gap-5">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label for="receiptNumber" class="block text-sm font-medium text-gray-700 mb-1">
+                    Mã Phiếu Nhận Kho <span class="text-red-500">*</span>
+                </label>
+                <input type="text"
+                       id="receiptNumber"
+                       name="receiptNumber"
+                       placeholder="PN-B-20260302-001"
+                       readonly
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            </div>
+
+            <div>
+                <label for="receiptDate" class="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày tạo Phiếu <span class="text-red-500">*</span>
+                </label>
+                <input type="date"
+                       id="receiptDate"
+                       name="receiptDate"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+            </div>
+        </div>
+
+        <div>
+            <label for="referenceOrder" class="block text-sm font-medium text-gray-700 mb-1">
+                Tham chiếu từ lệnh điều chuyển
+            </label>
+            <div class="relative w-full">
+                <input type="text"
+                       id="referenceOrder"
+                       name="referenceOrder"
+                       value="PX-A-20260302-089"
+                       readonly
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-blue-600 font-semibold cursor-not-allowed focus:outline-none shadow-sm">
+            </div>
+        </div>
+
+        <div>
+            <label for="sourceWarehouse" class="block text-sm font-medium text-gray-700 mb-1">
+                Kho điều chuyển (Kho xuất)
+            </label>
+            <input type="text"
+                   id="sourceWarehouse"
+                   name="sourceWarehouse"
+                   value="Kho Tổng Miền Bắc (Kho A)"
+                   readonly
+                   class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed focus:outline-none">
+        </div>
+
+        <div>
+            <label for="receiveNote" class="block text-sm font-medium text-gray-700 mb-1">
+                Ghi chú nhận hàng
+            </label>
+            <textarea id="receiveNote"
+                      name="receiveNote"
+                      rows="2"
+                      placeholder="Nhập ghi chú tình trạng hàng hóa khi nhận (nếu có)..."
+                      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-y"></textarea>
+        </div>
+    </div>
+</div>
+
+
+<div id="myGrid" class="ag-theme-quartz" style="height: 400px; width: 100%;"></div>
+
+<div class="flex justify-end gap-3 mt-6 border-t pt-4">
+    <button type="button" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors font-medium">
+        Hủy bỏ
+    </button>
+    <button type="button" onclick="saveReceipt()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-md transition-colors font-medium">
+        Lưu phiếu nhập
+    </button>
+</div>
+
+<div id="locationSearchModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Sơ đồ Vị trí & Pallet</h3>
+            </div>
+            <button type="button" onclick="closeLocationModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 flex flex-col flex-1 overflow-hidden bg-gray-50">
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-md bg-white p-4">
+
+                <div class="flex gap-4 mb-4 text-sm border-b pb-3">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span> Trống</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-400 mr-2"></span> Đầy</div>
+                </div>
+
+                <div id="locationGridContainer" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+         // init flat pickr for date input
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#receiptDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                minDate: "today",
+                allowInput: true,
+            });
+        });
+
+
+        const rowData = [
+            { 
+                id: "row-1", 
+                itemCode: "SP001", 
+                itemName: "Bàn phím cơ Logitech G Pro", 
+                uom: "Cái", 
+                availableQty: 30, // Số lượng Kho A báo chuyển
+                qty: null,          // Mẹo UX: Tự động điền sẵn bằng số lượng yêu cầu để tiết kiệm thao tác
+                location: "",     // Trống để user click chọn vị trí từ Modal
+                pallet: "" 
+            },
+            { 
+                id: "row-2", 
+                itemCode: "SP002", 
+                itemName: "Chuột không dây Razer DeathAdder", 
+                uom: "Cái", 
+                availableQty: 50, 
+                qty: null,        // Để null để bạn test thao tác click vào ô và tự gõ số
+                location: "", 
+                pallet: "" 
+            },
+            { 
+                id: "row-3", 
+                itemCode: "SP003", 
+                itemName: "Màn hình Dell UltraSharp 27 inch", 
+                uom: "Chiếc", 
+                availableQty: 10, 
+                qty: null,           // Giả lập trường hợp nhận thiếu hàng
+                location: "",// Điền sẵn một vị trí để xem giao diện hiển thị thế nào
+                pallet: "" 
+            }
+        ];
+
+        
+        let gridApi;
+
+        const columnDefs = [
+            {
+                headerName: "Mã Hàng",
+                field: "itemCode",
+                flex: 1.5,
+                editable: false,
+                cellClass: 'hover:bg-blue-50 transition-colors cursor-pointer',
+                
+            },
+            {
+                headerName: "Tên Hàng Hóa",
+                field: "itemName",
+                flex: 2,
+                editable: false,
+                wrapText : true,
+                autoHeight : true,
+                cellClass: 'py-3 px-3 leading-tight'
+            },
+            {
+                headerName: "ĐVT",
+                field: "uom",
+                flex: 1,
+                editable: false ,
+                cellRenderer: function(params) {
+                    return `<div class="flex items-center h-full w-full">${params.value || ''}</div>`;
+                }
+            },
+            {
+                headerName: "Số lượng",
+                field: "availableQty",
+                width: 150,
+                editable: false,
+               // cellClass: 'text-green-700 font-bold bg-green-50 border-r border-gray-200',
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center justify-end h-full w-full pr-2">${val}</div>`;
+                }
+            },
+            {
+                headerName: "Số lượng thực tế",
+                field: "qty",
+                flex: 1,
+                editable: true,
+                cellEditor: 'agNumberCellEditor' ,
+
+                cellEditorParams: {
+                    min: 0.001,
+                    step: 'any',
+                },
+
+                valueParser: function(params) {
+                    const num = parseFloat(params.newValue);
+                    if (isNaN(num) || num <= 0) {
+                        return null;
+                    }
+                    return num;
+                },
+
+                cellClass: 'bg-blue-50 border border-blue-100 cursor-text font-semibold text-blue-700',
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center h-full w-full">${val}</div>`;
+                }
+            },
+            {
+                headerName: "Vị trí",
+                field: "location",
+                width: 150,
+                editable: false,
+              
+                cellClass: 'hover:bg-yellow-100 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const val = params.value || '<span class="text-gray-400 italic"></span>';
+                    return `
+                        <div class="flex justify-between items-center w-full h-full" onclick="openLocationModal('${params.node.id}')">
+                            <span class="${params.value ? 'font-medium text-blue-700' : ''}">${val}</span>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                             </svg>
+                        </div>`;
+                }
+            },
+            {
+                headerName: "Mã Pallet",
+                field: "pallet",
+                width: 150,
+                editable: false,
+               
+                cellRenderer: function(params) {
+                    const val = params.value || '';
+                    return `<div class="flex items-center h-full w-full">
+                                <span class="font-medium text-gray-700">${val}</span>
+                            </div>`;
+                }
+            },
+            {
+                headerName: "Thao tác",
+                width: 100,
+                sortable: false,
+                filter: false,
+                cellRenderer: function(params) {
+                    return `
+                        <button type="button" onclick="deleteRow('${params.node.id}')" class="text-red-500 hover:text-red-700 flex items-center justify-center w-full h-full" title="Xóa dòng này">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>`;
+                }
+            }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+
+            getRowId: params => params.data.id ,
+            pagination: true,
+            paginationPageSize: 20,
+
+            singleClickEdit: true,
+            stopEditingWhenCellsLoseFocus: true
+        };
+
+        function addRow() {
+            const newRecord = {
+                id: Math.random().toString(36).substr(2, 9),
+                itemCode: "",
+                itemName: "",
+                uom: "",
+                qty: null ,
+                referenceCode : ""
+            };
+            gridApi.applyTransaction({ add: [newRecord] });
+        }
+
+        function deleteRow(nodeId) {
+            const rowNode = gridApi.getRowNode(nodeId);
+            if(rowNode) {
+                gridApi.applyTransaction({ remove: [rowNode.data] });
+            }
+            updateReferenceUI();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#myGrid');
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+        });
+
+
+   const locationSearchModal = document.getElementById('locationSearchModal');
+        const locationGridContainer = document.getElementById('locationGridContainer');
+        let currentRowIdForLocation = null;
+
+        function openLocationModal(rowNodeId) {
+            currentRowIdForLocation = rowNodeId;
+            locationSearchModal.classList.remove('hidden');
+            
+            fetchLocationsFromServer(rowNodeId); 
+        }
+
+        function closeLocationModal() {
+            locationSearchModal.classList.add('hidden');
+            currentRowIdForLocation = null;
+        }
+
+        function fetchLocationsFromServer(rowNodeId) {
+            locationGridContainer.innerHTML = `
+                <div class="col-span-full text-center text-gray-500 py-8 flex justify-center items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Đang tải sơ đồ kho từ Server...
+                </div>`;
+
+            setTimeout(() => {
+                const serverData = [
+                    { locCode: "1.1.1", palletCode: "PL-001", status: "empty" },
+                    { locCode: "1.1.2", palletCode: "PL-002", status: "full" },
+                    { locCode: "1.2.3", palletCode: "PL-003", status: "empty" },
+                    { locCode: "1.2.4", palletCode: "PL-004", status: "empty" },
+                    { locCode: "1.3.5", palletCode: "PL-005", status: "empty" },
+                    { locCode: "1.5.6", palletCode: "PL-006", status: "empty" },
+                    { locCode: "2.1.1", palletCode: "PL-007", status: "full" },
+                    { locCode: "2.1.2", palletCode: "PL-008", status: "empty" },
+                ];
+                
+                renderLocationBlocks(serverData);
+            }, 600); 
+        }
+
+            function renderLocationBlocks(data) {
+                locationGridContainer.innerHTML = '';
+                
+                if(!data || data.length === 0) {
+                    locationGridContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8">Không có dữ liệu vị trí từ Server.</div>`;
+                    return;
+                }
+
+                data.forEach(item => {
+                    const isEmpty = item.status === 'empty';
+                    
+                    // CSS base cho khối
+                    const baseClass = "border-2 rounded-lg p-3 text-center transition-all duration-200 flex flex-col justify-center items-center h-24 relative overflow-hidden ";
+                    
+                    // CSS phân loại màu sắc Trống/Đầy
+                    const styleClass = isEmpty 
+                        ? "border-green-400 bg-green-50 hover:bg-green-100 hover:shadow-md cursor-pointer hover:-translate-y-1" 
+                        : "border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed";
+
+                    const block = document.createElement('div');
+                    block.className = baseClass + styleClass;
+                    
+                    if (isEmpty) {
+                        block.onclick = () => selectLocation(item.locCode, item.palletCode);
+                    }
+
+                    block.innerHTML = `
+                        <span class="text-xl font-bold ${isEmpty ? 'text-green-700' : 'text-gray-500'}">${item.locCode}</span>
+                        <span class="text-xs font-medium ${isEmpty ? 'text-green-600' : 'text-gray-400'} mt-1">${item.palletCode}</span>
+                        ${isEmpty ? '<div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>' : ''}
+                    `;
+                    
+                    locationGridContainer.appendChild(block);
+                });
+            }
+
+            function selectLocation(locCode, palletCode) {
+                if (!currentRowIdForLocation) return;
+
+                const rowNode = gridApi.getRowNode(currentRowIdForLocation);
+                if (rowNode) {
+                    rowNode.setDataValue('location', locCode);
+                    rowNode.setDataValue('pallet', palletCode);
+                }
+                closeLocationModal();
+            }
+
+    </script>
+}

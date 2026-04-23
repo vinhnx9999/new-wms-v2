@@ -1,0 +1,44 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+<!DOCTYPE html>
+
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @L["AppTitle"]</title>
+    <script>
+        // Apply saved theme ASAP to avoid FOUC
+        (function() {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) { /* no-op */ }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <!-- Font Awesome Free (local) -->
+    <link rel="stylesheet" href="~/lib/fontawesome/css/all.min.css" asp-append-version="true" />    
+    <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/form-validation.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bulk-operations.css" asp-append-version="true" />
+    <!-- Tailwind compiled CSS last to avoid unintended overrides -->
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body>
+    @await RenderSectionAsync("Styles", required: false)    
+    <div class="layout-container">
+        @await Html.PartialAsync("_Toast")
+        @RenderBody()
+    </div>
+
+    <script src="~/js/form-validation.js"></script>
+    <script src="~/js/bulk-operations.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

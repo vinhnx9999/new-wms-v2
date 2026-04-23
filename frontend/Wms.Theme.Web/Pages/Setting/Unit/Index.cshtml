@@ -1,0 +1,186 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Setting.Unit.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = @L["ListUnit"];
+}
+
+<div class="container p-3">
+    <div class="flex items-start justify-between">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">@L["ListUnit"]</h2>
+        </div>
+        <div class="flex gap-3">
+            <form id="excelFormUnit" asp-action="Setting/Unit/ImportExcel" enctype="multipart/form-data" method="post">
+                <input type="file" name="excelFile" accept=".xlsx,.xls" class="hidden" id="excelUploadUnit" />
+                <label for="excelUploadUnit" class="btn btn-secondary cursor-pointer">
+                    @L["Common_ImportExcel"]
+                </label>
+            </form>
+            <button id="downloadBtnUnit" class="btn btn-primary"
+                    title="@Html.Raw(L["GetTemplate"])">
+                <span class="hidden sm:inline">@Html.Raw(L["GetTemplate"])</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading spinner -->
+<div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background-color:rgba(0,0,0,0.4); z-index:9998;">
+</div>
+
+<div id="loadingSpinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">@Html.Raw(L["Loading"])</span>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+        <div id="unitGrid" class="ag-theme-quartz" style="height: 500px; width: 100%;"></div>
+    </div>
+</div>
+
+<script>
+
+    document.getElementById("downloadBtnUnit").addEventListener("click", async () => {
+        try {
+            const response = await fetch('?handler=DownloadTemplate');
+            if (!response.ok) {
+                throw new Error("Không thể tải file");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "TemplateUnit.xlsx"; // tên file tải về
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            alert(err.message);
+        }
+     });
+
+    document.getElementById("excelUploadUnit").addEventListener("change", function () {
+        // Hiện loading
+        document.getElementById("loadingSpinner").style.display = "block";
+        document.getElementById("loadingOverlay").style.display = "block";
+
+        const form = document.getElementById("excelFormUnit");
+        const formData = new FormData(form);
+
+        fetch('?handler=ImportExcel', {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            // Ẩn loading
+            document.getElementById("loadingOverlay").style.display = "none";
+            document.getElementById("loadingSpinner").style.display = "none";
+
+            if (response.ok) {
+                Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                Notify.info('@Html.Raw(Localizer["Tryagain"])');
+            }
+        })
+        .catch(error => {
+            document.getElementById("loadingSpinner").style.display = "none";
+            document.getElementById("loadingOverlay").style.display = "none";
+            console.error("Lỗi:", error);
+            Notify.error('Connection error');
+        });
+
+    });
+
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Units, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+    
+    const columnDefs = [
+        { field: "unitName", headerName: "Unit Name", flex: 2 },
+        { field: "description", headerName: "Description", flex: 2 },
+        {
+            headerName: "",
+            field: "Id",
+            width: 70,
+            pinned: 'right',
+            cellRenderer: (params) => {
+                const btnDelete = document.createElement("button");
+                btnDelete.innerHTML = "🗑️ ";
+                btnDelete.title = "Delete";
+                btnDelete.addEventListener("click", () => {
+                    params.api.applyTransaction({ remove: [params.node.data] });
+                    deleteUnit(params.data.id)
+                });
+
+                return btnDelete;
+            },
+       },
+    ];
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        // pagination: true,
+        // paginationPageSize: 10,
+        // paginationPageSizeSelector: [10, 20, 50],
+        defaultColDef: {
+            sortable: true,
+            filter: true,
+            resizable: true,
+        },
+
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const gridDiv = document.querySelector('#unitGrid');
+        agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    function deleteUnit(unitId) {
+        let payload = {
+            UnitId: unitId
+        };
+        postData('?handler=DeleteUnit', payload)
+            .then((result) => {
+                isLoading = false;
+                if (!result.success) {
+                    Notify.error(result.message || "Lỗi trong quá trình lưu");
+                } else {
+                    console.log("delete Unit", result);
+                    Notify.success(result.message || 'Completed successfully.');
+                }
+            })
+            .catch((err) => {
+                console.log("[ERROR] delete Unit", err);
+                isLoading = false;
+                Notify.error("Có lỗi xảy ra khi lưu dữ liệu");
+            });
+    }
+
+    async function postData(url, data) {
+        if(!data) return;
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const response = await fetch(url,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(data)
+            }
+        );
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    }
+
+</script>

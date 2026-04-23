@@ -1,0 +1,1123 @@
+@page "/Inbound/Order/Create"
+@model Wms.Theme.Web.Pages.Inbound.Order.CreateModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["CreateInboundOrder"];
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+        display: flex;
+        padding-bottom: 2rem;
+    }
+
+    .timeline-item:last-child {
+        padding-bottom: 0;
+    }
+
+    /* Vertical connector line */
+    .timeline-item::after {
+        content: "";
+        position: absolute;
+        left: 5.5px;
+        top: 18px;
+        /* Start below the dot */
+        bottom: -6px;
+        /* End above the next dot */
+        width: 1.5px;
+        background-color: #e2e8f0;
+        z-index: 0;
+    }
+
+    .timeline-item:last-child::after {
+        display: none;
+    }
+
+    .timeline-item-point {
+        width: 12px;
+        height: 12px;
+        margin-top: 6px;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px #e2e8f0;
+    }
+
+    .timeline-item-content {
+        flex: 1;
+        padding-left: 1.5rem;
+    }
+
+    .timeline-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+</style>
+
+<div class="grid grid-cols-12 gap-6">
+
+    <div class="col-span-12 lg:col-span-9 bg-white p-4 rounded-lg shadow-sm">
+        <h2 class="font-bold text-gray-800 mb-4 border-b pb-2">Thông tin chung</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Mã đối tượng</label>
+                    <select id="goodsOwnerSelect"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500 bg-white">
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Kho nhập <span
+                        class="text-red-500">*</span></label>
+                        <select id="warehouseSelect"
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500 bg-white">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Người thực hiện</label>
+                        <input id="creator" type="text" value="@Model.Creator"
+                               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Diễn giải</label>
+                        <input id="description" type="text" value="Lệnh nhập kho hàng hóa"
+                               class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-gray-700 font-medium mb-1">Tham chiếu</label>
+                        <div class="relative">
+                            <input id="reference" type="text"
+                                   class="w-full border border-gray-300 rounded px-3 py-2 pr-8 focus:outline-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute right-3 top-3 text-gray-400"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Số lệnh nhập kho <span
+                            class="text-red-500">*</span></label>
+                            <input id="asnNo" type="text" value="@Model.AsnNo"
+                                   class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-1">Ngày lập lệnh</label>
+                            <div class="relative">
+                                <input id="createTime" type="text" value="@Model.CurrentDate"
+                                       class="datetime-picker w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                            </div>
+                        </div>
+                        <div class="hidden">
+                            <label class="block text-gray-700 font-medium mb-1">Hạn nhập kho</label>
+                            <div class="relative">
+                                <input id="estimatedArrival" type="text" value="@Model.CurrentDate"
+                                       class="datetime-picker w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-span-12 lg:col-span-3 bg-white p-4 rounded-lg shadow-sm h-full">
+                <h2 class="font-bold text-gray-800 mb-4 border-b pb-2">Theo dõi tình trạng</h2>
+                <!-- TODO:  update soon -->
+            </div>
+
+        </div>
+
+        <div class="p-6" x-data="orderDetailTable()">
+            <h3 class="font-bold text-lg text-gray-800 mb-4">Hàng hóa</h3>
+
+            <!-- Search Bar -->
+            <div class="mb-4">
+                <div class="relative w-full max-w-sm">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                             viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <input type="text"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5"
+                           placeholder="Tìm kiếm..." required>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto border rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-2 py-2 w-12">#</th>
+                            <th scope="col" class="px-2 py-2 w-48">Mã hàng</th>
+                            <th scope="col" class="px-2 py-2 w-40">Tên hàng</th>
+                            <th scope="col" class="px-2 py-2 w-32">Mã quy cách</th>
+                            <th scope="col" class="px-2 py-2 w-28">ĐVT</th>
+                            <th scope="col" class="px-2 py-2 w-24">SL yêu cầu</th>
+                            <th scope="col" class="px-2 py-2 w-24">SL thực nhập</th>
+                            <th scope="col" class="px-2 py-2 w-18 text-center">Đánh dấu đủ</th>
+                            <th scope="col" class="px-2 py-2 w-28">Số lô</th>
+                            <th scope="col" class="px-2 py-2 w-28">Pallet</th>
+                            <th scope="col" class="px-2 py-2 w-36">Hạn sử dụng</th>
+                            <th scope="col" class="px-2 py-2 w-20"></th>
+                        </tr>
+                    </thead>
+                    <template x-for="(item, index) in paginatedItems" :key="getRealIndex(index)">
+                        <tbody>
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-1 py-1" x-text="getRealIndex(index) + 1"></td>
+                                <td class="px-1 py-1">
+                                    <select x-model="item.skuId"
+                                        @@change="onSkuChange(getRealIndex(index), $event.target.value)"
+                                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                        <option value="">Chọn hàng hóa</option>
+                                        <template x-for="sku in skuOptions" :key="sku.sku_id">
+                                            <option :value="sku.sku_id" x-text="sku.sku_code + ' - ' + sku.sku_name"></option>
+                                        </template>
+                                    </select>
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="text" x-model="item.skuName" readonly
+                                           class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded block w-full p-1.5 cursor-not-allowed">
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="text"
+                                           class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded block w-full p-1.5 cursor-not-allowed">
+                                </td>
+                                <td class="px-1 py-1">
+                                    <select x-model="item.unit" @@change="onUomChange(getRealIndex(index), item.unit)"
+                                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                        <option value="">Đơn vị</option>
+                                        <template x-for="uom in getUomOptions(item.skuId)" :key="uom.unitName">
+                                            <option :value="uom.unitName" x-text="uom.unitName"
+                                                    :selected="item.unit === uom.unitName"></option>
+                                        </template>
+                                    </select>
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="number" x-model="item.qtyRequiredDecimal" min="0" step="0.01"
+                                           class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 text-right">
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="number" x-model="item.qtyReceivedDecimal" min="0" step="0.01"
+                                           class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 text-right">
+                                </td>
+                                <td class="px-1 py-1 text-center">
+                                    <input type="checkbox" x-model="item.isFull" @@change="toggleFull(index)"
+                                           class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="text" x-model="item.lotNo"
+                                           class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                </td>
+                                <!-- hidden field -->
+                                <!-- waiting for my flow to implement -->
+                                <td class="px-1 py-1" hidden>
+                                    <input type="text" x-model="item.location" readonly
+                                    @@click="openLocationPicker(getRealIndex(index))"
+                                           class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 cursor-pointer"
+                                           placeholder="Chọn vị trí">
+                                </td>
+
+                                <!-- Pallet column - Dropdown with Search + Teleport -->
+                                <td class="px-1 py-1">
+                                    <div x-data="palletDropdown(getRealIndex(index))" class="relative">
+                                        <!-- Trigger Button -->
+                                        <button type="button" x-ref="triggerBtn" @@click="toggle()"
+                                                class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between w-full p-1.5"
+                                                :class="item.palletCode ? 'text-blue-600 font-medium' : 'text-gray-400'">
+                                            <span x-text="item.palletCode || 'Chọn pallet...'" class="truncate"></span>
+                                            <template x-if="item.isGeneratingPallet">
+                                                <svg class="animate-spin h-4 w-4 text-blue-500 ml-1"
+                                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                            stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                    </path>
+                                                </svg>
+                                            </template>
+                                            <template x-if="!item.isGeneratingPallet">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                     class="h-4 w-4 transition-transform duration-200 text-gray-400"
+                                                     :class="isShowPopper && 'rotate-180'" fill="none" viewBox="0 0 24 24"
+                                                     stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </template>
+                                        </button>
+                                        <input type="hidden" x-model="item.palletId">
+
+                                        <!-- Teleported Dropdown Popper -->
+                                        <template x-teleport="#x-teleport-target">
+                                            <div x-show="isShowPopper" x-ref="popperRoot" @@click.outside="closePopper($event)"
+                                                 x-transition:enter="transition ease-out duration-150"
+                                                 x-transition:enter-start="opacity-0 scale-95"
+                                                 x-transition:enter-end="opacity-100 scale-100"
+                                                 x-transition:leave="transition ease-in duration-100"
+                                                 x-transition:leave-start="opacity-100 scale-100"
+                                                 x-transition:leave-end="opacity-0 scale-95" :style="popperStyle"
+                                                 class="fixed z-[9999] w-64 rounded-md border border-slate-200 bg-white shadow-lg dark:border-navy-600 dark:bg-navy-700"
+                                                 style="min-width: 250px;">
+
+                                                <!-- Search Input -->
+                                                <div class="p-2 border-b border-slate-150 dark:border-navy-600">
+                                                    <div class="relative">
+                                                        <input type="text" x-model="searchKeyword" x-ref="searchInput"
+                                                        @@input.debounce.300ms="search()"
+                                                        @@keydown.escape="isShowPopper = false"
+                                                               class="form-input w-full border border-slate-200 bg-transparent px-3 py-1.5 pl-8 text-sm placeholder:text-slate-400/70 rounded focus:border-blue-500 dark:border-navy-600"
+                                                               placeholder="Tìm mã pallet...">
+                                                        <div
+                                                            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                            </svg>
+                                                        </div>
+                                                        <template x-if="isLoading">
+                                                            <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+                                                                <svg class="animate-spin h-4 w-4 text-blue-500"
+                                                                     xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                                     viewBox="0 0 24 24">
+                                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                                            stroke="currentColor" stroke-width="4"></circle>
+                                                                    <path class="opacity-75" fill="currentColor"
+                                                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                                </svg>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Pallet List -->
+                                                <ul class="max-h-48 overflow-y-auto py-1">
+                                                    <template x-if="pallets.length === 0 && !isLoading">
+                                                        <li class="px-3 py-2 text-sm text-slate-500 text-center">
+                                                            <span
+                                                            x-text="searchKeyword ? 'Không tìm thấy' : 'Nhập để tìm kiếm'"></span>
+                                                        </li>
+                                                    </template>
+                                                    <template x-for="pallet in pallets" :key="pallet.pallet_code">
+                                                        <li>
+                                                            <button type="button" @@click="selectPallet(pallet)"
+                                                                    :disabled="isUsedByOtherRow(pallet)"
+                                                                    class="flex items-center justify-between w-full px-3 py-2 text-sm transition-all outline-none"
+                                                                    :class="isUsedByOtherRow(pallet)
+                                                                ? 'text-red-400 bg-red-50 cursor-not-allowed opacity-60'
+                                                                : (item.palletCode === pallet.pallet_code
+                                                                ? 'bg-blue-50 text-blue-700'
+                                                                : 'text-slate-700 hover:bg-slate-100 dark:text-navy-100 dark:hover:bg-navy-600')">
+                                                                <div class="flex flex-col items-start">
+                                                                    <span class="font-medium"
+                                                                          x-text="pallet.pallet_code"></span>
+                                                                    <span class="text-xs text-slate-400"
+                                                                          x-text="formatDate(pallet.create_time)"></span>
+                                                                </div>
+                                                                <template x-if="item.palletCode === pallet.pallet_code">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                         class="h-4 w-4 text-blue-600" fill="none"
+                                                                         viewBox="0 0 24 24" stroke="currentColor"
+                                                                         stroke-width="2">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                                              d="M5 13l4 4L19 7" />
+                                                                    </svg>
+                                                                </template>
+                                                                <template x-if="isUsedByOtherRow(pallet)">
+                                                                    <span class="text-xs text-red-400">Đã dùng</span>
+                                                                </template>
+                                                            </button>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+
+                                                <!-- Pagination Footer -->
+                                                <template x-if="totalPages > 1">
+                                                    <div
+                                                        class="flex items-center justify-between px-3 py-2 border-t border-slate-150 text-xs text-slate-500 dark:border-navy-600">
+                                                        <span x-text="`${pageIndex}/${totalPages}`"></span>
+                                                        <div class="flex gap-1">
+                                                            <button type="button" @@click="prevPage()"
+                                                                    :disabled="pageIndex <= 1"
+                                                                    class="px-2 py-0.5 border rounded hover:bg-slate-100 disabled:opacity-50">
+                                                                ←
+                                                            </button>
+                                                            <button type="button" @@click="nextPage()"
+                                                                    :disabled="pageIndex >= totalPages"
+                                                                    class="px-2 py-0.5 border rounded hover:bg-slate-100 disabled:opacity-50">
+                                                                →
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td class="px-1 py-1">
+                                    <input type="text" x-model="item.expiryDate" x-init="flatpickr($el, { 
+                                    dateFormat: 'Y-m-d', 
+                                    altInput: true, 
+                                    altFormat: 'd/m/Y',
+                                    allowInput: true 
+                                    })"
+                                           class="date-picker bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5"
+                                           placeholder="dd/mm/yyyy">
+                                </td>
+                                <td class="px-1 py-1 flex gap-1.5">
+                                    <button @@click="toggleNote(getRealIndex(index))" type="button"
+                                        class="font-medium hover:bg-gray-100 p-1 rounded"
+                                        :class="item.showNote ? 'text-blue-600' : 'text-gray-400'" title="Thêm ghi chú">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
+                                    </button>
+                                    <button @@click="removeRow(getRealIndex(index))" type="button"
+                                        class="font-medium text-red-600 hover:underline">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr x-show="item.showNote" class="bg-gray-50 border-b">
+                                <td class="px-2 py-1.5"></td>
+                                <td class="px-2 py-1.5"></td>
+                                <td class="px-2 py-1.5" colspan="10">
+                                    <input type="text" x-model="item.description" placeholder="Nhập ghi chú..."
+                                           class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                </td>
+                                <td colspan="9"></td>
+                            </tr>
+                        </tbody>
+                    </template>
+                    <tbody>
+                        <tr class="bg-gray-50 font-bold text-gray-700">
+                            <td colspan="5" class="px-4 py-2 text-right">Tổng số: <span x-text="items.length"></span></td>
+                            <td class="px-4 py-2 text-right" x-text="totalQtyRequired()"></td>
+                            <td class="px-4 py-2 text-right" x-text="totalQtyReceived()"></td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination & Page Size -->
+            <div class="flex items-center justify-end mt-4 gap-2 text-sm text-gray-600">
+                <span>Số dòng/trang</span>
+                <select class="border border-gray-300 rounded p-1 focus:outline-blue-500" x-model="pageSize"
+                    @@change="changePageSize($event.target.value)">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span>
+                    <span x-text="startIndex"></span> - <span x-text="endIndex"></span>
+                    của <span x-text="items.length"></span>
+                </span>
+                <div class="flex gap-1">
+                    <button @@click="firstPage()" :disabled="currentPage === 1"
+                        class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                            <path fill-rule="evenodd"
+                                  d="M15.79 14.77a.75.75 0 0 1-1.06.02l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 1 1 1.04 1.08L11.832 10l3.938 3.71a.75.75 0 0 1 .02 1.06Zm-6 0a.75.75 0 0 1-1.06.02l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 1 1 1.04 1.08L5.832 10l3.938 3.71a.75.75 0 0 1 .02 1.06Z"
+                                  clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button @@click="prevPage()" :disabled="currentPage === 1"
+                        class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                            <path fill-rule="evenodd"
+                                  d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.832 10l3.938 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z"
+                                  clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button @@click="nextPage()" :disabled="currentPage === totalPages || totalPages === 0"
+                        class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                            <path fill-rule="evenodd"
+                                  d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z"
+                                  clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button @@click="lastPage()" :disabled="currentPage === totalPages || totalPages === 0"
+                        class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                            <path fill-rule="evenodd"
+                                  d="M4.21 6.23a.75.75 0 0 1 1.06-.02l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 1 1-1.04-1.08L8.168 10 4.23 6.29a.75.75 0 0 1-.02-1.06Zm6 0a.75.75 0 0 1 1.06-.02l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 1 1-1.04-1.08L14.168 10 10.23 6.29a.75.75 0 0 1-.02-1.06Z"
+                                  clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <button @@click="addRow()" type="button"
+                    class="flex items-center gap-1 px-3 py-1.5 text-blue-600 border border-blue-600 rounded hover:bg-blue-50 font-medium text-sm transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Thêm dòng
+                </button>
+                <button @@click="clearAll()" type="button"
+                    class="flex items-center gap-1 px-3 py-1.5 text-gray-700 border border-gray-300 rounded hover:bg-gray-50 font-medium text-sm transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                    Xóa hết dòng
+                </button>
+            </div>
+        </div>
+
+        <div class="h-20"></div>
+
+        <div
+            class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+            <div class="container mx-auto flex justify-end items-center gap-3">
+
+                <button type="button" onclick="window.saveDraftForm()"
+                        class="px-4 py-2 border border-blue-600 rounded text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+                    Lưu tạm
+                </button>
+
+                <button type="button" onclick="window.submitOrderForm()"
+                        class="px-4 py-2 bg-blue-600 border border-blue-600 rounded text-white hover:bg-blue-700 transition-colors font-medium shadow-sm">
+                    Hoàn thành
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- Modal: choose location (shows only location name) -->
+        <div x-data="locationPickerModal()">
+            <template x-teleport="#x-teleport-target">
+                <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden px-4 py-6 sm:px-5"
+                     x-show="showModal" role="dialog" @@keydown.window.escape="close()">
+                    <div class="absolute inset-0 bg-slate-900/60 transition-opacity duration-300" @@click="close()"
+                         x-show="showModal" x-transition:enter="ease-out" x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100" x-transition:leave="ease-in" x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"></div>
+
+                    <div class="relative w-full max-w-2xl origin-bottom rounded-lg bg-white pb-4 transition-all duration-300 dark:bg-navy-700"
+                         x-show="showModal" x-transition:enter="easy-out" x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100" x-transition:leave="easy-in"
+                         x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+
+                        <div class="flex justify-between rounded-t-lg bg-slate-200 px-4 py-3 dark:bg-navy-800 sm:px-5">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-base font-medium text-slate-700 dark:text-navy-100"
+                                    x-text="mode === 'pallet' ? 'Chọn vị trí theo pallet' : 'Chọn vị trí'">
+                                </h3>
+                                <template x-if="mode === 'pallet'">
+                                    <select x-model="activePalletCode" @@change="setActivePallet(activePalletCode)"
+                                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block p-1.5 min-w-[180px]">
+                                        <template x-for="p in palletList" :key="p.palletCode">
+                                            <option :value="p.palletCode" x-text="p.palletCode"></option>
+                                        </template>
+                                    </select>
+                                </template>
+                            </div>
+                            <button @@click="close()"
+                                class="btn -mr-1.5 size-7 rounded-full p-0 hover:bg-slate-300/20 focus:bg-slate-300/20 active:bg-slate-300/25 dark:hover:bg-navy-300/20 dark:focus:bg-navy-300/20 dark:active:bg-navy-300/25">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="mt-3 max-h-[420px] overflow-auto px-2 sm:px-3">
+                            <template x-if="filteredLocations.length === 0">
+                                <div class="px-4 py-6 text-sm text-slate-500">Không có dữ liệu vị trí.</div>
+                            </template>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <template x-for="(loc, idx) in filteredLocations" :key="idx">
+                                    <button type="button" @@click="choose(loc)"
+                                            :disabled="(() => { const id = getLocationId(loc); return id !== null && isTaken(id) && id !== selectedLocationId; })()"
+                                            class="w-full rounded border bg-white px-4 py-3 text-left shadow-sm focus:outline-none focus:ring-2 dark:bg-navy-700"
+                                            :class="(() => {
+                                        const id = getLocationId(loc);
+                                        const selected = (id !== null && id === selectedLocationId);
+                                        const disabled = (id !== null && isTaken(id) && id !== selectedLocationId);
+                                        if (selected) return 'border-red-500 bg-red-50 ring-red-200 dark:border-red-400 dark:bg-red-500/10';
+                                        if (disabled) return 'border-red-300 bg-red-50 text-red-700 opacity-70 cursor-not-allowed ring-transparent dark:border-red-400 dark:bg-red-500/10';
+                                        return 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 ring-blue-500 dark:border-navy-600 dark:hover:bg-navy-600';
+                                        })()">
+                                        <div class="text-sm font-medium"
+                                             :class="(() => { const id = getLocationId(loc); return (id !== null && id === selectedLocationId) ? 'text-red-700 dark:text-red-200' : 'text-slate-800 dark:text-navy-100'; })()"
+                                             x-text="getLocationName(loc)"></div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                        <template x-if="mode === 'pallet'">
+                            <div class="mt-3 flex items-center justify-end gap-2 px-4 sm:px-5">
+                                <button type="button" @@click="close()"
+                                        class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                                    Hủy
+                                </button>
+                                <button type="button" @@click="finish()" :disabled="!canFinish"
+                                        class="px-4 py-2 bg-blue-600 border border-blue-600 rounded text-white hover:bg-blue-700 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Hoàn thành
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+
+        @section Scripts
+        {
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+            <script>
+                // ===== FLATPICKR INITIALIZATION =====
+                window.initFlatpickr = function (scope = document) {
+                if (typeof flatpickr === 'undefined') return;
+                const datetimeInputs = scope.querySelectorAll('.datetime-picker');
+                if (datetimeInputs.length > 0) {
+                flatpickr(datetimeInputs, { dateFormat: "d/m/Y H:i", enableTime: true, time_24hr: true, allowInput: true, defaultDate: new Date() });
+                }
+                const dateInputs = scope.querySelectorAll('.date-picker');
+                if (dateInputs.length > 0) {
+                flatpickr(dateInputs, { dateFormat: "d/m/Y", allowInput: true });
+                }
+                };
+                document.addEventListener("DOMContentLoaded", function () { window.initFlatpickr(); });
+            </script>
+            <script>
+                // ===== GLOBAL VARIABLES =====
+                let globalSkuList = [];
+                let globalSkuUomList = [];
+                let globalGoodsOwnerList = [];
+                let globalSupplierList = [];
+                let globalWarehouseList = [];
+                let globalGoodLocationList = [];
+
+                // ===== HELPER FUNCTIONS =====
+                async function fetchData(url) {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+                }
+
+                async function postData(url, data) {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+                }
+
+                function renderGoodsOwnerOptions(data) {
+                const select = document.getElementById('goodsOwnerSelect');
+                if (!select) return;
+                let html = `<option value="">Chọn đối tượng</option>`;
+                data.forEach(item => { html += `<option value="${item.id}" data-name="${item.goods_owner_name}">${item.goods_owner_name}</option>`; });
+                select.innerHTML = html;
+                }
+
+                function renderSupplierOptions(data) {
+                const select = document.getElementById('supplierSelect');
+                if (!select) return;
+                let html = `<option value="">Chọn nhà cung cấp</option>`;
+                data.forEach(item => { html += `<option value="${item.id}">${item.supplier_name}</option>`; });
+                select.innerHTML = html;
+                }
+
+                function renderWarehouseOptions(data) {
+                const select = document.getElementById('warehouseSelect');
+                if (!select) return;
+                let html = `<option value="">Chọn kho</option>`;
+                data.forEach(item => {
+                const name = item.WarehouseName || item.warehouseName || item.warehouse_name || 'N/A';
+                html += `<option value="${item.id}">${name}</option>`;
+                });
+                select.innerHTML = html;
+                }
+
+                // ===== DOMContentLoaded =====
+                document.addEventListener("DOMContentLoaded", function () {
+                Promise.all([
+                fetchData('?handler=LoadGoodsOwner'),
+                fetchData('?handler=LoadSkuSelect'),
+                fetchData('?handler=LoadSupplier'),
+                fetchData('?handler=LoadSkuUom'),
+                fetchData('?handler=LoadWarehouse'),
+                ]).then(([owners, skus, suppliers, uoms, warehouses]) => {
+                globalGoodsOwnerList = (owners?.data) || [];
+                globalSkuList = (skus?.data) || [];
+                globalSupplierList = (suppliers?.data) || [];
+                globalSkuUomList = (uoms?.data) || [];
+                globalWarehouseList = (warehouses?.data) || [];
+                globalGoodLocationList = [];
+                window.__goodLocations = [];
+
+                if (globalGoodsOwnerList.length > 0) renderGoodsOwnerOptions(globalGoodsOwnerList);
+                if (globalSupplierList.length > 0) renderSupplierOptions(globalSupplierList);
+                if (globalWarehouseList.length > 0) renderWarehouseOptions(globalWarehouseList);
+
+                window.dispatchEvent(new CustomEvent('master-data-loaded'));
+                }).catch(err => {
+                console.error('Error loading master data:', err);
+                if (typeof Notify !== 'undefined') Notify.error('Không thể tải dữ liệu.');
+                });
+                });
+
+                // ===== PALLET DROPDOWN COMPONENT =====
+                // ===== PALLET DROPDOWN COMPONENT =====
+                function palletDropdown(rowIndex) {
+                return {
+                rowIndex: rowIndex,
+                isShowPopper: false,
+                searchKeyword: '',
+                pallets: [],
+                pageIndex: 1,
+                pageSize: 10,
+                total: 0,
+                totalPages: 0,
+                isLoading: false,
+                popperPosition: { top: 0, left: 0 },
+
+
+                getItem() {
+                const items = Alpine.store('orderItems') || [];
+                return items[this.rowIndex] || {};
+                },
+
+                get item() {
+                return this.getItem();
+                },
+
+                get popperStyle() {
+                return `top: ${this.popperPosition.top}px; left: ${this.popperPosition.left}px;`;
+                },
+
+                updatePopperPosition() {
+                const btn = this.$refs.triggerBtn;
+                if (!btn) return;
+                const rect = btn.getBoundingClientRect();
+                const dropdownHeight = 280; // estimated max height
+                const dropdownWidth = 250;
+
+                // Check if dropdown would go below viewport
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+
+                let top, left;
+
+                if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
+                // Show below
+                top = rect.bottom + 4;
+                } else {
+                // Show above
+                top = rect.top - dropdownHeight - 4;
+                }
+
+                // Horizontal positioning
+                left = rect.left;
+                if (left + dropdownWidth > window.innerWidth) {
+                left = window.innerWidth - dropdownWidth - 10;
+                }
+
+                this.popperPosition = { top, left };
+                },
+
+                async toggle() {
+                this.isShowPopper = !this.isShowPopper;
+                if (this.isShowPopper) {
+                this.searchKeyword = '';
+                this.pageIndex = 1;
+                this.updatePopperPosition();
+                await this.search();
+                // Focus search input after opening
+                this.$nextTick(() => {
+                const searchInput = document.querySelector('#x-teleport-target input[placeholder="Tìm mã pallet..."]');
+                if (searchInput) searchInput.focus();
+                });
+                }
+                },
+
+                closePopper(event) {
+                // Check if click is on the trigger button (to avoid double toggle)
+                const btn = this.$refs.triggerBtn;
+                if (btn && btn.contains(event.target)) return;
+                this.isShowPopper = false;
+                },
+
+                async search() {
+                this.isLoading = true;
+                try {
+                const searchObjects = [];
+                if (this.searchKeyword.trim()) {
+                // Match C# SearchObject model: PascalCase + Operator enum (6 = Contains)
+                searchObjects.push({
+                Label: 'PalletCode',
+                Name: 'PalletCode',
+                Operator: 6,
+                Value: this.searchKeyword.trim(),
+                Text: this.searchKeyword.trim()
+                });
+                }
+                const result = await postData('?handler=SearchPallets', { pageIndex: this.pageIndex, pageSize: this.pageSize, searchObjects: searchObjects });
+                if (result.success && result.data) {
+                this.pallets = result.data.rows || [];
+                this.total = result.data.total || 0;
+                this.totalPages = result.data.totalPages || 0;
+                } else {
+                this.pallets = []; this.total = 0; this.totalPages = 0;
+                }
+                } catch (err) { console.error('Search pallets error:', err); this.pallets = []; }
+                finally { this.isLoading = false; }
+                },
+
+                async prevPage() { if (this.pageIndex > 1) { this.pageIndex--; await this.search(); } },
+                async nextPage() { if (this.pageIndex < this.totalPages) { this.pageIndex++; await this.search(); } },
+
+                isUsedByOtherRow(pallet) {
+                const code = pallet?.pallet_code || '';
+                if (!code) return false;
+                const currentItem = this.getItem();
+                if (currentItem && code === currentItem.palletCode) return false;
+                const items = Alpine.store('orderItems') || [];
+                return items.some((x, i) => i !== this.rowIndex && x?.palletCode === code);
+                },
+
+                selectPallet(pallet) {
+                if (this.isUsedByOtherRow(pallet)) return;
+                const currentItem = this.getItem();
+                if (currentItem) {
+                currentItem.palletCode = pallet.pallet_code || '';
+                currentItem.palletId = pallet.id || 0;
+                }
+                this.isShowPopper = false;
+                },
+
+                formatDate(dateStr) {
+                if (!dateStr) return '';
+                try { return new Date(dateStr).toLocaleDateString('vi-VN'); } catch { return dateStr; }
+                }
+                };
+                }
+
+                // ===== LOCATION PICKER MODAL =====
+                function locationPickerModal() {
+                return {
+                showModal: false, keyword: '', mode: 'row', isWizard: false, rowIndex: null,
+                palletId: null, palletCode: '', palletList: [], palletCodes: [], activePalletCode: null,
+                palletLocationMap: {}, action: null, selectedLocationId: null, selectedLocationName: '',
+                takenLocationIds: [], locations: [],
+
+
+                init() {
+                window.addEventListener('open-location-modal', (e) => {
+                this.mode = (e?.detail?.mode === 'pallet') ? 'pallet' : 'row';
+                this.isWizard = Boolean(e?.detail?.isWizard);
+                this.rowIndex = e?.detail?.rowIndex ?? null;
+                this.palletList = Array.isArray(e?.detail?.palletList) ? e.detail.palletList : [];
+                // Use palletCodes instead of palletIds for consistent string-based keys
+                this.palletCodes = this.palletList.map(p => p.palletCode).filter(Boolean);
+                this.palletLocationMap = (typeof e?.detail?.palletLocationMap === 'object') ? e.detail.palletLocationMap : {};
+                this.action = e?.detail?.action ?? null;
+                // Set initial active pallet by code
+                this.activePalletCode = this.palletCodes?.[0] ?? null;
+                if (this.mode === 'pallet' && this.activePalletCode) {
+                this.setActivePallet(this.activePalletCode);
+                } else {
+                this.palletCode = e?.detail?.palletCode ?? '';
+                this.selectedLocationId = e?.detail?.currentLocationId ?? null;
+                this.selectedLocationName = e?.detail?.currentLocationName ?? '';
+                this.takenLocationIds = Array.isArray(e?.detail?.takenLocationIds) ? e.detail.takenLocationIds : [];
+                }
+                this.keyword = '';
+                this.locations = Array.isArray(window.__goodLocations) ? window.__goodLocations : [];
+                this.showModal = true;
+                });
+                },
+
+                close() {
+                this.showModal = false; this.rowIndex = null; this.palletId = null; this.palletCode = '';
+                this.palletList = []; this.palletCodes = []; this.activePalletCode = null;
+                this.palletLocationMap = {}; this.action = null; this.mode = 'row'; this.isWizard = false;
+                },
+
+                setActivePallet(palletCode) {
+                if (!palletCode) return;
+                this.activePalletCode = palletCode;
+                this.palletCode = palletCode;
+                const p = (this.palletList || []).find(x => x?.palletCode === palletCode);
+                this.palletId = p?.id || 0;
+                // Get current location for this pallet from map (keyed by palletCode)
+                const current = this.palletLocationMap?.[palletCode] ?? null;
+                this.selectedLocationId = current?.locationId ?? null;
+                this.selectedLocationName = current?.locationName ?? '';
+                // Build taken list from other pallets
+                const taken = [];
+                for (const [k, v] of Object.entries(this.palletLocationMap || {})) {
+                if (k !== palletCode && Number(v?.locationId) > 0) {
+                taken.push(Number(v.locationId));
+                }
+                }
+                this.takenLocationIds = [...new Set(taken)];
+                },
+
+                get canFinish() {
+                if (this.mode !== 'pallet' || !this.palletCodes?.length) return false;
+                // Check all pallets have locations assigned
+                return !this.palletCodes.some(code => !(Number(this.palletLocationMap?.[code]?.locationId) > 0));
+                },
+
+                getLocationId(loc) { const n = Number(loc?.id ?? loc?.Id); return Number.isFinite(n) ? n : null; },
+                getLocationName(loc) { return loc?.location_name ?? loc?.locationName ?? loc?.LocationName ?? loc?.name ?? ''; },
+                isTaken(locId) { return locId != null && this.takenLocationIds.includes(locId); },
+                get filteredLocations() {
+                const kw = (this.keyword || '').trim().toLowerCase();
+                return kw ? this.locations.filter(l => this.getLocationName(l).toLowerCase().includes(kw)) : this.locations;
+                },
+
+                choose(loc) {
+                const locId = this.getLocationId(loc), name = this.getLocationName(loc);
+                if (!name || (locId != null && this.isTaken(locId) && locId !== this.selectedLocationId)) return;
+                this.selectedLocationId = locId;
+                this.selectedLocationName = name;
+                if (this.mode === 'pallet') {
+                const code = this.activePalletCode;
+                if (!code) return;
+                // Store by palletCode (string) key
+                this.palletLocationMap[code] = { locationId: locId, locationName: name };
+                // Refresh state for current pallet
+                this.setActivePallet(code);
+                } else {
+                window.dispatchEvent(new CustomEvent('location-selected', { detail: { rowIndex: this.rowIndex, locationId: locId, locationName: name } }));
+                this.close();
+                }
+                },
+
+                finish() {
+                if (this.mode !== 'pallet' || !this.canFinish) {
+                Notify?.error('Vui lòng chọn vị trí cho tất cả pallet.');
+                return;
+                }
+                window.dispatchEvent(new CustomEvent('pallet-locations-finished', {
+                detail: { action: this.action, palletLocationMap: this.palletLocationMap }
+                }));
+                this.close();
+                }
+                };
+                }
+
+                // ===== ORDER DETAIL TABLE =====
+                function orderDetailTable() {
+                return {
+                dataLoaded: false, palletLocationMap: {}, items: [], pageSize: 20, currentPage: 1,
+
+                createItem(palletId = 0, palletCode = '') {
+                return {
+                skuId: '', skuCode: '', skuName: '', spuId: 0, spuCode: '', spuName: '',
+                uomId: 0, uomCode: '', unit: '', qtyRequired: 1, qtyRequiredDecimal: 1.00,
+                qtyReceived: 0, qtyReceivedDecimal: 0.00, isFull: false, lotNo: '',
+                locationId: null, location: '', palletId: palletId, palletCode: palletCode,
+                expiryDate: '', description: '', showNote: false, isGeneratingPallet: false
+                };
+                },
+
+                init() {
+                this.items = [];
+                Alpine.store('orderItems', this.items);
+                this.$watch('items', (v) => Alpine.store('orderItems', v));
+
+                window.addEventListener('master-data-loaded', () => { this.dataLoaded = true; });
+                window.addEventListener('location-selected', (e) => {
+                const idx = e?.detail?.rowIndex; if (idx == null || !this.items?.[idx]) return;
+                this.items[idx].locationId = e.detail.locationId ?? null;
+                this.items[idx].location = e.detail.locationName ?? '';
+                });
+                window.addEventListener('pallet-locations-finished', async (e) => {
+                if (e?.detail?.action && e?.detail?.palletLocationMap) await this.onPalletLocationsFinished(e.detail.action, e.detail.palletLocationMap);
+                });
+                if (globalSkuList.length > 0) this.dataLoaded = true;
+                window.saveDraftForm = () => this.prepareLocationsThenSubmit('Draft');
+                window.submitOrderForm = () => this.prepareLocationsThenSubmit('Submit');
+                },
+
+                async addRow() {
+                const newItem = this.createItem();
+                newItem.isGeneratingPallet = true;
+                this.items.push(newItem);
+                const newIndex = this.items.length - 1;
+                try {
+                const result = await postData('?handler=GeneratePalletCode', {});
+                if (result.success && result.data) {
+                // JSON returns: { id, pallet_code } (snake_case from C# JsonPropertyName)
+                this.items[newIndex].palletId = result.data.id || 0;
+                this.items[newIndex].palletCode = result.data.pallet_code || '';
+                }
+                } catch (err) { console.error('Error generating pallet:', err); }
+                finally { if (this.items[newIndex]) this.items[newIndex].isGeneratingPallet = false; }
+                },
+
+                buildPalletLocationPrefill(rows) {
+                const map = {}, grouped = {};
+                (rows || []).forEach(r => { const c = r?.palletCode; if (c) { grouped[c] = grouped[c] || []; grouped[c].push(r); } });
+                Object.keys(grouped).forEach(c => {
+                const locs = [...new Set(grouped[c].map(x => Number(x?.locationId) || 0).filter(x => x > 0))];
+                if (locs.length === 1) map[c] = { locationId: locs[0], locationName: grouped[c].find(x => Number(x?.locationId) === locs[0])?.location || '' };
+                });
+                return map;
+                },
+
+                applyPalletLocationsToRows(rows) {
+                (rows || []).forEach(r => {
+                const loc = this.palletLocationMap?.[r?.palletCode];
+                if (loc) { r.locationId = loc.locationId; r.location = loc.locationName; }
+                });
+                },
+
+                async prepareLocationsThenSubmit(action) {
+                try {
+                const rows = this.items.filter(x => x?.skuId);
+                if (rows.some(x => !x.palletCode)) { Notify.error('Vui lòng chọn pallet cho tất cả dòng hàng hóa.'); return; }
+                const palletCodes = [...new Set(rows.map(r => r.palletCode).filter(Boolean))];
+                if (!palletCodes.length) { Notify.error('Vui lòng chọn pallet hợp lệ.'); return; }
+
+                this.palletLocationMap = this.buildPalletLocationPrefill(rows);
+                const palletList = palletCodes.map(c => ({ id: rows.find(r => r.palletCode === c)?.palletId || 0, palletCode: c }));
+                const goodLocations = await fetchData(`?handler=GoodLocations&totalPalletNeed=${palletCodes.length}`);
+                window.__goodLocations = Array.isArray(goodLocations) ? goodLocations : (goodLocations?.data || []);
+                const palletIds = palletCodes.map(c => rows.find(r => r.palletCode === c)?.palletId || c);
+
+                window.dispatchEvent(new CustomEvent('open-location-modal', {
+                detail: { mode: 'pallet', isWizard: true, action, palletIds, palletList, palletLocationMap: this.palletLocationMap, activePalletId: palletIds[0] }
+                }));
+                } catch (err) { Notify.error('Có lỗi: ' + (err?.message || 'Unknown')); }
+                },
+
+                async onPalletLocationsFinished(action, map) {
+                try {
+                this.palletLocationMap = map || {};
+                const rows = this.items.filter(x => x?.skuId);
+                this.applyPalletLocationsToRows(rows);
+                if (rows.some(x => !(Number(x.locationId) > 0))) { Notify.error('Vui lòng chọn vị trí cho tất cả pallet.'); return; }
+                await this.submitForm(action);
+                } catch (err) { Notify.error('Có lỗi: ' + (err?.message || 'Unknown')); }
+                },
+
+                get skuOptions() { return globalSkuList; },
+                getUomOptions(skuId) { return skuId ? globalSkuUomList.filter(u => u.skuId == skuId) : []; },
+
+                get totalPages() { return Math.ceil(this.items.length / this.pageSize); },
+                get startIndex() { return this.items.length ? (this.currentPage - 1) * this.pageSize + 1 : 0; },
+                get endIndex() { return Math.min(this.currentPage * this.pageSize, this.items.length); },
+                get paginatedItems() { const s = (this.currentPage - 1) * this.pageSize; return this.items.slice(s, s + this.pageSize); },
+                getRealIndex(i) { return (this.currentPage - 1) * this.pageSize + i; },
+
+                goToPage(p) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; },
+                nextPage() { this.goToPage(this.currentPage + 1); },
+                prevPage() { this.goToPage(this.currentPage - 1); },
+                firstPage() { this.goToPage(1); },
+                lastPage() { this.goToPage(this.totalPages); },
+                changePageSize(s) { this.pageSize = parseInt(s); this.currentPage = 1; },
+
+                removeRow(i) { this.items.splice(i, 1); },
+                clearAll() { this.items = []; },
+
+                toggleFull(index) {
+                const item = this.items[this.getRealIndex(index)];
+                if (item.isFull) { item.qtyReceivedDecimal = item.qtyRequiredDecimal; item.qtyReceived = Math.floor(item.qtyRequiredDecimal); }
+                else { item.qtyReceivedDecimal = 0; item.qtyReceived = 0; }
+                },
+
+                onSkuChange(index, skuId) {
+                const sku = globalSkuList.find(s => s.sku_id == skuId), item = this.items[index];
+                if (sku) {
+                Object.assign(item, { skuId: sku.sku_id, skuCode: sku.sku_code || '', skuName: sku.sku_name || '', spuId: sku.spu_id || 0, spuCode: sku.spu_code || '', spuName: sku.spu_name || '' });
+                const uom = globalSkuUomList.find(u => u.skuId == sku.sku_id && (u.unitName === sku.unit || u.isBase));
+                item.uomId = uom?.id || 0; item.unit = uom?.unitName || sku.unit || '';
+                } else { Object.assign(item, { skuId: '', skuCode: '', skuName: '', spuId: 0, spuCode: '', spuName: '', unit: '', uomId: 0 }); }
+                },
+
+                onUomChange(index, unitName) {
+                const item = this.items[index], uom = globalSkuUomList.find(u => u.skuId == item.skuId && u.unitName === unitName);
+                item.uomId = uom?.id || 0; item.unit = uom?.unitName || '';
+                },
+
+                totalQtyRequired() { return this.items.reduce((s, i) => s + parseFloat(i.qtyRequiredDecimal || 0), 0).toFixed(2); },
+                totalQtyReceived() { return this.items.reduce((s, i) => s + parseFloat(i.qtyReceivedDecimal || 0), 0).toFixed(2); },
+                toggleNote(i) { this.items[i].showNote = !this.items[i].showNote; },
+
+                async submitForm(action) {
+                try {
+                const indexUrl = '@Url.Page("/Inbound/Order/Index")';
+                if (this.items.some(i => i.skuId && (!i.spuCode || !i.spuName))) { Notify.error('Một số hàng thiếu thông tin SKU.'); return; }
+                if (action === 'Submit' && this.items.some(i => i.skuId && !(Number(i.locationId) > 0))) { Notify.error('Vui lòng chọn Vị trí.'); return; }
+                const asnNo = document.getElementById('asnNo')?.value, ws = document.getElementById('warehouseSelect');
+                if (!asnNo) { Notify.error('Vui lòng nhập Số lệnh nhập kho'); return; }
+                if (!ws?.value) { Notify.error('Vui lòng chọn Kho nhập'); return; }
+
+                const requestData = {
+                asn_no: asnNo,
+                goods_owner_id: parseInt(document.getElementById('goodsOwnerSelect')?.value) || 0,
+                goods_owner_name: document.getElementById('goodsOwnerSelect')?.selectedOptions[0]?.dataset.name || '',
+                warehouse_id: Number(ws.value) || ws.value,
+                warehouse_name: ws.selectedOptions[0]?.textContent?.trim() || '',
+                estimated_arrival_time: document.getElementById('estimatedArrival')?.value || '',
+                detailList: this.items.map(item => ({
+                sku_id: parseInt(item.skuId) || 0, sku_code: item.skuCode, sku_name: item.skuName,
+                spu_id: parseInt(item.spuId) || 0, spu_code: item.spuCode, spu_name: item.spuName,
+                uom_id: parseInt(item.uomId) || null,
+                asn_qty: Math.floor(parseFloat(item.qtyRequiredDecimal) || 0), asn_qty_decimal: parseFloat(item.qtyRequiredDecimal) || 0,
+                actual_qty: Math.floor(parseFloat(item.qtyReceivedDecimal) || 0), actual_qty_decimal: parseFloat(item.qtyReceivedDecimal) || 0,
+                is_valid: true, batch_number: item.lotNo || '',
+                goods_location_id: Number(item.locationId) || 0, pallet_id: Number(item.palletId) || 0, pallet_code: item.palletCode || '',
+                expiry_date: item.expiryDate || null, description: item.description || ''
+                }))
+                };
+
+                const result = await postData(`?handler=${action}`, requestData);
+                if (result.success) { Notify.success(result.message || 'Thành công!'); window.location.href = result.redirectUrl || indexUrl; }
+                else { Notify.error(result.message || 'Có lỗi xảy ra'); }
+                } catch (error) { Notify.error('Có lỗi: ' + error.message); }
+                }
+                };
+                }
+            </script>
+        }

@@ -1,0 +1,51 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+<div id="supplierSearchModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">@Html.Raw(Localizer["SelectSupplier"])</h3>
+            <button type="button" onclick="closeSupplierModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 flex flex-col flex-1 overflow-hidden">
+            <div class="mb-4 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input type="text" id="supplierModalSearchInput"
+                       placeholder="@Html.Raw(Localizer["ClickToSearch"])"
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-md" id="supplierScrollContainer">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@Html.Raw(Localizer["Supplier"])</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@Html.Raw(Localizer["Address"])</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@Html.Raw(Localizer["City"])</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@Html.Raw(Localizer["Email"])</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">@Html.Raw(Localizer["CreateReceipt_Phone"])</th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplierSearchResultBody" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+                </table>
+                <div id="supplier-scroll-anchor" style="height: 1px; width: 100%;"></div>
+
+                <div id="supplier-loading-indicator" class="h-12 flex items-center justify-center text-sm text-gray-500 hidden">
+                    <svg class="animate-spin h-5 w-5 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    @Html.Raw(Localizer["Loading"])
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

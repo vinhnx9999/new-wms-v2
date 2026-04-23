@@ -1,0 +1,44 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+@model Wms.Theme.Web.Pages.Outbound.Receipt.DetailModel
+
+<ol class="flex items-center justify-end space-x-4">
+    @{
+        var currentStatus = Model.Receipt.Status;
+        var isCancelled = currentStatus == 4;
+        var draftClass = (currentStatus == 0 && !isCancelled) ? "text-blue-600 border-blue-600" : "text-gray-500 border-gray-300";
+        var newClass = (currentStatus == 1 && !isCancelled) ? "text-blue-600 border-blue-600" : "text-gray-500 border-gray-300";
+        var processingClass = (currentStatus == 2 && !isCancelled) ? "text-blue-600 border-blue-600" : "text-gray-500 border-gray-300";
+        var completedClass = (currentStatus == 3) ? "text-blue-600 border-blue-600" : "text-gray-500 border-gray-300";
+        var cancelClass = isCancelled ? "text-red-600 border-red-600" : "text-gray-500 border-gray-300";
+    }
+        
+    <li class="flex items-center after:content-[''] after:w-16 after:h-1 after:border-b after:border-4 after:inline-block after:ms-4 after:rounded-full @draftClass">
+        <div class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-50 @(currentStatus == 0 ? "ring-2 ring-blue-500 bg-blue-50" : "")">
+            Nháp
+        </div>
+    </li>
+
+    <li class="flex items-center after:content-[''] after:w-16 after:h-1 after:border-b after:border-4 after:inline-block after:ms-4 after:rounded-full @newClass">
+        <div class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-50 @(currentStatus == 1 ? "ring-2 ring-blue-500 bg-blue-50" : "")">
+            Đã Xác Nhận
+        </div>
+    </li>
+
+    <li class="flex items-center after:content-[''] after:w-16 after:h-1 after:border-b after:border-4 after:inline-block after:ms-4 after:rounded-full @processingClass">
+        <div class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-50 @(currentStatus == 2 ? "ring-2 ring-blue-500 bg-blue-50" : "")">
+            Đang Xử lý
+        </div>
+    </li>
+
+    <li class="flex items-center after:content-[''] after:w-16 after:h-1 after:border-b after:border-4 after:inline-block after:ms-4 after:rounded-full @completedClass">
+        <div class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-50 @(currentStatus == 3 ? "ring-2 ring-blue-500 bg-blue-50" : "")">
+            Hoàn Thành
+        </div>
+    </li>
+
+    <li class="flex items-center @cancelClass">
+        <div class="shrink-0 px-4 py-2 text-sm font-medium rounded-lg bg-gray-50 @(currentStatus == 4 ? "ring-2 ring-red-500 bg-red-50 text-red-600" : "")">
+            Hủy
+        </div>
+    </li>
+</ol>

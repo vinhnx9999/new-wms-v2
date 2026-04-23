@@ -1,0 +1,433 @@
+@using Microsoft.Extensions.Localization
+@using Wms.Theme.Web
+@inject IStringLocalizer<SharedResource> L
+@{
+    var cookie = Context.Request.Cookies["user_name"];
+}
+
+<div x-data="unloadTab()" x-init="init()" class="space-y-4">
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-2 mb-4">
+        <button @@click="exportExcel()" title="@L["ExportExcel"]"
+            class="w-20 py-3 bg-white border border-gray-300 text-green-600 text-base rounded-lg shadow-sm hover:bg-gray-50 hover:text-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 flex justify-center items-center">
+            <i class="fa-solid fa-file-excel"></i>
+        </button>
+
+        <button @@click="openUnloadModal()" title="@L["Unload"]"
+            class="w-20 py-3 bg-blue-600 text-white text-base rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 flex justify-center items-center">
+            <i class="fa-solid fa-truck-loading"></i>
+        </button>
+    </div>
+
+    <!-- Data Table -->
+    <div x-data="AlpineDataTable(tableConfig)" x-init="init()">
+        <partial name="Shared/Components/_AlpineDataTable" />
+    </div>
+
+    <!-- Unload Modal -->
+    <template x-teleport="body">
+        <div x-show="showUnloadModal" style="display: none;"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[9999] flex items-center justify-center">
+            <div class="relative p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800 dark:border-gray-700"
+                @@click.away="showUnloadModal = false">
+                <div class="mt-3">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white text-center">
+                        @L["ConfirmUnloadTitle"]
+                    </h3>
+                    <div class="mt-4 px-4 py-3">
+                        <!-- Shared Unload Person Input -->
+                        <div class="mb-4">
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@L["UnloadPerson"]</label>
+                            <input type="text" x-model="unloadPerson" placeholder="@L["EnterNamePlaceholder"]"
+                                class="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        </div>
+                        <!-- Selected Items Table -->
+                        <div class="overflow-x-auto max-h-80">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0">
+                                    <tr>
+                                        <th
+                                            class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                                            @L["ASNNumber"]</th>
+                                        <th
+                                            class="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                                            @L["SkuName"]</th>
+                                        <th
+                                            class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                                            @L["OriginalQty"]</th>
+                                        <th
+                                            class="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                                            @L["InputQty"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <template x-for="(item, index) in selectedItems" :key="item.Id">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white"
+                                                x-text="item.AsnNo"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300"
+                                                x-text="item.SkuName"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right"
+                                                x-text="GlobalFormatNumber(item.originalQty)"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-right">
+                                                <input type="number" min="1" :max="item.originalQty"
+                                                    x-model.number="item.inputQty" @@input="validateQty(item)"
+                                                    class="w-24 px-2 py-1 border rounded-md text-right focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                    :class="{ 'border-red-500': item.error, 'border-yellow-500': item.warning && !item.error }">
+                                                <p x-show="item.error" class="text-xs text-red-500 mt-1"
+                                                    x-text="item.error"></p>
+                                                <p x-show="item.warning && !item.error"
+                                                    class="text-xs text-yellow-600 mt-1" x-text="item.warning"></p>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button @@click="submitUnload()" :disabled="isSubmitting || hasValidationError"
+                            class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!isSubmitting">@L["ConfirmUnloadAction"]</span>
+                            <span x-show="isSubmitting">@L["Processing"]...</span>
+                        </button>
+                        <button @@click="showUnloadModal = false"
+                            class="mt-3 px-4 py-2 bg-gray-100 text-gray-700 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                            @L["Cancel"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('unloadTab', () => ({
+            // State
+            showUnloadModal: false,
+            selectedCount: 0,
+            unloadPerson: '',
+            isSubmitting: false,
+            selectedItems: [],
+
+            /**
+             * Computed property to check if any item has a validation error.
+             * @@returns {boolean} True if any item has an error.
+             */
+            get hasValidationError() {
+                return this.selectedItems.some(item => item.error);
+            },
+
+            /**
+             * Reads a cookie value by name.
+             * @@param {string} name - The cookie name.
+             * @@returns {string} The cookie value or empty string.
+             */
+            getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return '';
+            },
+
+            // Configuration for AlpineDataTable
+            tableConfig: {
+                apiUrl: '?handler=DataTable&handlerName=UnLoadTable',
+                columns: [
+                    { title: '@Html.Raw(L["ASNNumber"])', data: 'AsnNo' ,
+                        render: (row) => `<a href="/Inbound/ASN/Detail/${row.Id}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors" title="@Html.Raw(L["Detail"])">
+                              ${row.AsnNo}
+                         </a>`},
+                    { title: '@Html.Raw(L["Status"])', data: 'StatusBadge', render: (item) => item.StatusBadge },
+                    { title: '@Html.Raw(L["ArrivalTime"])', data: 'ArrivalTime', render: (item) => GlobalFormatDate(item.ArrivalTime) },
+                    { title: '@Html.Raw(L["GoodsOwnerName"])', data: 'GoodsOwnerName' },
+                    { title: '@Html.Raw(L["SkuCode"])', data: 'SkuCode' },
+                    { title: '@Html.Raw(L["SkuName"])', data: 'SkuName' },
+                    { title: '@Html.Raw(L["AsnQty"])', data: 'AsnQty', align: 'right', render: (item) => GlobalFormatNumber(item.AsnQty) },
+                    // Actions
+
+                ],
+                filters: {
+                    asn_no: '',
+                    goods_owner_name: ''
+                }
+            },
+
+            init() {
+                // Listen for custom events from the table renderers
+                window.addEventListener('unload-action', (e) => {
+                    this.handleAction(e.detail.action, e.detail.id);
+                });
+
+                // Listen for tab changes
+                window.addEventListener('tab-changed', (e) => {
+                    if (e.detail.tab === 'unload') {
+                        this.reloadData();
+                    }
+                });
+            },
+
+            handleAction(action, id) {
+                console.log('Unload action received:', action, id);
+                // Handle view, edit, etc.
+            },
+
+            // Actions
+            openUnloadModal() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (tableEl && tableEl._x_dataStack) {
+                    const tableData = tableEl._x_dataStack[0];
+                    const selected = tableData.selectedRows;
+
+                    if (!selected || selected.length === 0) {
+                        Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                        return;
+                    }
+
+                    // Populate selectedItems with data from selected rows
+                    this.selectedItems = selected.map(row => ({
+                        Id: row.Id,
+                        AsnNo: row.AsnNo,
+                        SkuName: row.SkuName,
+                        originalQty: row.AsnQty,
+                        inputQty: row.AsnQty, // Default to original quantity
+                        error: null,
+                        warning: null
+                    }));
+
+                    this.selectedCount = selected.length;
+                    // Set default unload person from server-side cookie
+                    this.unloadPerson = '@Html.Raw(cookie ?? "")';
+                    console.log(this.unloadPerson);
+                    this.showUnloadModal = true;
+                }
+            },
+
+            /**
+             * Validates quantity input for a single item.
+             * @@param {object} item - The item to validate.
+             */
+            validateQty(item) {
+                item.error = null;
+                item.warning = null;
+
+                if (item.inputQty > item.originalQty) {
+                    item.error = '@Html.Raw(L["QtyExceedsOriginal"])';
+                } else if (item.inputQty < item.originalQty && item.inputQty > 0) {
+                    item.warning = '@Html.Raw(L["QtyLessThanOriginal"])';
+                } else if (item.inputQty <= 0) {
+                    item.error = '@Html.Raw(L["QtyMustBePositive"])';
+                }
+            },
+            async submitUnload() {
+                if (!this.unloadPerson || this.unloadPerson.trim() === '') {
+                    Notify.warning('@Html.Raw(L["PleaseEnterUnloadPerson"])');
+                    return;
+                }
+
+                // Re-validate all items before submission
+                this.selectedItems.forEach(item => this.validateQty(item));
+                if (this.hasValidationError) {
+                    Notify.error('@Html.Raw(L["PleaseFixValidationErrors"])');
+                    return;
+                }
+
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+
+                this.isSubmitting = true;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    // Send array of individual items
+                    const payload = this.selectedItems.map(item => ({
+                        id: item.Id,
+                        unloadPerson: this.unloadPerson,
+                        inputQty: item.inputQty
+                    }));
+
+                    const response = await fetch('?handler=ConfirmUnload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["UnloadSuccess"])');
+                        this.showUnloadModal = false;
+
+                        // Reload tab counts and table data
+                        const processPageEl = document.querySelector('[x-data^="processPage"]');
+                        if (processPageEl && processPageEl._x_dataStack) {
+                            const processPage = processPageEl._x_dataStack[0];
+                            if (processPage.loadTabCounts) {
+                                processPage.loadTabCounts();
+                            }
+                        }
+
+                        tableData.fetchData(tableData.pagination.pageIndex);
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["UnloadFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Unload error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+            async rejectUnload() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectRowToReject"])');
+                    return;
+                }
+
+                const confirmMsg = '@Html.Raw(L["ConfirmRejectUnloadMessage"])'.replace('{0}', selected.length);
+                const isConfirmed = await Notify.confirm(confirmMsg);
+                if (!isConfirmed) return;
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                // Fix: Map selected row objects to their IDs
+                const ids = selected.map(r => r.Id);
+                const payload = { ids: ids };
+
+                try {
+                    const response = await fetch('?handler=RejectUnload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["RejectSuccess"])');
+
+                        // Reload tab counts and table data
+                        const processPageEl = document.querySelector('[x-data^="processPage"]');
+                        if (processPageEl && processPageEl._x_dataStack) {
+                            const processPage = processPageEl._x_dataStack[0];
+                            if (processPage.loadTabCounts) {
+                                processPage.loadTabCounts();
+                            }
+                        }
+
+                        // Reload table and clear selection
+                        tableData.selectedRows = [];
+                        tableData.fetchData(tableData.pagination.pageIndex);
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["RejectFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Reject unload error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                }
+            },
+
+            exportExcel() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                // Check if any rows are selected
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                if (typeof XLSX === 'undefined') {
+                    Notify.error('XLSX library not loaded');
+                    return;
+                }
+
+                try {
+                    // Map status codes to text
+                    const statusMap = {
+                        0: '@Html.Raw(L["New"])',
+                        1: '@Html.Raw(L["Delivery"])',
+                        2: '@Html.Raw(L["Unload"])',
+                        3: '@Html.Raw(L["Putaway"])',
+                        4: '@Html.Raw(L["WaitingRobot"])',
+                        5: '@Html.Raw(L["Completed"])',
+                        8: '@Html.Raw(L["Cancelled"])'
+                    };
+
+                    // Prepare data for Excel
+                    const exportData = selected.map((item, index) => ({
+                        '@Html.Raw(L["STT"])': index + 1,
+                        '@Html.Raw(L["ASNNumber"])': item.AsnNo || '',
+                        '@Html.Raw(L["Status"])': statusMap[item.AsnStatus] || item.AsnStatus || '',
+                        '@Html.Raw(L["ArrivalTime"])': item.ArrivalTime ? new Date(item.ArrivalTime).toLocaleDateString('vi-VN') : '',
+                        '@Html.Raw(L["SkuName"])': item.SkuName || '',
+                        '@Html.Raw(L["AsnQty"])': parseFloat(item.AsnQty || 0)
+                    }));
+
+                    // Create worksheet
+                    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+                    // Set column widths
+                    worksheet['!cols'] = [
+                        { wch: 8 },  // STT
+                        { wch: 20 }, // ASNNumber
+                        { wch: 15 }, // Status
+                        { wch: 15 }, // ArrivalTime
+                        { wch: 35 }, // SkuName
+                        { wch: 12 }  // AsnQty
+                    ];
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Unload");
+
+                    const timestamp = new Date().getTime();
+                    const filename = `Unload_Export_${timestamp}.xlsx`;
+
+                    XLSX.writeFile(workbook, filename, { bookType: 'xlsx', compression: true });
+                    Notify.success('@Html.Raw(L["ExportSuccess"])');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    Notify.error('@Html.Raw(L["ExportFailed"])');
+                }
+            },
+
+            reloadData() {
+                // Reload tab counts
+                const processPageEl = document.querySelector('[x-data^="processPage"]');
+                if (processPageEl && processPageEl._x_dataStack) {
+                    const processPage = processPageEl._x_dataStack[0];
+                    if (processPage.loadTabCounts) {
+                        processPage.loadTabCounts();
+                    }
+                }
+
+                // Reload table
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (tableEl && tableEl._x_dataStack) {
+                    const tableData = tableEl._x_dataStack[0];
+                    tableData.fetchData(tableData.pagination.pageIndex);
+                }
+            }
+        }));
+    });
+</script>

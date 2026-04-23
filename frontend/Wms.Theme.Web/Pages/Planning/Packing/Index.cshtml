@@ -1,0 +1,84 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Planning.Packing.IndexModel
+@{
+}
+
+@Html.AntiForgeryToken()
+<div id="gridPacking" style="height: calc(100vh - 240px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnDefs = [
+        { headerName: '@Html.Raw(L["ReceiptNo"])', field: "ReceiptNo", sortable: true, filter: true,
+            cellRenderer: params => {
+                if (!params.data) return '';
+                let title = params.data.IsOverdue ? "Overdue" : ""
+                let cssRow = params.data.IsOverdue ?
+                    "text-orange-600 dark:text-orange-400 text-red-700"
+                    : "text-gray-700 dark:text-gray-500";
+
+                return `<a title="${title}" href="/Outbound/Receipt/Detail/${params.data.ReceiptId}" class="hover:underline font-bold ${cssRow}">${params.value || ''}</a>`;
+
+            }
+        },
+        { headerName: '@Html.Raw(L["SKU"])', field: "SkuCode", sortable: true, filter: true },
+        { headerName: '@Html.Raw(L["SkuName"])', field: "SkuName", sortable: true, filter: true },
+        {
+                headerName: '@Html.Raw(L["TotalQuantity"])',
+                field: "Quantity",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+        },
+        { headerName: '@Html.Raw(L["Unit"])', field: "UnitName", sortable: true, filter: true },
+        { headerName: '@Html.Raw(L["Location"])', field: "LocationName", sortable: true, filter: true },
+        { headerName: '@Html.Raw(L["ExpectedShipDate"])', field: "StartPickingTimer", sortable: true, filter: true},
+    ];
+
+    // Serialize Razor model into JSON
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PickingList));
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridApi;
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridPacking');
+         gridApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    async function getSelectedData() {
+      const selectedRows = gridApi.getSelectedRows();
+
+      try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch('?handler=SavePacking', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                     body: JSON.stringify({ PickingList: selectedRows ?? [] })
+
+                });
+
+                const result = await response.json();
+
+                 if (!response.ok || !result?.success) {
+                     Notify.error('@Html.Raw(L["OperationFailed"])');
+                     return;
+                 }
+
+                 Notify.success('@Html.Raw(L["OperationSuccessful"])');
+
+            } catch (e) {
+                console.error('savePlanning Packing error:', e);
+                Notify.error('@Html.Raw(L["OperationFailed"])');
+            }
+    }
+</script>

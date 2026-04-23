@@ -1,0 +1,50 @@
+﻿<div id="inventoryModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-[9999] flex items-center justify-center transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl mx-4 transform transition-all flex flex-col max-h-[90vh]">
+        
+        <div class="flex items-center justify-between p-4 border-b shrink-0">
+            <h3 class="text-xl font-semibold text-gray-900">
+                Nhập hàng vào vị trí: <span id="modalLocationLabel" class="text-blue-600 font-bold"></span>
+            </h3>
+            <button onclick="closeInputModal()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+        </div>
+        
+        <div class="p-4 flex-1 overflow-hidden flex flex-col">
+            <form id="formInputInventory" onsubmit="submitInventory(event)" class="flex flex-col h-full">
+                <input type="hidden" id="inputLocationId" name="locationId" />
+                <input type="hidden" id="inputLocationAddress" name="locationAddress" />
+
+                <div class="overflow-y-auto flex-1 border border-gray-200 rounded-lg mb-4">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="px-4 py-3 min-w-[150px]">Mã SKU </th>
+                                <th class="px-4 py-3 min-w-[200px]">Tên hàng</th>
+                                <th class="px-4 py-3 w-28">Đơn vị tính </th>
+                                <th class="px-4 py-3 w-24">Số lượng</th>
+                                <th class="px-4 py-3 min-w-[150px]">Nhà cung cấp</th>
+                                <th class="px-4 py-3 min-w-[150px]">Ngày hết hạn</th>
+                                <th class="px-4 py-3 w-16 text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryRows" class="divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-4 shrink-0">
+                    <button type="button" onclick="addRow()" class="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Thêm mặt hàng
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-end space-x-2 border-t pt-4 shrink-0">
+                    <button type="button" onclick="closeInputModal()" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 transition-colors">Đóng</button>
+                    <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors">Xác nhận nhập kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

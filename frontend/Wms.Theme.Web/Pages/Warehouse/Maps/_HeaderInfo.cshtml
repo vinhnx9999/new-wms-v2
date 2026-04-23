@@ -1,0 +1,28 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@model WarehouseGeneralInfo
+
+@if (Model != null)
+{
+    
+    @if (!string.IsNullOrEmpty(Model.WcsBlockId))
+    {
+        <div class="flex items-center space-x-2" >
+            <h3 class="text-xl font-bold text-gray-900 mr-[15px]" title="@L["Warehouse"]">
+                @Model.Name
+            </h3>
+            <i title="@L["WCSMaps"]" class="fa-solid fa-link" style="margin-left: 16px; margin-left: 8px; font-size:12px;color:#0078D4;"></i>
+            <span title="@L["WCSMaps"]" class="text-gray-600">@Model.WcsBlockId</span>
+        </div>
+    }
+    else
+    {
+        <h3 class="text-xl font-bold text-gray-900 w-full">
+            @Model.Name
+        </h3>
+    }
+}
+else
+{
+    <h3 class="text-xl font-bold text-gray-900">Warehouse</h3>
+}

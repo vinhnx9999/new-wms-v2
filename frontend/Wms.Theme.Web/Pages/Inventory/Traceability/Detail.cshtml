@@ -1,0 +1,123 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.Traceability.DetailModel
+@{
+    ViewData["Title"] = $"Chi tiết vòng đời lô {Model.Lot.LotNo}";
+
+    var statusClass = Model.Lot.Status == "Shipped" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800";
+    var statusText = Model.Lot.Status == "Shipped" ? "Đã xuất hết (Shipped)" : "Còn trong kho (In Stock)";
+}
+
+<div class="p-6 bg-gray-50 min-h-screen">
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <h1 class="text-xl font-bold text-gray-800 mb-4">Chi tiết vòng đời Lô hàng (Lot Genealogy Detail)</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+            <div>
+                <span class="block font-semibold text-gray-500 mb-1">Mã Lô (Lot No.):</span>
+                <span class="font-bold text-lg text-gray-800">@Model.Lot.LotNo</span>
+            </div>
+            <div>
+                <span class="block font-semibold text-gray-500 mb-1">Sản phẩm (Product):</span>
+                <span class="font-medium text-gray-800">@Model.Lot.ProductCode @Model.Lot.ProductName</span>
+            </div>
+            <div>
+                <span class="block font-semibold text-gray-500 mb-1">Trạng thái (Status):</span>
+                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold @statusClass">
+                    @statusText
+                </span>
+            </div>
+            <div>
+                <span class="block font-semibold text-gray-500 mb-1">Ngày nhập (Inbound Date):</span>
+                <span class="font-medium text-gray-800">@Model.Lot.InboundDate.ToString("yyyy-MM-dd")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6 overflow-x-auto">
+        <h2 class="text-sm font-bold text-gray-500 uppercase mb-4 border-b pb-2">Sơ đồ Vòng đời (Genealogy Flowchart)</h2>
+
+        <div class="flex items-center justify-center min-w-[800px] py-4">
+
+            <div class="flex flex-col items-center">
+                <div class="w-48 bg-green-50 border-2 border-green-500 rounded-lg overflow-hidden shadow-sm z-10">
+                    <div class="bg-green-500 text-white text-xs font-bold px-2 py-1 text-center">Nhập kho (Inbound)</div>
+                    <div class="p-2 text-center text-xs text-gray-700 whitespace-pre-line">@Model.Lot.Nodes[0].SubTitle</div>
+                </div>
+            </div>
+
+            <div class="w-16 h-0.5 bg-gray-300 relative">
+                <div class="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-300 transform rotate-45"></div>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <div class="w-48 bg-blue-50 border-2 border-blue-500 rounded-lg overflow-hidden shadow-sm z-10">
+                    <div class="bg-blue-500 text-white text-xs font-bold px-2 py-1 text-center">Lưu kho (Storage)</div>
+                    <div class="p-2 text-center text-xs text-gray-700 whitespace-pre-line">@Model.Lot.Nodes[1].SubTitle</div>
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <div class="w-8 h-0.5 bg-gray-300"></div>
+                <div class="flex flex-col items-center h-32 justify-center relative">
+                    <div class="w-0.5 h-full bg-gray-300 absolute left-0 top-0"></div>
+
+                    <div class="absolute top-0 left-0 w-8 h-0.5 bg-gray-300 flex items-center">
+                        <div class="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-300 transform rotate-45"></div>
+                    </div>
+
+                    <div class="absolute bottom-0 left-0 w-8 h-0.5 bg-gray-300 flex items-center">
+                        <div class="absolute right-0 -top-1 w-2 h-2 border-t-2 border-r-2 border-gray-300 transform rotate-45"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-16 ml-8">
+                <div class="w-48 bg-red-50 border-2 border-red-500 rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-red-500 text-white text-xs font-bold px-2 py-1 text-center">Xuất kho (Outbound)</div>
+                    <div class="p-2 text-center text-xs text-gray-700 whitespace-pre-line">@Model.Lot.Nodes[2].SubTitle</div>
+                </div>
+
+                <div class="w-48 bg-red-50 border-2 border-red-500 rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-red-500 text-white text-xs font-bold px-2 py-1 text-center">Xuất kho (Outbound)</div>
+                    <div class="p-2 text-center text-xs text-gray-700 whitespace-pre-line">@Model.Lot.Nodes[3].SubTitle</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-sm font-bold text-gray-700 uppercase">Nhật ký giao dịch (Transaction Log)</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-200 uppercase">
+                        <th class="py-3 px-6 w-40">Thời gian (Time)</th>
+                        <th class="py-3 px-6">Loại GD (Type)</th>
+                        <th class="py-3 px-6">Chứng từ (Doc No.)</th>
+                        <th class="py-3 px-6">Số lượng (Qty)</th>
+                        <th class="py-3 px-6">Vị trí (Location)</th>
+                        <th class="py-3 px-6">Người thực hiện (User)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    @foreach (var log in Model.Lot.Logs)
+                    {
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-6 font-mono text-gray-600">@log.Time</td>
+                            <td class="py-3 px-6 font-medium text-gray-800">@log.Type</td>
+                            <td class="py-3 px-6 text-blue-600">@log.DocNo</td>
+                            <td class="py-3 px-6 font-bold text-gray-700">@log.Qty</td>
+                            <td class="py-3 px-6 text-gray-600">@log.Location</td>
+                            <td class="py-3 px-6 text-gray-500">@log.User</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

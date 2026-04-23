@@ -1,0 +1,156 @@
+@using Wms.Theme.Web.Model.Stock
+@model List<Wms.Theme.Web.Model.Stock.ProductLifeCycleViewModel>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="flex flex-col items-center justify-center p-12 text-gray-400">
+        <i class="fas fa-search-minus text-6xl mb-4 text-gray-200"></i>
+        <p class="text-lg">@Html.Raw(L["NoDataFound"])</p>
+        <p class="text-sm">@Html.Raw(L["TryAdjustingSearch"])</p>
+    </div>
+}
+else
+{
+    <div class="relative wrap overflow-hidden p-4 h-full">
+        <!-- Vertical Line -->
+        <div class="absolute border-opacity-20 border-gray-700 h-full border-2 left-1/2"
+            style="transform: translateX(-50%);"></div>
+
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var item = Model[i];
+            var isLeft = i % 2 == 0;
+            var bgColor = "bg-white dark:bg-gray-800";
+            var icon = "fa-circle";
+            var iconColor = "text-gray-500";
+            var borderColor = "border-gray-200 dark:border-gray-700";
+
+            // Customize based on Activity Type
+            switch (item.ActivityType)
+            {
+                case "CURRENT_STOCK":
+                    bgColor = "bg-blue-50 dark:bg-blue-900/20";
+                    icon = "fa-map-marker-alt";
+                    iconColor = "text-blue-600 dark:text-blue-400";
+                    borderColor = "border-blue-200 dark:border-blue-800";
+                    break;
+                case "INBOUND":
+                    icon = "fa-truck-loading";
+                    iconColor = "text-green-600 dark:text-green-400";
+                    break;
+                case "OUTBOUND":
+                    icon = "fa-truck-moving";
+                    iconColor = "text-orange-600 dark:text-orange-400";
+                    break;
+                case "ADJUST":
+                    icon = "fa-balance-scale";
+                    iconColor = "text-purple-600 dark:text-purple-400";
+                    break;
+                case "MOVE":
+                    icon = "fa-dolly-flatbed";
+                    iconColor = "text-indigo-600 dark:text-indigo-400";
+                    break;
+            }
+
+            <div class="mb-8 flex justify-between items-center w-full @(isLeft ? "flex-row-reverse" : "")">
+                <div class="order-1 w-5/12"></div>
+                    
+                <!-- Icon -->
+                <div
+                    class="z-20 flex items-center order-1 bg-white dark:bg-gray-900 shadow-xl w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-700 justify-center">
+                    <i class="fas @icon @iconColor text-lg"></i>
+                </div>
+
+                <!-- Card -->
+                <div
+                    class="order-1 w-5/12 px-6 py-4 shadow-lg rounded-lg border @borderColor @bgColor backdrop-blur-sm transition-all hover:scale-105 hover:shadow-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-lg @iconColor">
+                            @if (item.ActivityType == "CURRENT_STOCK")
+                            {
+                                <span class="uppercase">@Html.Raw(L["CurrentStock"])</span>
+                            }
+                            else
+                            {
+
+                                <span>@item.ActivityType</span>
+                            }
+                        </span>
+                        <span
+                            class="text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                            @item.EventTime.ToString("dd/MM/yyyy HH:mm")
+                        </span>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                        <div class="flex items-start gap-2">
+                            <div class="min-w-[40px] font-semibold">SKU:</div>
+                            <div>
+                                <div class="font-bold text-gray-800 dark:text-white">@item.sku_code</div>
+                                <div class="text-xs text-gray-500">@item.sku_name</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <div class="min-w-[40px] font-semibold">Qty:</div>
+                            <div class="font-mono font-bold text-lg text-gray-800 dark:text-white">
+                                @item.Qty.ToString("N0")
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(item.series_number))
+                        {
+                            <div class="flex items-center gap-2">
+                                <div class="min-w-[40px] font-semibold">Serial:</div>
+                                <div
+                                    class="font-mono text-xs bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1 rounded">
+                                    @item.series_number
+                                </div>
+                            </div>
+                        }
+
+                        <hr class="border-gray-200 dark:border-gray-700 my-2" />
+
+                        <!-- Location Flow -->
+                        <div class="flex items-center gap-2 text-xs">
+                            <div
+                                class="flex-1 text-center p-2 rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
+                                <div class="text-gray-400 mb-1">From</div>
+                                <div class="font-medium truncate" title="@item.FromLocation">
+                                    @(string.IsNullOrEmpty(item.FromLocation) ? "-" : item.FromLocation)
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-gray-400"></i>
+                            <div
+                                class="flex-1 text-center p-2 rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
+                                <div class="text-gray-400 mb-1">To</div>
+                                <div class="font-medium truncate" title="@item.ToLocation">
+                                    @(string.IsNullOrEmpty(item.ToLocation) ? "-" : item.ToLocation)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Info -->
+                        <div class="flex justify-between items-center mt-2 text-xs text-gray-400">
+                            @if (item.DocNumber != "-")
+                            {
+                                <div class="flex items-center gap-1">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>@item.DocNumber</span>
+                                </div>
+                            }
+                            @if (item.PutAwayDate.HasValue && item.PutAwayDate.Value > DateTime.MinValue)
+                            {
+                                <div class="flex items-center gap-1" title="@Html.Raw(L["PutAwayDate"])">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>@item.PutAwayDate.Value.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

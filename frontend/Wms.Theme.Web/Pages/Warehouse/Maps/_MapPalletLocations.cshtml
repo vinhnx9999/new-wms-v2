@@ -1,0 +1,239 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model WarehouseLocationInfo
+
+@{
+    var storeLocations = Model.StoreLocations ?? [];
+
+    var lots = storeLocations.Where(m => !string.IsNullOrEmpty(m.PalletCode) || m.Products.Any()).ToList();
+    var validLocations = storeLocations.Where(m => m.CoordZ.HasValue && m.CoordX.HasValue && m.CoordY.HasValue).ToList();
+    var distinctLevels = validLocations.Select(m => m.Level).Distinct().OrderBy(l => l).ToList();
+    var maxCoordX = validLocations.Any() ? validLocations.Max(m => m.CoordX) : 0;
+    
+    var locationLookup = validLocations.ToDictionary(
+        m => $"{m.CoordZ}_{m.CoordY}_{m.CoordX}",
+        m => m
+    );
+
+    var defaultLevel = distinctLevels.Where(x => x != 0)
+                               .Select(x => x.ToString())
+                               .FirstOrDefault()
+                 ?? distinctLevels.FirstOrDefault().ToString();
+}
+
+<div class="space-y-4" >
+    <div class="flex items-start justify-between">
+       
+        <div class="flex items-center gap-3 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-green-500 border border-green-600"></div>
+                <span class="text-sm font-medium text-gray-700">@Html.Raw(L["CreateReceipt_LocationEmpty"])</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-yellow-500 border border-yellow-600"></div>
+                <span class="text-sm font-medium text-gray-700">Có hàng</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-blue-500 border border-blue-600"></div>
+                <span class="text-sm font-medium text-gray-700">Đường đi</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-red-500 border border-red-600"></div>
+                <span class="text-sm font-medium text-gray-700">Lỗi</span>
+            </div>
+        
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-gray-500 border border-gray-600"></div>
+                <span class="text-sm font-medium text-gray-700">Thang máy</span>
+            </div>
+            <div class="h-6 w-px bg-gray-300 mx-2"></div>
+         
+            @* <div>
+                <select asp-for="@Model.FloorId" id="floorSelect" onchange="onMapFloorChange(this)"
+                        asp-items="@Model.OptionFloors"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+                        focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:">
+                    <option value="">@L["SelectFloor"]</option>
+                </select>
+            </div> *@
+
+            <select id="floorSelect" onchange="changeFloor(this.value)" class="form-select block w-48 pl-3 pr-10 py-1.5 text-sm border-gray-300 rounded-md bg-gray-50 cursor-pointer">
+                
+                @foreach (var level in distinctLevels)
+                {                 
+                   if (level == 0)
+                   {
+                        <option value="@level" selected="@(level.ToString() == defaultLevel)">@Html.Raw(L["VirtualLocation"])</option>
+                   }
+                   else
+                   { 
+                        <option value="@level" selected="@(level.ToString() == defaultLevel)" >@Html.Raw(L["Floor"]) @level</option>
+                   }
+                } 
+            </select>
+
+        </div>
+        
+    </div>
+
+
+    <div class="flex flex-col lg:flex-row gap-6 max-h-">        
+        <div class="w-full lg:w-1/4 bg-white rounded-lg shadow flex flex-col border border-gray-200">
+            <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Danh sách Lô hàng</h3>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-2 space-y-1 bg-white">
+                @if (!lots.Any())
+                {
+                    <div class="p-4 text-center text-gray-400">@Html.Raw(L["NotFound"])</div>
+                }
+                
+                @foreach (var lot in lots)
+                {
+                    var lotId = lot.Id.ToString();
+                    var lotName = string.IsNullOrEmpty(lot.PalletCode) ? "Hàng không vào kệ" : lot.PalletCode;
+                                   
+                    var lotLevel = lot.Level.HasValue ? lot.Level.Value.ToString() : "1";
+                    var initialDisplay = (lotLevel == defaultLevel) ? "block" : "none";
+
+                    <div class="lot-container mb-2 bg-white rounded border border-gray-200 overflow-hidden" data-level="@lotLevel" style="display: @initialDisplay;">
+                        <div onclick="toggleAccordion('@lotId')" class="p-3 cursor-pointer hover:bg-gray-50 flex justify-between items-center select-none" id="header-@lotId">
+                            <div class="flex items-center gap-2">
+                                <svg id="arrow-@lotId" class="w-4 h-4 text-gray-400 transform -rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <span class="font-bold text-gray-700 text-sm">@lotName</span>
+                            </div>
+                            <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">@lot.Products.Count</span>
+                        </div>
+
+                        <div id="body-@lotId" class="hidden border-t border-gray-100">
+                            @foreach (var prod in lot.Products)
+                            {
+                              
+                                <div onclick="highlightRack('@lot.Address', this)" class="prod-item pl-8 pr-3 py-2 text-xs text-gray-600 border-l-2 border-transparent hover:bg-gray-50 cursor-pointer flex justify-between items-center transition-colors">
+                                    <div class="truncate">
+                                        <span class="font-medium text-gray-800">@prod.SkuCode</span>
+                                        <div class="text-[10px] text-gray-400 truncate">@prod.SkuName</div>
+                                    </div>
+                                    <span class="text-gray-500 font-mono tracking-wider">@lot.Address</span>
+                                    <span class="text-gray-500 font-mono tracking-wider">@prod.Quantity</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="w-full lg:w-3/4 bg-white rounded-lg shadow overflow-hidden border border-gray-200 relative p-6 flex flex-col justify-between overflow-y-auto" style="height: 400px;">
+            
+            @foreach (var level in distinctLevels)
+            {           
+                <div id="map-level-@level" class="map-layer flex-1 w-full h-full @(level.ToString() == defaultLevel ? "" : "hidden")">
+                    @{
+                        var ysInLevel = validLocations.Where(m => m.Level == level).Select(m => m?.CoordY).Distinct().OrderBy(y => y);
+                    }
+
+                    <div class="grid gap-2 w-full h-full" style="grid-template-columns: repeat(@maxCoordX, minmax(0, 1fr));">
+            
+                        @foreach (var y in ysInLevel)
+                        {                
+                            @for (int x = 1; x <= maxCoordX; x++)
+                            {
+                                string key = $"{level}_{y}_{x}";
+                                locationLookup.TryGetValue(key, out var item);
+
+                                @if (item == null )
+                                {
+                                    <div class="w-full h-full min-h-[48px] bg-gray-50 border border-gray-100 rounded flex items-center justify-center"></div>
+                                }
+                                else
+                                {
+                                    bool hasItem = !string.IsNullOrEmpty(item.PalletCode) || (item.Products != null && item.Products.Any());
+
+                                    string bgColor = "bg-gray-200";
+                                    string borderColor = "border-gray-400";
+                                    string tooltipTitle = $"Location {item.Address}";
+
+                                    string onClickAttr = "";
+                                 
+                                    if(item.Status == 1)
+                                    {
+                                        
+                                    }
+
+                                    switch (item.Type)
+                                    {
+                                        case "Storage Slot":
+                                            if (hasItem)
+                                            {
+                                                bgColor = "bg-yellow-400";
+                                                borderColor = "border-yellow-500";
+                                            }
+                                            else
+                                            {
+                                                bgColor = "bg-storage-slot";
+                                                borderColor = "border-storage-slot";                                          
+                                            }
+                                            tooltipTitle = $"Storage Slot {item.Address}";
+                                            onClickAttr = $"onclick=\"openInputModal('{item.Address}', '{item.Id}')\"";
+                                            break;
+
+                                        case "Horizontal Path":
+                                            bgColor = "bg-horizontal-path";
+                                            borderColor = "border-horizontal-path";
+                                            tooltipTitle = $"Path {item.Address}";
+                                            break;
+
+                                        case "Lift Point":
+                                            bgColor = "bg-lift-point";
+                                            borderColor = "border-lift-point";
+                                            tooltipTitle = $"Lift Point {item.Address}";
+                                            break;
+
+                                        default:
+                                            bgColor = "bg-slate-50"; 
+                                            borderColor = "border-slate-200";
+                                            tooltipTitle = "Unknown"; 
+                                            break;
+                                    }
+
+                                    if (item.Status == 2)
+                                    {
+                                        bgColor = "bg-red-400";
+                                        borderColor = "border-red-500";
+                                        tooltipTitle = "Block";
+                                    }
+                                  
+                                    <div @Html.Raw(onClickAttr) class="relative w-full h-full min-h-[48px] @bgColor border @borderColor rounded-sm shadow-sm flex items-center justify-center cursor-pointer hover:brightness-95 transition" title="@tooltipTitle">
+                                        <span class="text-[10px] lg:text-xs font-bold text-gray-800 select-none text-center">@item.Address</span>
+        
+                                        <div id="dot-@item.Address" class="hidden absolute top-1 right-1 z-20">
+                                            <span class="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-orange-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500 shadow-sm"></span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<script>  
+    
+    function onMapFloorChange(selectElement) {
+      const selectedFloorId = selectElement.value;
+      if (selectedFloorId) {
+          console.log("Selected floor:", selectedFloorId);
+      } else {
+          console.log("No floor selected");
+      }
+    }
+
+</script>

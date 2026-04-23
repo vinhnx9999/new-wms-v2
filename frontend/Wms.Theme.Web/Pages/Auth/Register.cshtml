@@ -1,0 +1,296 @@
+﻿@page
+@using WMSSolution.Shared
+@model Wms.Theme.Web.Pages.Auth.RegisterModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    Layout = "_AuthLayout";
+    var defaultPass = SystemDefine.DefaultPassword;
+}
+
+<style>
+    /* Wrapper chống đụng độ CSS */
+    .wms-auth-wrapper {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", sans-serif;
+        background: transparent !important;
+        padding: 20px;
+    }
+
+    /* Background ảnh robot + blur */
+    .wms-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('/img/kho-bai.jpg') no-repeat center/cover;
+        filter: blur(6px) brightness(0.7);
+        z-index: 0;
+    }
+
+    /* Container */
+    .wms-login-container {
+        width: 760px; /* Rộng hơn login một chút cho thoải mái */
+        min-height: 480px; /* Cao hơn để chứa đủ input */
+        display: flex;
+        border-radius: 12px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        background: rgba(255,255,255,0.95);
+    }
+
+    /* Left panel */
+    .wms-left-panel {
+        flex: 5;
+        background: linear-gradient(135deg, #0d6efd, #00c6ff);
+        color: white;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .wms-left-panel h2 {
+        font-size: 26px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        margin-left: 12px;
+    }
+
+    .wms-left-panel p {
+        opacity: 0.8;
+    }
+
+    /* Right panel */
+    .wms-right-panel {
+        flex: 6;
+        padding: 30px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .wms-right-panel h3 {
+        font-size: 24px;
+        margin-bottom: 15px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .wms-input-group {
+        margin-bottom: 12px;
+    }
+
+    .wms-right-panel input[type="text"],
+    .wms-right-panel input[type="password"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline: none;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+        .wms-right-panel input[type="text"]:focus,
+        .wms-right-panel input[type="password"]:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+        }
+
+    .wms-right-panel button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 5px;
+        transition: background 0.3s ease;
+    }
+
+        .wms-right-panel button[type="submit"]:hover {
+            background: #0b5ed7;
+        }
+
+    .wms-extra {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    .wms-extra a {
+        text-decoration: none;
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .wms-extra a:hover {
+        text-decoration: underline;
+    }
+
+    .default-pass-note {
+        font-size: 13px;
+        color: #666;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    .border-red-500 {
+        border-color: #ef4444 !important;
+    }
+</style>
+
+<div class="wms-bg"></div>
+
+<div class="wms-auth-wrapper">
+    <div class="wms-login-container">
+        
+        <div class="wms-left-panel">
+            <h2>DUY PHAT WMS</h2>
+            <p>Warehouse Management System</p>
+        </div>
+
+        <div class="wms-right-panel">
+            <h3>@L["Register"]</h3>
+
+            <form method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="wms-input-group">
+                    <input asp-for="CompanyName" type="text" placeholder="@L["CompanyName"] *" id="CompanyName" autocomplete="off" />
+                    <span asp-validation-for="CompanyName" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="wms-input-group">
+                    <input asp-for="UserName" type="text" placeholder="@L["UserAdmin"] *" id="UserName" autocomplete="off" />
+                    <span asp-validation-for="UserName" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="wms-input-group">
+                    <input asp-for="DisplayName" type="text" placeholder="@L["DisplayName"] *" id="DisplayName" autocomplete="off" />
+                    <span asp-validation-for="DisplayName" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="wms-input-group">
+                    <input asp-for="ContactNumber" type="text" placeholder="@L["ContactNumber"] *" id="ContactNumber" autocomplete="off" />
+                    <span asp-validation-for="ContactNumber" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <input asp-for="BrowserInfo" type="hidden" id="txtBrowserInfo" />
+                <input asp-for="OSName" type="hidden" id="txtOSName" />
+                <input asp-for="BrowserVersion" type="hidden" id="txtBrowserVersion" />
+                <input asp-for="ScreenWidth" type="hidden" id="txtScreenWidth" />
+                <input asp-for="ScreenHeight" type="hidden" id="txtScreenHeight" />
+
+                <button type="submit">@L["SignUp"]</button>
+
+                <div class="default-pass-note">
+                    @L["DefaultPassword"] <span style="color: #ef4444; font-weight: bold;">@defaultPass</span>
+                </div>
+
+                <div class="wms-extra">
+                    <span style="color: #666;">@L["AlreadyHasAccount"]</span>
+                    <a href="/Auth/Index">@L["LoginHere"]</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const inputs = [
+                { el: document.querySelector('#CompanyName'), name: '@L["CompanyName"]' },
+                { el: document.querySelector('#UserName'), name: '@L["UserAdmin"]' },
+                { el: document.querySelector('#DisplayName'), name: '@L["DisplayName"]' },
+                { el: document.querySelector('#ContactNumber'), name: '@L["ContactNumber"]' }
+            ];
+            
+            // Lấy thông tin thiết bị
+            const browserName = typeof getBrowserName === "function" ? getBrowserName(navigator.userAgent) : "Unknown";
+            const browserVersion = typeof getBrowserVersion === "function" ? getBrowserVersion(navigator.userAgent) : "Unknown";
+            const osInfo = typeof getOS === "function" ? getOS() : "Unknown";
+            
+            const width = window.screen.width;
+            const height = window.screen.height;
+
+            document.getElementById("txtBrowserInfo").value = browserName;
+            document.getElementById("txtOSName").value = osInfo;
+            document.getElementById("txtBrowserVersion").value = browserVersion;
+            document.getElementById("txtScreenWidth").value = width;
+            document.getElementById("txtScreenHeight").value = height;
+            
+            // Hàm validate cho từng input
+            function validateField(inputObj) {
+                if(!inputObj.el) return true;
+                const value = inputObj.el.value.trim();
+                const errorSpan = inputObj.el.parentNode.querySelector('span[data-valmsg-for]');
+                
+                if (!value) {
+                    inputObj.el.classList.add('border-red-500');
+                    if (errorSpan && !errorSpan.textContent) {
+                        errorSpan.textContent = inputObj.name + ' is required';
+                    }
+                    return false;
+                } else {
+                    inputObj.el.classList.remove('border-red-500');
+                    if (errorSpan) {
+                        errorSpan.textContent = '';
+                    }
+                    return true;
+                }
+            }
+
+            // Gắn sự kiện blur & input cho real-time validation
+            inputs.forEach(inputObj => {
+                if(!inputObj.el) return;
+
+                inputObj.el.addEventListener('blur', function() {
+                    validateField(inputObj);
+                });
+
+                inputObj.el.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('border-red-500');
+                        const errorSpan = this.parentNode.querySelector('span[data-valmsg-for]');
+                        if (errorSpan) {
+                            errorSpan.textContent = '';
+                        }
+                    }
+                });
+            });
+
+            // Gắn sự kiện submit form
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                inputs.forEach(inputObj => {
+                    if (!validateField(inputObj)) {
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault(); // Dừng submit nếu có trường bị lỗi
+                }
+            });
+        });
+    </script>
+}

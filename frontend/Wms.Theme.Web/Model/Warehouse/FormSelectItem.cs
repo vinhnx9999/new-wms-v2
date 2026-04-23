@@ -1,0 +1,23 @@
+﻿namespace Wms.Theme.Web.Model.Warehouse
+{
+    public class FormSelectItem
+    {
+        /// <summary>
+        /// key
+        /// </summary>
+        public string code { get; set; } = string.Empty;
+        /// <summary>
+        /// comment
+        /// </summary>
+        public string comments { get; set; } = string.Empty;
+
+        /// <summary>
+        /// text
+        /// </summary>
+        public string name { get; set; } = string.Empty;
+        /// <summary>
+        /// id value
+        /// </summary>
+        public string value { get; set; } = string.Empty;
+    }
+}

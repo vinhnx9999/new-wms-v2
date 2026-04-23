@@ -1,0 +1,94 @@
+﻿@using Wms.Theme.Web.Pages.Warehouse
+@model IEnumerable<WarehouseInfoDTO>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+
+<div id="gridWarehouses" style="height: 500px; width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnDefs = [
+        { headerName: "Code", field: "Code", sortable: true, filter: true },
+        { headerName: "Name", field: "Name", sortable: true, filter: true },
+        { headerName: "City", field: "City", sortable: true, filter: true },
+        { headerName: "Locations", field: "LocationCount", sortable: true, filter: true },
+        { headerName: "Current Pallets", field: "TotalPallet", sortable: true, filter: true },
+        { headerName: "Address", field: "Address", sortable: true, filter: true },        
+        {
+            headerName: "",
+            field: "Id",    
+            width: 70,
+            pinned: 'right',
+            cellRenderer: params => {
+                if(!params.data.Invalid) {                   
+                  const link = document.createElement('a');
+                  link.innerText =  '🔍';
+                  link.title = 'View Detail';
+                  link.href = `/Warehouse/Detail/${params.data.Id}`;
+                  link.target = '_self'; 
+                  return link;
+                }              
+            }
+        },
+        {
+            headerName: "",
+            field: "Invalid",
+            width: 70,
+            pinned: 'right',
+            cellRenderer: (params) => {
+                if(!params.data.Invalid) {
+                     const btnDeactive = document.createElement("button");
+                     btnDeactive.innerHTML = "🗑️ ";
+                     btnDeactive.title = "De active";
+                     btnDeactive.addEventListener("click", () => {
+                        params.api.applyTransaction({ remove: [params.node.data] });
+                        deActiveWarehouse(params.data.Id)
+                     });
+
+                     return btnDeactive;
+                };
+
+                const button = document.createElement("button");                
+                button.innerHTML = "Active";
+                button.title = "Active";
+                button.addEventListener("click", () => {
+                   params.api.applyTransaction({ remove: [params.node.data] });
+                   activeWarehouse(params.data.Id)
+                });
+
+                return button;
+            },
+       },
+       {
+            headerName: "Wcs",
+            field: "WcsBlockId",
+            width: 70,
+            pinned: 'left',
+            cellRenderer: params => {
+                if(params.data.WcsBlockId !== "") {                      
+                    const icon = document.createElement('i');
+                    icon.className = 'fa-solid fa-link';        // Font Awesome icon
+                    icon.style.fontSize = '24px';
+                    icon.style.color = '#0078D4';
+                    icon.title = params.data.WcsBlockId;
+                    return icon;
+                }
+            }
+        }
+    ];
+
+    // Serialize Razor model into JSON
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridWarehouses');
+         agGrid.createGrid(gridDiv, gridOptions);
+    });
+</script>

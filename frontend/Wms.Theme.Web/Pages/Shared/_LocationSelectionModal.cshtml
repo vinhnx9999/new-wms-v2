@@ -1,0 +1,71 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+
+<!-- Location Selection Modal -->
+<div id="locationSelectionModal" class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-70 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border border-gray-300 dark:border-gray-600 max-w-4xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">@L["SelectLocation"]</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Choose locations for selected items</p>
+                <button onclick="closeLocationModal()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="locationModalLoading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">@L["Loading"]...</p>
+            </div>
+
+            <!-- Location List -->
+            <div id="locationModalContent" class="hidden">
+                <div class="overflow-x-auto mb-4">
+                    <table class="w-full border border-gray-200 dark:border-gray-600">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                                    Select
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">@L["LocationName"]</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">@L["WarehouseName"]</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">@L["AreaName"]</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">@L["RoadwayNumber"]</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">@L["ShelfNumber"]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locationTableBody" class="divide-y divide-gray-200 dark:divide-gray-600">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="locationModalError" class="hidden text-center py-8">
+                <div class="text-red-600 dark:text-red-400 mb-2">
+                    <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400" id="locationErrorMessage">@L["ErrorLoadingData"]</p>
+                <button onclick="retryLoadLocations()" class="mt-4 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition">
+                    @L["Retry"]
+                </button>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-center gap-4 px-4 py-3 mt-4">
+                <button type="button" onclick="closeLocationModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-base font-medium rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500">
+                    @L["Cancel"]
+                </button>
+                <button type="button" onclick="assignSelectedLocation()" class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white text-base font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                    @L["AssignLocation"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

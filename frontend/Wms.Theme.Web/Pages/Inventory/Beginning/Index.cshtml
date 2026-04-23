@@ -1,0 +1,224 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.Beginning.IndexModel
+@{
+}
+@Html.AntiForgeryToken()
+
+<div class="container p-3">
+    <div class="flex items-start justify-between">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">@L["Beginning"]</h2>
+        </div>
+        <div class="flex gap-3">
+            <form id="excelFormBeginning" asp-action="Inventory/Beginning/ImportExcel" enctype="multipart/form-data" method="post">
+                <input type="file" name="excelFile" accept=".xlsx,.xls" class="hidden" id="excelUploadBeginning" />
+                <label for="excelUploadBeginning" class="btn btn-secondary cursor-pointer">
+                    @L["Common_ImportExcel"]
+                </label>
+            </form>
+            <button id="downloadBtnBeginning" class="btn btn-primary" title="@Html.Raw(L["GetTemplate"])"> <span class="hidden sm:inline">@Html.Raw(L["GetTemplate"])</span></button>
+            @if (Model.BeginMerchandises.Any())
+            {
+                <button type="button"
+                         onclick="saveBeginning()"
+                         class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-lg transition-all font-medium transform active:scale-95">
+                    @L["Common_Save"]
+                </button>                
+            }            
+        </div>        
+    </div>
+</div>
+
+<!-- Loading spinner -->
+<div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background-color:rgba(0,0,0,0.4); z-index:9998;">
+</div>
+
+<div id="loadingSpinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang xử lý...</span>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+        <div id="beginGrid" class="ag-theme-quartz" style="height: 500px; width: 100%;"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("excelUploadBeginning").addEventListener("change", function () {
+           document.getElementById("loadingSpinner").style.display = "block";
+           document.getElementById("loadingOverlay").style.display = "block";
+
+           const form = document.getElementById("excelFormBeginning");
+           const formData = new FormData(form);
+
+           fetch('?handler=ImportExcel', {
+               method: "POST",
+               body: formData
+           })
+           .then(response => {
+               document.getElementById("loadingOverlay").style.display = "none";
+               document.getElementById("loadingSpinner").style.display = "none";
+               if (response.ok) {
+                   Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+               } else {
+                   Notify.info('@Html.Raw(L["Tryagain"])');
+               }
+           })
+           .catch(error => {
+               document.getElementById("loadingSpinner").style.display = "none";
+               document.getElementById("loadingOverlay").style.display = "none";
+               console.error("Lỗi:", error);
+               Notify.error('Connection error');
+           });
+    });    
+
+    document.getElementById("downloadBtnBeginning").addEventListener("click", async () => {
+        try {
+            const response = await fetch('?handler=DownloadTemplate');
+            if (!response.ok) {
+                throw new Error("Không thể tải file");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "TemplateBeginning.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            Notify.error(err.message);
+        }
+    });
+
+    const columnDefs = [
+        { headerName: "Warehouse", field: "WarehouseName", sortable: true, filter: true },
+        { headerName: "SkuCode", field: "SkuCode", sortable: true, filter: true },
+        { headerName: "SkuName", field: "SkuName", sortable: true, filter: true },
+        { headerName: "Quantity", field: "Quantity", sortable: true, filter: true },
+        { headerName: "UnitName", field: "UnitName", sortable: true, filter: true },
+        { 
+            headerName: "ExpireDate", 
+            field: "ExpireDate", 
+            sortable: true,
+            filter: true , 
+            valueFormatter: params => {
+                   if (!params.value) return '';
+                   
+                   const date = new Date(params.value);
+                 
+                   if (isNaN(date.getTime())) return params.value;
+
+                   const d = String(date.getDate()).padStart(2, '0');
+                   const m = String(date.getMonth() + 1).padStart(2, '0');
+                   const y = date.getFullYear();
+
+                   return `${d}/${m}/${y}`;
+            }
+        },
+        { headerName: "Supplier", field: "SupplierName", sortable: true, filter: true },
+        { headerName: "Location", field: "LocationName", sortable: true, filter: true },
+        {
+            headerName: "",
+            field: "Id",
+            width: 70,
+            pinned: 'right',
+            cellRenderer: params => {
+                const btnDelete = document.createElement("button");
+                     btnDelete.innerHTML = "🗑️ ";
+                     btnDelete.title = "Delete";
+                     btnDelete.addEventListener("click", () => {
+                        params.api.applyTransaction({ remove: [params.node.data] });
+                        deleteBeginning(params.data.Id)
+                     });
+                return btnDelete;
+            }
+        }
+    ];
+
+    // Serialize Razor model into JSON
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BeginMerchandises));
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#beginGrid');
+         agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    function saveBeginning() {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+           fetch(`?handler=SaveBeginning`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ Action: "Save Beginning" })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    Notify.info(result.message || 'Failed to delete Beginning');
+                }
+            })
+            .catch(error => {
+                console.error('Error save beginning:', error);
+                Notify.info('Connection error');
+            });
+    }
+
+
+    function deleteBeginning(id) {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+           fetch(`?handler=DeleteBeginning`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ Id: id })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    Notify.info(result.message || 'Failed to delete Beginning');
+                }
+            })
+            .catch(error => {
+                console.error('Error delete beginning:', error);
+                Notify.info('Connection error');
+            });
+    }
+
+</script>

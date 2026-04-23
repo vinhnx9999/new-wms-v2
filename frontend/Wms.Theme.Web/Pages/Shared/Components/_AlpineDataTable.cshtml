@@ -1,0 +1,136 @@
+<!-- AlpineDataTable Template -->
+<!-- Requires alpine-datatable.js to be included in the parent page -->
+
+<div
+    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-200 dark:border-gray-700 overflow-hidden min-h-[400px] flex flex-col transition-colors">
+
+    <!-- Skeleton Loading Overlay -->
+    <div x-show="isLoading" x-transition.opacity
+        class="absolute inset-0 z-20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-[1px] flex flex-col items-center justify-center">
+        <div class="flex flex-col gap-4 w-full p-6 animate-pulse">
+            <!-- Header Skeleton -->
+            <div class="h-10 bg-slate-100 dark:bg-gray-700 rounded-lg w-full mb-2 opacity-70"></div>
+            <!-- Rows Skeleton -->
+            <template x-for="i in 5">
+                <div class="h-12 bg-slate-50 dark:bg-gray-700/50 rounded-lg w-full mb-2 opacity-50"></div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Table Wrapper -->
+    <div class="overflow-x-auto flex-1">
+        <table class="w-full text-sm text-left text-slate-600 dark:text-slate-300">
+            <!-- Table Header -->
+            <thead
+                class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-gray-700/50 border-b border-slate-200 dark:border-gray-700 sticky top-0 z-10">
+                <tr>
+                    <!-- Checkbox Column -->
+                    <template x-if="options.selection">
+                        <th class="p-4 w-10 text-center">
+                            <div class="flex items-center justify-center">
+                                <input type="checkbox" x-model="allSelected" style="pointer-events: fill !important;"
+                                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded focus:ring-blue-500 cursor-pointer">
+                            </div>
+                        </th>
+                    </template>
+
+                    <!-- Dynamic Columns -->
+                    <template x-for="(col, index) in columns" :key="index">
+                        <th class="px-4 py-3 font-bold tracking-wider" :class="[
+                                col.class || '',
+                                col.align === 'center' ? 'text-center' : (col.align === 'right' ? 'text-right' : 'text-left'),
+                                col.sticky === 'right' ? 'sticky right-0 z-20 bg-slate-50 dark:bg-gray-700 shadow-[-6px_0_12px_-3px_rgba(0,0,0,0.15)] border-l border-slate-200 dark:border-gray-600' : ''
+                            ]" x-text="col.title">
+                        </th>
+                    </template>
+                </tr>
+            </thead>
+
+            <!-- Table Body -->
+            <tbody class="divide-y divide-slate-100 dark:divide-gray-700">
+                <!-- Empty State -->
+                <template x-if="rows.length === 0 && !isLoading">
+                    <tr>
+                        <td :colspan="columns.length + (options.selection ? 1 : 0)"
+                            class="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                    </path>
+                                </svg>
+                                <span>@L["NoDataFound"]</span>
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+
+                <!-- Data Rows -->
+                <template x-for="(item, index) in rows" :key="index">
+                    <tr
+                        class="bg-white dark:bg-gray-800 hover:bg-slate-50 dark:hover:bg-gray-700/50 transition-colors group">
+
+                        <!-- Checkbox Cell -->
+                        <template x-if="options.selection">
+                            <td class="w-10 p-4 text-center">
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox" x-model="item.selected" @@change="updateSelection()"
+                                        style="pointer-events: fill !important;"
+                                        class="row-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded focus:ring-blue-500 cursor-pointer">
+                                </div>
+                            </td>
+                        </template>
+
+                        <!-- Dynamic Cells -->
+                        <template x-for="(col, colIndex) in columns" :key="colIndex">
+                            <td class="px-4 py-3" :class="[
+                                    col.class || '',
+                                    col.minWidth ? 'min-w-' + col.minWidth : '',
+                                    col.maxWidth ? 'max-w-' + col.maxWidth : '',
+                                    col.truncate === false ? 'whitespace-normal' : 'truncate',
+                                    col.align === 'center' ? 'text-center' : (col.align === 'right' ? 'text-right' : 'text-left'),
+                                    col.sticky === 'right' ? 'sticky right-0 z-10 bg-white dark:bg-gray-800 group-hover:bg-slate-50 dark:group-hover:bg-gray-700/50 shadow-[-6px_0_12px_-3px_rgba(0,0,0,0.15)] border-l border-slate-100 dark:border-gray-700' : ''
+                                ]">
+
+                                <!-- 1. Custom Render Function (return HTML string) -->
+                                <template x-if="col.render && item">
+                                    <div x-html="safeRender(col, item)"></div>
+                                </template>
+
+                                <!-- 2. Basic Text Display (if no render function) -->
+                                <template x-if="!col.render">
+                                    <span x-text="getItemValue(item, col.field || col.data)"></span>
+                                </template>
+                            </td>
+                        </template>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between p-4 border-t border-slate-200 dark:border-gray-700 text-sm"
+        x-show="pagination.total > 0">
+        <div class="text-slate-500 dark:text-slate-400">
+            @L["Display"] <span class="font-bold text-slate-700 dark:text-slate-200" x-text="getRowStart()"></span>
+            -
+            <span class="font-bold text-slate-700 dark:text-slate-200" x-text="getRowEnd()"></span>
+            @L["Of"] <span class="font-bold text-slate-700 dark:text-slate-200"
+                x-text="formatNumber(pagination.total)"></span> @L["Results"]
+        </div>
+        <div class="flex gap-2">
+            <button @@click="prevPage()" :disabled="pagination.pageIndex === 1"
+                class="px-3 py-1.5 border border-slate-300 dark:border-gray-600 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:text-slate-300 transition-colors">
+                @L["Previous"]
+            </button>
+            <div class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold rounded-lg border border-blue-200 dark:border-blue-800"
+                x-text="pagination.pageIndex"></div>
+            <button @@click="nextPage()" :disabled="pagination.pageIndex >= pagination.totalPages"
+                class="px-3 py-1.5 border border-slate-300 dark:border-gray-600 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:text-slate-300 transition-colors">
+                @L["Next"]
+            </button>
+        </div>
+    </div>
+</div>

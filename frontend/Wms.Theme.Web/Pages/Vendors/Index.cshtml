@@ -1,0 +1,112 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Vendors.IndexModel
+@{
+    ViewData["Title"] = L["Vendors"];
+}
+
+@Html.AntiForgeryToken()
+<div id="gridVendors" style="height: calc(100vh - 140px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnDefs = [
+        {
+            headerName: '@Html.Raw(L["Company"])',
+            field: "Company",
+            pinned : "left",
+            width: 210,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["ContactName"])',
+            field: "ContactName",
+            pinned : "left",
+            width: 180,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["ContactNumber"])',
+            field: "ContactNumber",
+            width: 120,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["CreatedDate"])',
+            field: "StrCreatedDate",
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["ValidTo"])',
+            field: "StrValidTo",
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: "",
+            field: "Id",
+            width: 70,
+            pinned: 'right',
+            cellRenderer: (params) => {
+                const btnDelete = document.createElement("button");
+                btnDelete.innerHTML =`<i class="fa-solid fa-ban"></i>`;
+                btnDelete.title = "@Html.Raw(L["Remove"])";
+                btnDelete.addEventListener("click", () => {
+                    params.api.applyTransaction({ remove: [params.node.data] });
+                    deleteVendor(params.data.Id)
+                });
+
+                return btnDelete;
+            },
+       },
+    ];
+
+    // Serialize Razor model into JSON
+    let rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Vendors));
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridVendors');
+         agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    async function deleteVendor(id) {
+        let payload = {
+            Id: id
+        };
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const response = await fetch('?handler=DeleteVendor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('@Html.Raw(L["ConnectionError"])');
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    Notify.success('@Html.Raw(L["OperationSuccessful"])');
+                } else {
+                    Notify.error('@Html.Raw(L["OperationFailed"])');
+                }
+    }
+</script>
+
+    
+    

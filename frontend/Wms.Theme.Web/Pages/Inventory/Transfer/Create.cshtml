@@ -1,0 +1,840 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.Transfer.CreateModel
+@{
+    ViewData["Title"] = L["CreateTransferTicket"];
+}
+
+<h2 class="text-lg font-semibold text-gray-800 mb-4 pb-2">Thông tin lệnh chuyển kho</h2>
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+    <div class="flex flex-col gap-5">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label for="receiptNumber" class="block text-sm font-medium text-gray-700 mb-1">
+                    Số Lệnh <span class="text-red-500">*</span>
+                </label>
+                <input type="text"
+                       id="receiptNumber"
+                       name="receiptNumber"
+                       placeholder="PX-2023-001"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            </div>
+
+            <div>
+                <label for="receiptDate" class="block text-sm font-medium text-gray-700 mb-1">
+                    Ngày tạo Lệnh <span class="text-red-500">*</span>
+                </label>
+                <input type="text"
+                       id="receiptDate"
+                       name="receiptDate"
+                       placeholder="dd/mm/yyyy"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+            </div>
+        </div>
+
+        <div>
+            <label for="warehouseSearch" class="block text-sm font-medium text-gray-700 mb-1">
+                Kho xuất <span class="text-red-500">*</span>
+            </label>
+            <div class="flex">
+                <div class="relative flex-1">
+                    <input type="text"
+                           id="warehouseSearch"
+                           autocomplete="off"
+                           placeholder="Tìm kiếm kho"
+                           class="w-full px-4 py-2 border border-gray-300 border-r-0 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+
+                    <ul id="warehouseDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto">
+                    </ul>
+                </div>
+            </div>
+        </div> 
+
+        <div>
+            <label for="transferNote" class="block text-sm font-medium text-gray-700 mb-1">
+                Ghi chú
+            </label>
+            <textarea id="transferNote"
+                      name="transferNote"
+                      rows="3"
+                      placeholder="Nhập lý do chuyển kho hoặc ghi chú thêm..."
+                      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-y"></textarea>
+        </div>
+    </div>
+</div>
+
+
+<div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-gray-800">Chi tiết hàng hóa</h2>
+    <button type="button" onclick="addRow()" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+        Thêm dòng
+    </button>
+</div>
+
+<div id="myGrid" class="ag-theme-quartz" style="height: 400px; width: 100%;"></div>
+
+<!--Alert for user about split-->
+<div id="splitOrderAlert" class="hidden mb-4 bg-blue-50  text-blue-800 px-4 py-3 rounded-md flex items-center gap-3 mt">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div class="text-sm">
+        <span class="font-semibold">Lưu ý:</span> Lệnh này điều chuyển hàng đến <span id="destCountLabel" class="font-bold text-red-600">2</span> kho khác nhau. Hệ thống sẽ tự động tách thành <span id="ticketCountLabel" class="font-bold text-red-600">2</span> phiếu chuyển kho độc lập.
+    </div>
+</div>
+
+
+<div class="flex justify-end gap-3 mt-6  pt-4">
+    <button type="button" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors font-medium">
+        Hủy bỏ
+    </button>
+    <button type="button" onclick="saveReceipt()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-md transition-colors font-medium">
+        Lưu phiếu xuất
+    </button>
+</div>
+
+<!--Item search mo-->
+<div id="itemSearchModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gray-800">Tìm kiếm & Chọn hàng hóa xuất</h3>
+            <button type="button" onclick="closeItemSearchModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none bg-white p-1 rounded-full hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="px-6 py-4 flex flex-col flex-1 overflow-hidden">
+            <div class="mb-4 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input type="text" id="itemSearchInput" 
+                       placeholder="Gõ mã hàng hoặc tên hàng hóa để tìm kiếm..." 
+                       autocomplete="off"
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-md shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mã Hàng</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tên Hàng Hóa</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ĐVT</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">NCC</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider text-green-700">Tồn kho</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemSearchResultBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--map modal-->
+<div id="warehouseMapModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+        
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800" id="modal-map-item-name">Sơ đồ nhặt hàng</h3>
+                <p class="text-sm text-gray-500 font-medium" id="modal-map-item-code">Mã: --- | Yêu cầu: 0</p>
+            </div>
+            <button type="button" onclick="closeMapModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none bg-white p-1 rounded hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 flex-1 overflow-auto bg-gray-100">
+           <div class="flex gap-4 mb-4 text-sm bg-white p-3 rounded shadow-sm inline-flex border border-gray-200">
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span> Có hàng cần lấy</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-400 mr-2"></span> Hàng khác</div>
+                <div class="flex items-center"><span class="w-4 h-4 rounded border border-dashed border-gray-300 mr-2"></span> Trống</div>
+            </div>
+
+            <div id="modalOutboundLocationGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 pb-4">
+            </div>
+        </div>
+        
+        <div class="px-6 py-4 border-t border-gray-200 bg-white rounded-b-lg flex justify-end">
+             <button type="button" onclick="closeMapModal()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                Đóng sơ đồ
+            </button>
+        </div>  
+    </div>
+</div>
+
+<!--Modal for Warehouse destination-->
+<div id="destWarehouseModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <h3 class="text-lg font-bold text-gray-800">Tìm kiếm & Chọn Kho Đích</h3>
+            <button type="button" onclick="closeDestWarehouseModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none bg-white p-1 rounded-full hover:bg-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="px-6 py-4 flex flex-col flex-1 overflow-hidden">
+            <div class="mb-4 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input type="text" id="destWarehouseSearchInput" 
+                       placeholder="Gõ mã kho hoặc tên kho để tìm kiếm..." 
+                       autocomplete="off"
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-md shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Mã Kho</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tên Kho Đích</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="destWarehouseList" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        // init flat pickr for date input
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#receiptDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                minDate: "today",
+                allowInput: true,
+            });
+        });
+
+        const warehouses = [
+            { id: "WH01", name: "Kho Tổng Miền Bắc" },
+            { id: "WH02", name: "Kho Trung Chuyển Hà Nội" },
+            { id: "WH03", name: "Kho Tổng Miền Nam" },
+            { id: "WH04", name: "Kho Hàng Lỗi (Defect)" }
+        ];
+        let selectedSourceWarehouse = null;
+
+        const mockProducts = [
+            { itemCode: "SP001", itemName: "Bàn phím cơ Logitech", uom: "Cái", availableQty: 150, supplierName: "Logitech VN" },
+            { itemCode: "SP002", itemName: "Chuột không dây Dell", uom: "Cái", availableQty: 80, supplierName: "Dell Global" },
+            { itemCode: "SP003", itemName: "Màn hình Asus 24 inch", uom: "Chiếc", availableQty: 25, supplierName: "Asus Tech" },
+            { itemCode: "SP004", itemName: "Cáp mạng CAT6", uom: "Mét", availableQty: 1000, supplierName: "Viễn Thông A" },
+            { itemCode: "SP005", itemName: "Ổ cứng SSD 1TB Samsung", uom: "Cái", availableQty: 0, supplierName: "Samsung Vina" } 
+        ];
+        const searchInput = document.getElementById('warehouseSearch');
+        const dropdown = document.getElementById('warehouseDropdown');
+
+        // warehouse handling searching and dropdown
+        function renderDropdown(data) {
+            dropdown.innerHTML = '';
+            if (data.length === 0) {
+                dropdown.innerHTML = '<li class="px-4 py-2 text-gray-500 text-sm">Không tìm thấy kho...</li>';
+                return;
+            }
+            data.forEach(wh => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${wh.id} - ${wh.name}`;
+                li.onclick = () => {
+                    searchInput.value = wh.name;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(li);
+
+                li.onclick = () => {
+                searchInput.value = wh.name;
+                selectedSourceWarehouse = wh; 
+                dropdown.classList.add('hidden');
+};
+            });
+        }
+
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase();
+            selectedSourceWarehouse = null;
+            
+            const exactMatch = warehouses.find(w => 
+                w.name.toLowerCase() === keyword || w.id.toLowerCase() === keyword
+            );
+            if (exactMatch) {
+                selectedSourceWarehouse = exactMatch;
+            }
+
+            const filtered = warehouses.filter(w =>
+                w.name.toLowerCase().includes(keyword) || w.id.toLowerCase().includes(keyword)
+            );
+            renderDropdown(filtered);
+            dropdown.classList.remove('hidden');
+        });
+
+
+        searchInput.addEventListener('focus', function() {
+            renderDropdown(warehouses);
+            dropdown.classList.remove('hidden');
+        });
+
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+         // global state for ag-grid
+        let gridApi; 
+        const columnDefs = [
+            { 
+                headerName: "Mã Hàng", 
+                field: "itemCode", 
+                flex: 1.5, 
+                editable: false, 
+                cellClass: 'hover:bg-blue-50 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const hasValue = !!params.value;
+                    const displayValue = hasValue ? 
+                        `<span class="font-bold text-blue-700">${params.value}</span>` : 
+                        `<span class="text-gray-400 italic"></span>`;
+                
+                    return `
+                        <div class="flex justify-between items-center w-full h-full cursor-pointer hover:bg-blue-50 transition-colors px-2 -mx-2 rounded" 
+                            onclick="openItemSearchModal('${params.node.id}')" 
+                            title="Nhấn để tìm kiếm mặt hàng">
+                            
+                            <div class="truncate pr-2 mt-1">${displayValue}</div>   
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-1 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>        
+                        </div>
+                    `;
+                }
+            },
+            { 
+                headerName: "Tên Hàng Hóa", 
+                field: "itemName", 
+                flex: 2, 
+                editable: false, 
+                wrapText : true,
+                autoHeight : true,
+                cellClass: 'py-3 px-3 leading-tight'
+            },
+            { 
+                headerName: "ĐVT", 
+                field: "uom", 
+                flex: 1, 
+                editable: false , 
+                cellRenderer: function(params) {
+                    return `<div class="flex items-center h-full w-full">${params.value || ''}</div>`;
+                }
+            },
+            {
+                headerName: "Tồn kho khả dụng",
+                field: "availableQty",
+                width: 150,
+                editable: false,
+                // cellClass: 'text-green-700 font-bold bg-green-50 border-r border-gray-200',
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center justify-end h-full w-full pr-2">${val}</div>`;
+                }
+            },
+            { 
+                headerName: "Số lượng", 
+                field: "qty", 
+                flex: 1, 
+                editable: true, 
+                cellEditor: 'agNumberCellEditor' , 
+
+                cellEditorParams: {
+                    min: 0.001,   
+                    step: 'any',  
+                },
+
+                valueParser: function(params) {
+                    const num = parseFloat(params.newValue);
+                    if (isNaN(num) || num <= 0) {
+                        return null;
+                    }
+                    return num;
+                },
+
+                cellClassRules: { 
+                    'bg-red-50 border border-red-300 text-red-600 font-bold': params => {
+                        return params.value !== null && params.data.availableQty !== null && params.value > params.data.availableQty;
+                    },
+                    'bg-blue-50 border border-blue-100 cursor-text font-semibold text-blue-700': params => {
+                        return params.value === null || params.data.availableQty === null || params.value <= params.data.availableQty;
+                    }
+                },
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center h-full w-full">${val}</div>`;
+                }
+            },
+            { 
+                headerName: "Vị trí", 
+                field: "location",  
+                width: 150, 
+                editable: false, 
+                cellClass: 'hover:bg-yellow-100 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const val = params.value || '<span class="text-gray-400 italic"></span>';
+                    return `
+                        <div class="flex justify-between items-center w-full h-full" onclick="openMapModal('${params.node.id}')">
+                            <span class="${params.value ? 'font-medium text-blue-700' : ''}">${val}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>`;
+                }
+            },
+            {
+                headerName: "Mã Pallet",
+                field: "pallet",
+                width: 150,
+                editable: false,
+                cellRenderer: function(params) {
+                    const val = params.value || '';
+                    return `<div class="flex items-center h-full w-full">
+                                <span class="font-medium text-gray-700">${val}</span>
+                            </div>`;
+                }
+            },
+            {
+                headerName: "Kho Đích",
+                field: "destinationWarehouse",
+                wrapText : true,
+                autoHeight : true,
+                width: 160,
+                editable: false, 
+                cellClass: 'hover:bg-blue-50 transition-colors cursor-pointer flex items-center justify-end',
+                cellRenderer: function(params) {
+                const hasValue = !!params.value;
+                const displayValue = hasValue ? 
+                    `<span class="font-bold text-blue-700">${params.value}</span>` : 
+                    `<span class="text-gray-400 italic text-sm"></span>`; // Nên để chữ gợi ý thay vì &nbsp;
+                    
+                const tooltipText = hasValue ? params.value : "Nhấn để tìm kiếm và chọn kho đích";
+
+                return `
+                    <div class="absolute inset-0 flex items-center px-2 cursor-pointer hover:bg-blue-50 transition-colors w-full h-full" 
+                        onclick="openDestWarehouseModal('${params.node.id}')" 
+                        title="${tooltipText}">
+                        
+                        <div class="flex-1 pr-2 text-left break-words whitespace-normal leading-tight">
+                            ${displayValue}
+                        </div>
+                        
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0 text-blue-500 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>      
+                    </div>
+                `;
+            }
+            },
+            {
+                headerName: "Thao tác",
+                width: 100,
+                sortable: false,
+                filter: false,
+                cellClass: 'flex items-center justify-center pb-2',
+                cellRenderer: function(params) {
+                    return `
+                        <button type="button" onclick="deleteRow('${params.node.id}')" class="text-red-500 hover:text-red-700 flex items-center justify-center w-full h-full" title="Xóa dòng này">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>`;
+                }
+            }
+        ];
+
+        const rowData = [
+            { id: "row-init"  ,itemCode: "", itemName: "", uom: "", qty: null }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+
+            getRowId: params => params.data.id ,
+            pagination: true,
+            paginationPageSize: 20,
+
+            singleClickEdit: true,
+            stopEditingWhenCellsLoseFocus: true
+        };
+
+        function addRow() {
+            const newRecord = { 
+                id: Math.random().toString(36).substr(2, 9), 
+                itemCode: "", 
+                itemName: "", 
+                uom: "", 
+                qty: null , 
+                referenceCode : ""
+            };
+            gridApi.applyTransaction({ add: [newRecord] });
+        }
+
+        function deleteRow(nodeId) {
+            const rowNode = gridApi.getRowNode(nodeId);
+            if(rowNode) {
+                gridApi.applyTransaction({ remove: [rowNode.data] });
+            }
+            checkAndShowSplitAlert();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#myGrid');
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+        });
+
+
+        
+        // handle product search and selection in item search modal
+        let currentRowIdForItemSearch = null;
+        const itemSearchModal = document.getElementById('itemSearchModal');
+        const itemSearchInput = document.getElementById('itemSearchInput');
+        const itemSearchResultBody = document.getElementById('itemSearchResultBody');
+
+        // 1. Hàm Mở Modal
+        function openItemSearchModal(rowNodeId) {
+            currentRowIdForItemSearch = rowNodeId;  
+            
+            // Reset ô tìm kiếm và hiển thị toàn bộ danh sách ban đầu
+            itemSearchInput.value = '';
+            renderItemTable(mockProducts);
+            
+            // Hiển thị modal và tự động focus vào ô tìm kiếm
+            itemSearchModal.classList.remove('hidden');
+            setTimeout(() => itemSearchInput.focus(), 100);
+        }
+
+        // 2. Hàm Đóng Modal
+        function closeItemSearchModal() {
+            itemSearchModal.classList.add('hidden');
+            currentRowIdForItemSearch = null;
+        }
+
+        // 3. Hàm Render Bảng dữ liệu
+        function renderItemTable(data) {
+            itemSearchResultBody.innerHTML = '';
+            
+            if(data.length === 0) {
+                itemSearchResultBody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">Không tìm thấy hàng hóa nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const isOutOfStock = item.availableQty <= 0;
+                const qtyColor = isOutOfStock ? 'text-red-600 font-bold' : 'text-green-600 font-bold';
+                
+                // Disable nút chọn nếu hết hàng
+                const btnClass = isOutOfStock 
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-sm';
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-gray-900">${item.itemCode}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${item.itemName}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">${item.uom}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm text-gray-500">${item.supplierName}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm ${qtyColor}">${item.availableQty}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm">
+                        <button type="button" 
+                            ${isOutOfStock ? 'disabled' : ''} 
+                            onclick="selectItemForGrid('${item.itemCode}', '${item.itemName}', '${item.uom}', ${item.availableQty})" 
+                            class="px-4 py-1.5 rounded font-medium ${btnClass}">
+                            Chọn
+                        </button>
+                    </td>
+                `;
+                itemSearchResultBody.appendChild(tr);
+            });
+        }
+
+        // 4. Bắt sự kiện gõ phím để tìm kiếm (Filter)
+        itemSearchInput.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase();
+            const filtered = mockProducts.filter(p => 
+                p.itemCode.toLowerCase().includes(keyword) || 
+                p.itemName.toLowerCase().includes(keyword) || 
+                p.supplierName.toLowerCase().includes(keyword)
+            );
+            renderItemTable(filtered);
+        });
+
+        // 5. Hàm xử lý khi người dùng bấm "Chọn"
+        function selectItemForGrid(code, name, uom, availableQty) {
+            if (!currentRowIdForItemSearch) return;
+
+        
+            const rowNode = gridApi.getRowNode(currentRowIdForItemSearch);
+            
+            if (rowNode) {
+
+                rowNode.setDataValue('itemCode', code);
+                rowNode.setDataValue('itemName', name);
+                rowNode.setDataValue('uom', uom);
+                rowNode.setDataValue('availableQty', null);
+                rowNode.setDataValue('qty', null);
+                rowNode.setDataValue('location', '');
+                rowNode.setDataValue('pallet', '');
+                rowNode.setDataValue('referenceCode', null);
+            }
+            
+            closeItemSearchModal();
+        }
+
+         // handle item search modal 
+        let currentRowIdForMap = null;
+        const warehouseMapModal = document.getElementById('warehouseMapModal');
+
+        function openMapModal(rowNodeId) {
+            const rowNode = gridApi.getRowNode(rowNodeId);
+            if (!rowNode || !rowNode.data.itemCode) return;
+
+            currentRowIdForMap = rowNodeId;
+            const itemData = rowNode.data;
+
+            // Cập nhật thông tin Header của Modal (Sử dụng đúng ID trên HTML)
+            document.getElementById('modal-map-item-name').textContent = `Sơ đồ nhặt hàng: ${itemData.itemName}`;
+            
+            const reqQtyText = itemData.reqQty !== undefined && itemData.reqQty !== null ? itemData.reqQty : 0;
+            document.getElementById('modal-map-item-code').textContent = `Mã: ${itemData.itemCode} | ĐVT: ${itemData.uom}`;
+
+            // Hiển thị Modal
+            warehouseMapModal.classList.remove('hidden');
+
+            // Load dữ liệu bản đồ
+            fetchOutboundLocationsForModal(itemData.itemCode);
+        }
+
+        // Hàm đóng Modal
+        function closeMapModal() {
+            warehouseMapModal.classList.add('hidden');
+            currentRowIdForMap = null;
+            gridApi.refreshCells({ force: true });
+        }
+
+        // Render dữ liệu Sơ đồ
+        function fetchOutboundLocationsForModal(itemCode) {
+            const gridContainer = document.getElementById('modalOutboundLocationGrid');
+            gridContainer.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Đang tải sơ đồ vị trí...</div>';
+
+            setTimeout(() => {
+                const mockMapData = [
+                    { loc: "1.1.2", pallet: "PL-001", status: "target", qty: 30 },
+                    { loc: "1.2.3", pallet: "", status: "empty", qty: 0 },
+                    { loc: "1.2.4", pallet: "PL-009", status: "other", qty: 100 },
+                    { loc: "1.2.5", pallet: "PL-005", status: "target", qty: 20 },
+                    { loc: "1.3.1", pallet: "", status: "empty", qty: 0 },
+                    { loc: "1.3.2", pallet: "PL-012", status: "other", qty: 50 }
+                ];
+                gridContainer.innerHTML = '';
+                mockMapData.forEach(cell => {
+                const div = document.createElement('div');
+                    
+                if (cell.status === 'target') {
+                    div.className = "border-2 border-green-400 bg-green-50 hover:bg-green-100 hover:shadow-md cursor-pointer transform hover:-translate-y-1 transition-all flex flex-col justify-center items-center h-32 rounded-lg relative";
+                    div.onclick = () => selectLocationAndClose(cell.loc, cell.pallet, cell.qty);
+                    div.innerHTML = `
+                        <span class="text-xl font-bold text-green-700">${cell.loc}</span>
+                        
+                        <span class="text-sm font-medium text-green-600 mt-1">${cell.pallet}</span>
+                        
+                        <div class="mt-2 bg-green-600 text-white px-3 py-1 rounded text-xs font-bold shadow-sm">
+                            Tồn: ${cell.qty}
+                        </div>
+                        
+                        <div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_5px_rgba(34,197,94,0.8)]"></div>
+                    `;
+                } else if (cell.status === 'other') {
+                    div.className = "border-2 border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed flex flex-col justify-center items-center h-32 rounded-lg relative";
+                    div.innerHTML = `
+                        <span class="text-xl font-bold text-gray-500">${cell.loc}</span>
+                        <span class="text-sm font-medium text-gray-400 mt-1">${cell.pallet}</span>
+                        <div class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-gray-400"></div>
+                    `;
+                } else {
+                    div.className = "border-2 border-dashed border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed flex flex-col justify-center items-center h-32 rounded-lg";
+                    div.innerHTML = `
+                        <span class="text-xl font-bold text-gray-400">${cell.loc}</span>
+                        <span class="text-sm font-medium text-gray-400 mt-1">Trống</span>
+                    `;
+                }
+                    gridContainer.appendChild(div);
+                });
+            }, 400);
+        }
+
+        // Xử lý khi chọn vị trí
+        function selectLocationAndClose(loc, pallet, availableQty) {
+            if (!currentRowIdForMap) return;
+            
+            const rowNode = gridApi.getRowNode(currentRowIdForMap);
+            if (rowNode) {
+                rowNode.setDataValue('location', loc);
+                rowNode.setDataValue('pallet', pallet);
+                rowNode.setDataValue('availableQty', availableQty);
+                //rowNode.setDataValue('qty', availableQty); 
+            }
+            closeMapModal();
+        }
+
+
+        // handle destination warehouse modal
+        let currentRowIdForDestWarehouse = null;
+        const destWarehouseModal = document.getElementById('destWarehouseModal');
+        const destWarehouseList = document.getElementById('destWarehouseList');
+        const destWarehouseSearchInput = document.getElementById('destWarehouseSearchInput');
+
+      
+        function renderDestWarehouseList(keyword = "") {
+            let validWarehouses = warehouses.filter(w => 
+                selectedSourceWarehouse === null || w.id !== selectedSourceWarehouse.id
+            );
+            
+            if (keyword) {
+                const lowerKeyword = keyword.toLowerCase();
+                validWarehouses = validWarehouses.filter(w => 
+                    w.name.toLowerCase().includes(lowerKeyword) || 
+                    w.id.toLowerCase().includes(lowerKeyword)
+                );
+            }
+            
+            // Render HTML
+            destWarehouseList.innerHTML = '';
+            
+            if(validWarehouses.length === 0) {
+                destWarehouseList.innerHTML = `<tr><td colspan="3" class="px-6 py-8 text-center text-gray-500">Không tìm thấy kho đích phù hợp.</td></tr>`;
+            } else {
+                validWarehouses.forEach(wh => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-gray-900">${wh.id}</td>
+                        <td class="px-6 py-3 text-sm text-gray-700">${wh.name}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-right text-sm">
+                            <button type="button" 
+                                onclick="selectDestWarehouseForGrid('${wh.name}')" 
+                                class="px-4 py-1.5 rounded font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-sm transition-colors">
+                                Chọn
+                            </button>
+                        </td>
+                    `;
+                    destWarehouseList.appendChild(tr);
+                });
+            }
+        }
+
+        function openDestWarehouseModal(rowNodeId) {
+            if (!selectedSourceWarehouse) {
+               
+                Notify.info('Vui lòng chọn "Kho xuất" ở phần thông tin chung trước khi chọn Kho đích!');
+
+             
+                const sourceInput = document.getElementById('warehouseSearch');
+                if (sourceInput) {
+                    sourceInput.focus();
+                }
+                return;
+            }
+            currentRowIdForDestWarehouse = rowNodeId;
+            
+            if(destWarehouseSearchInput) {
+                destWarehouseSearchInput.value = '';
+            }
+            renderDestWarehouseList("");
+
+            // Hiển thị Modal
+            destWarehouseModal.classList.remove('hidden');
+            
+            // Tự động focus con trỏ chuột vào ô tìm kiếm giúp user gõ được luôn không cần click
+            setTimeout(() => {
+                if(destWarehouseSearchInput) destWarehouseSearchInput.focus();
+            }, 100);
+        }
+
+        // 3. Sự kiện Gõ phím tìm kiếm
+        if (destWarehouseSearchInput) {
+            destWarehouseSearchInput.addEventListener('input', function(e) {
+                // Gọi lại hàm render với từ khóa vừa gõ
+                renderDestWarehouseList(e.target.value.trim());
+            });
+        }
+
+        // 4. Đóng Modal
+        function closeDestWarehouseModal() {
+            destWarehouseModal.classList.add('hidden');
+            currentRowIdForDestWarehouse = null;
+        }
+
+        // 5. Gán dữ liệu vào AG Grid
+        function selectDestWarehouseForGrid(warehouseName) {
+            if (!currentRowIdForDestWarehouse) return;
+            
+            const rowNode = gridApi.getRowNode(currentRowIdForDestWarehouse);
+            if (rowNode) {
+                rowNode.setDataValue('destinationWarehouse', warehouseName);
+            }
+            
+            closeDestWarehouseModal();
+            checkAndShowSplitAlert();
+        }
+
+        function checkAndShowSplitAlert() {
+            const splitAlert = document.getElementById('splitOrderAlert');
+            if (!splitAlert) return;
+
+            const uniqueDestinations = new Set();
+
+            gridApi.forEachNode(node => {
+                if (node.data.destinationWarehouse) {
+                    uniqueDestinations.add(node.data.destinationWarehouse);
+                }
+            });
+
+            const count = uniqueDestinations.size;
+
+            if (count > 1) {
+                document.getElementById('destCountLabel').innerText = count;
+                document.getElementById('ticketCountLabel').innerText = count;
+                splitAlert.classList.remove('hidden');
+            } else {
+                splitAlert.classList.add('hidden');
+            }
+        }
+    
+    </script>
+}

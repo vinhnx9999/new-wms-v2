@@ -1,0 +1,320 @@
+@page
+@model Wms.Theme.Web.Pages.Locations.ListModel
+
+@{
+    ViewData["Title"] = "Danh sách vị trí";
+}
+
+<div class="flex flex-col h-[calc(100vh-120px)] space-y-4">
+
+    <div class="bg-white rounded-lg shadow p-4 shrink-0">
+        <div class="flex flex-wrap gap-3 items-end justify-between">
+            <div class="max-w-md w-full">
+                <label for="warehouseSelect" class="block text-sm font-medium text-gray-700 mb-2">Chọn Kho</label>
+                <select id="warehouseSelect" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="">Chọn kho</option>
+                    @foreach (var wh in Model.WarehouseViewModels)
+                    {
+                        <option value="@wh.id">@wh.WarehouseName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                <form id="excelForm" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="file" name="ExcelFile" accept=".xlsx,.xls" class="hidden" id="excelUpload" />
+                    <label for="excelUpload" class="btn btn-secondary cursor-pointer">
+                        Import Excel
+                    </label>
+                </form>
+
+                <button id="downloadLocationTemplateBtn" type="button" class="btn btn-primary">
+                    Tải template
+                </button>
+
+                <button id="openCreateLocationModalBtn" type="button" class="btn btn-primary">
+                    Tạo vị trí
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow" style="height: 500px;">
+        <div id="myGrid" class="ag-theme-quartz" style="height: 100%; width: 100%;"></div>
+    </div>
+</div>
+
+<!-- Create Location Modal -->
+<div id="createLocationModal" class="fixed inset-0 z-50 hidden">
+    <div id="createLocationBackdrop" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative z-10 flex min-h-full items-center justify-center p-4">
+        <div class="w-full max-w-3xl rounded-lg bg-white shadow-xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Tạo vị trí</h3>
+                <button id="closeCreateLocationModalBtn" type="button" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+
+            @Html.AntiForgeryToken()
+            <partial name="~/Pages/Locations/_CreateLocationFormPartial.cshtml" model="Model.WarehouseViewModels" />
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectElement = document.getElementById('warehouseSelect');
+            const excelUpload = document.getElementById('excelUpload');
+            const excelForm = document.getElementById('excelForm');
+            const downloadTemplateBtn = document.getElementById('downloadLocationTemplateBtn');
+
+            // modal elements
+            const openCreateModalBtn = document.getElementById('openCreateLocationModalBtn');
+            const closeCreateModalBtn = document.getElementById('closeCreateLocationModalBtn');
+            const createBackdrop = document.getElementById('createLocationBackdrop');
+            const createModal = document.getElementById('createLocationModal');
+
+            let gridApi;
+            let isSubmitting = false;
+
+            const getStatusConfig = (status) => {
+                switch (Number(status)) {
+                    case 0: return { text: 'Available', css: 'bg-green-100 text-green-800' };
+                    case 1: return { text: 'Occupied', css: 'bg-yellow-100 text-yellow-800' };
+                    case 2: return { text: 'Blocked', css: 'bg-red-100 text-red-800' };
+                    case 3: return { text: 'None', css: 'bg-gray-100 text-gray-800' };
+                    default: return { text: `Unknown (${status})`, css: 'bg-gray-100 text-gray-800' };
+                }
+            };
+
+            const gridOptions = {
+                columnDefs: [
+                    { field: 'id', headerName: 'ID', width: 100, hide: true },
+                    { field: 'address', headerName: 'Địa chỉ', flex: 1, minWidth: 200 },
+                    { field: 'type', headerName: 'Loại', width: 150 },
+                    { field: 'storagePriority', headerName: 'Ưu tiên', width: 120 },
+                    { field: 'virtualLocation', headerName: 'Virtual', width: 120, valueFormatter: p => p.value ? 'Yes' : 'No' },
+                    {
+                        field: 'status',
+                        headerName: 'Trạng thái',
+                        width: 150,
+                        cellRenderer: p => {
+                            if (p.value == null) return '-';
+                            const status = getStatusConfig(Number(p.value));
+                            return `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.css} mt-1">${status.text}</span>`;
+                        }
+                    }
+                ],
+                defaultColDef: { sortable: true, filter: true, resizable: true },
+                rowData: [],
+                overlayNoRowsTemplate: '<span class="text-sm text-gray-500">Vui lòng chọn kho ở trên để xem danh sách vị trí.</span>',
+                overlayLoadingTemplate: '<span class="text-sm text-gray-500">Đang tải dữ liệu...</span>',
+            };
+
+            const gridDiv = document.querySelector('#myGrid');
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+
+            async function loadLocations(warehouseId) {
+                if (!warehouseId) {
+                    gridApi.setGridOption('rowData', []);
+                    gridOptions.overlayNoRowsTemplate = '<span class="text-sm text-gray-500">Vui lòng chọn kho ở trên để xem danh sách vị trí.</span>';
+                    gridApi.showNoRowsOverlay();
+                    return;
+                }
+
+                gridApi.showLoadingOverlay();
+                try {
+                    const response = await fetch(`?handler=Location&warehouseId=${warehouseId}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+
+                    const data = await response.json();
+                    if (!data || data.length === 0) {
+                        gridOptions.overlayNoRowsTemplate = '<span class="text-sm text-gray-500">Không tìm thấy vị trí nào cho kho này.</span>';
+                        gridApi.setGridOption('rowData', []);
+                    } else {
+                        gridApi.setGridOption('rowData', data);
+                    }
+                } catch (error) {
+                    console.error('Error fetching locations:', error);
+                    gridOptions.overlayNoRowsTemplate = '<span class="text-sm text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại.</span>';
+                    gridApi.setGridOption('rowData', []);
+                }
+            }
+
+            selectElement.addEventListener('change', function () {
+                loadLocations(this.value);
+            });
+
+            // import excel
+            excelUpload.addEventListener('change', async function () {
+                if (!excelUpload.files || excelUpload.files.length === 0) return;
+
+                try {
+                    const formData = new FormData(excelForm);
+                    const response = await fetch('?handler=ImportExcel', { method: 'POST', body: formData });
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        Notify.error(result?.message || 'Import excel thất bại');
+                        return;
+                    }
+
+                    Notify.success('Import excel thành công');
+                    setTimeout(() => location.reload(), 700);
+                } catch (error) {
+                    console.error(error);
+                    Notify.error('Connection error');
+                } finally {
+                    excelUpload.value = '';
+                }
+            });
+
+            downloadTemplateBtn.addEventListener('click', async function () {
+                try {
+                    const response = await fetch('?handler=DownloadTemplateLocation');
+                    if (!response.ok) throw new Error('Không thể tải file');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'TemplateLocation.xlsx';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    Notify.error(error.message || 'Download template thất bại');
+                }
+            });
+
+            // modal open/close
+            const openModal = () => createModal?.classList.remove('hidden');
+            const closeModal = () => createModal?.classList.add('hidden');
+            openCreateModalBtn?.addEventListener('click', openModal);
+            closeCreateModalBtn?.addEventListener('click', closeModal);
+            createBackdrop?.addEventListener('click', closeModal);
+            document.getElementById('btnCancelModal')?.addEventListener('click', closeModal);
+
+            // create location logic (from Create.cshtml)
+            function toggleLocationMode() {
+                const isVirtual = document.getElementById('isVirtualLocation')?.checked === true;
+                document.getElementById('physicalFields')?.classList.toggle('hidden', isVirtual);
+                document.getElementById('virtualFields')?.classList.toggle('hidden', !isVirtual);
+                clearFieldErrors();
+            }
+
+            function clearFieldErrors() {
+                ['warehouseId', 'locationName', 'coordinateX', 'coordinateY', 'coordinateZ', 'priority'].forEach(id => {
+                    document.getElementById(id)?.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                });
+            }
+
+            function markFieldError(id) {
+                const el = document.getElementById(id);
+                el?.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                el?.focus();
+            }
+
+            function getFormData() {
+                const isVirtual = document.getElementById('isVirtualLocation')?.checked === true;
+                const data = {
+                    warehouseId: Number(document.getElementById('warehouseId')?.value || 0),
+                    locationName: (document.getElementById('locationName')?.value || '').trim(),
+                    coordinateX: (document.getElementById('coordinateX')?.value || '').trim(),
+                    coordinateY: (document.getElementById('coordinateY')?.value || '').trim(),
+                    coordinateZ: (document.getElementById('coordinateZ')?.value || '').trim(),
+                    isVirtualLocation: isVirtual,
+                    priority: Number(document.getElementById('priority')?.value || 0)
+                };
+
+                if (isVirtual) {
+                    data.coordinateX = null;
+                    data.coordinateY = null;
+                    data.coordinateZ = null;
+                } else {
+                    data.locationName = null;
+                }
+
+                return data;
+            }
+
+            function validateCreateLocationForm() {
+                clearFieldErrors();
+                const data = getFormData();
+
+                if (!data.warehouseId || data.warehouseId <= 0) { markFieldError('warehouseId'); return false; }
+                if (!Number.isInteger(data.priority) || data.priority < 1 || data.priority > 6) { markFieldError('priority'); return false; }
+
+                if (data.isVirtualLocation) {
+                    if (!data.locationName) { markFieldError('locationName'); return false; }
+                } else {
+                    if (!data.coordinateX) { markFieldError('coordinateX'); return false; }
+                    if (!data.coordinateY) { markFieldError('coordinateY'); return false; }
+                    if (!data.coordinateZ) { markFieldError('coordinateZ'); return false; }
+                }
+
+                return true;
+            }
+
+            async function onSubmitCreateLocation(e) {
+                e.preventDefault();
+                if (isSubmitting) return;
+                if (!validateCreateLocationForm()) return;
+
+                isSubmitting = true;
+                const submitBtn = document.getElementById('btnSubmit');
+                const oldText = submitBtn?.textContent ?? 'Create';
+
+                try {
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Creating...';
+                    }
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+                    const response = await fetch('?handler=Create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(getFormData())
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result?.success) {
+                        Notify.error(result?.message || 'Create location failed');
+                        return;
+                    }
+
+                    Notify.success(result?.message || 'Create location successfully');
+                    closeModal();
+
+                    // refresh grid theo warehouse đang chọn
+                    const selectedWarehouseId = selectElement?.value;
+                    if (selectedWarehouseId) {
+                        await loadLocations(selectedWarehouseId);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Notify.error('Cannot connect server');
+                } finally {
+                    isSubmitting = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = oldText;
+                    }
+                }
+            }
+
+            document.getElementById('isVirtualLocation')?.addEventListener('change', toggleLocationMode);
+            document.getElementById('createLocationForm')?.addEventListener('submit', onSubmitCreateLocation);
+            toggleLocationMode();
+        });
+    </script>
+}

@@ -1,0 +1,487 @@
+@using WMSSolution.Shared
+
+<!-- Sidebar -->
+@{
+    string Active(string path, bool exactMatch = false)
+    {
+        var currentPath = Context.Request.Path.Value ?? "";
+
+        if (exactMatch)
+        {
+            return currentPath.Equals(path, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+        }
+
+        return currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+}
+
+@{
+    var role = TempData.Peek("UserRole")?.ToString();
+    var versionApp = SystemDefine.SystemVersion;
+    var showVendors = TempData.Peek("ShowVendors")?.ToString();
+}
+<div  class="relative">
+<nav class="sidebar" style="scrollbar-width:none">
+        <div class="sidebar-logo">
+            <!-- Logo -->
+            <div class="max-w-full py-2">
+                <a href="/Dashboard" class="@Active("/Dashboard")">
+                    <img src="~/img/logo.png"
+                         alt="Logo"
+                         class="max-w-[150px] w-full h-auto block mx-auto antialiased" />
+                </a>                
+            </div>
+            <!-- Toggle Button Internal -->
+            <button id="sidebar-toggle" title="Toggle Sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <ul class="sidebar-menu">
+         @if (role == "Admin")
+         {
+            <li class="menu-title">
+                <i class="fa-solid fa-dolly"></i> @L["Inbound"]
+            </li>
+            <li>
+                <a href="/PurchaseOrder" class="@Active("/PurchaseOrder")">
+                    <span class="icon" aria-hidden="true">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </span><span class="menu-label">@L["PurchaseOrder"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inbound/Receipt" class="@Active("/Inbound/Receipt", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["InboundReceipt"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inbound/SinglePallet" class="@Active("/Inbound/SinglePallet", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["SinglePallet"]</span>
+                </a>
+            </li>
+                <li>
+                    <a href="/Inbound/BulkInsert" class="@Active("/Inbound/BulkInsert", true)">
+                        <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["BulkInsert"]</span>
+                    </a>
+                </li>
+            <li>
+                <a href="/Inbound/Order" class="@Active("/Inbound/Order")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-import"></i></span><span class="menu-label">@L["InboundOrder"]</span>
+                </a>
+            </li>
+
+            <li class="menu-title">
+                <i class="fa-solid fa-truck-ramp-box"></i> @L["Outbound"]
+            </li>
+
+            <li>
+                <a href="/Outbound/SalesOrders" class="@Active("/Outbound/SalesOrders")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span><span class="menu-label">@L["SalesOrders"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Outbound/Receipt" class="@Active("/Outbound/Receipt", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["OutboundReceipt"]</span>
+                </a>
+            </li>
+             <li>
+                <a href="/Outbound/BulkOutbound" class="@Active("/Outbound/BulkOutbound", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["BulkOutbound"]</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/Outbound/Order" class="@Active("/Outbound/Order")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-import"></i></span><span class="menu-label">@L["OutboundOrder"]</span>
+                </a>
+            </li>
+                
+            <li class="menu-title">
+               <i class="fa-solid fa-list"></i> @L["Planning"]
+            </li>
+                <li>
+                    <a href="/Planning/Picking" class="@Active("/Planning/Picking")">
+                        <span class="icon"
+                              aria-hidden="true">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </span><span class="menu-label">@L["PickingPlan"]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Planning/Packing" class="@Active("/Planning/Packing")">
+                        <span class="icon"
+                              aria-hidden="true">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </span><span class="menu-label">@L["PackingPlan"]</span>
+                    </a>
+                </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-boxes-stacked"></i> @L["Inventory"]
+            </li>
+            <li>
+                <a href="/Inventory/Search" class="@Active("/Inventory/Search")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span><span class="menu-label">@L["Search"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inventory/Adjustment" class="@Active("/Inventory/Adjustment")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-sliders"></i></span><span class="menu-label">@L["Adjustment"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inventory/Transfer" class="@Active("/Inventory/Transfer")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-right-left"></i></span><span class="menu-label">@L["Transfer"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inventory/StockCount" class="@Active("/Inventory/StockCount")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span><span class="menu-label">@L["StockCount"]</span>
+                </a>
+            </li>
+           
+            <li>
+                <a href="/Inventory/Beginning" class="@Active("/Inventory/Beginning")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa fa-tasks"></i></span><span class="menu-label">@L["Beginning"]</span>
+                </a>
+            </li>
+
+            <li class="menu-title">
+                <i class="fa-solid fa-warehouse"></i> @L["Warehouse"]
+            </li>
+            <li>
+                <a href="/Warehouse/List" class="@Active("/Warehouse/List")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-warehouse"></i></span><span class="menu-label">@L["WarehouseList"]</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="/Reports/StockOnShelf" class="@Active("/Reports/StockOnShelf")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-map-location-dot"></i></span>
+                    <span class="menu-label">@L["StockOnShelf"]</span>
+                </a>
+            </li>
+                <li>
+                    <a href="/Inventory/LowStockAlert" class="@Active("/Inventory/LowStockAlert")">
+                        <span class="icon text-orange-600 dark:text-orange-400 text-red-700"
+                              aria-hidden="true"><i class="fa fa-exclamation-triangle"></i></span><span class="menu-label">@L["LowStock"]</span>
+                    </a>
+                </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-chart-bar"></i> @L["Reports"]
+            </li>
+            @* <li>
+                <a href="/Reports/Index" class="@Active("/Reports/Index")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span class="menu-label">@L["Summary_Report"]</span>
+                </a>
+            </li> *@
+            
+            
+            <li>
+                    <a href="/Reports/ReportInbound" class="@Active("/Reports/ReportInbound")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-import"></i></span>
+                    <span class="menu-label">@L["Report_Inbound"]</span>
+                </a>
+            </li>
+            <li>
+                    <a href="/Reports/ReportOutbound" class="@Active("/Reports/ReportOutbound")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-export"></i></span>
+                    <span class="menu-label">@L["Report_Outbound"]</span>
+                </a>
+            </li>
+            <li>
+                    <a href="/Reports/InOutStatement" class="@Active("/Reports/InOutStatement")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-cubes"></i></span>
+                        <span class="menu-label">@L["InOutStatement"]</span>
+                </a>
+            </li>
+            <li>
+                 <a href="/Reports/InventoryCard" class="@Active("/Reports/InventoryCard")">
+                        <span class="icon" aria-hidden="true"><i class="fa fa-address-card" aria-hidden="true"></i></span>
+                        <span class="menu-label">@L["InventoryCard"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Reports/WarehouseInventory" class="@Active("/Reports/WarehouseInventory")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span><span class="menu-label">@L["InOutStock"]</span>
+                </a>
+            </li>
+               
+            <li>
+                <a href="/System/AuditLog" class="@Active("/System/AuditLog")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-clock-rotate-left"></i></span><span class="menu-label">@L["AuditLog"]</span>
+                </a>
+            </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-cog"></i> @L["Settings"]
+            </li>
+            <li>
+                <a href="/Setting/Sku" class="@Active("/Setting/Sku") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                    <span class="menu-label">@L["Sku"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Setting/Customer" class="@Active("/Setting/Customer") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    <span class="menu-label">@L["Customer"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Setting/Unit" class="@Active("/Setting/Unit") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-weight-scale text-sm"></i></span>
+                    <span class="menu-label">@L["Unit"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Setting/Supplier" class="@Active("/Setting/Supplier") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-truck"></i></span>
+                    <span class="menu-label">@L["Supplier"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Locations/List" class="@Active("/Locations/List") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-map-marker-alt"></i></span>
+                    <span class="menu-label">@L["Location"]</span>
+                </a>
+            </li>
+          
+            <li class="menu-title">
+                <i class="fa-solid fa-user-cog"></i>@L["System"]
+            </li>
+            <li>
+                <a href="/System/Users" class="@Active("/System/Users") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    <span class="menu-label">@L["ManageUsers"]</span>
+                </a>
+            </li>               <li>
+                    <a href="/System/RevertData" class="@Active("/System/RevertData") pl-11">
+                        <span class="icon" aria-hidden="true"><i class="fa fa-reply"></i></span>
+                        <span class="menu-label">@L["RevertData"]</span>
+                    </a>
+                </li>
+            <li>
+                <a href="/System/Integration" class="@Active("/System/Integration") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-brands fa-jsfiddle"></i></span>
+                    <span class="menu-label">@L["Integration"]</span>
+                </a>
+            </li>
+        }
+        else if (role == "Operator")
+        {
+            <li class="menu-title">
+                <i class="fa-solid fa-dolly"></i> @L["Inbound"]
+            </li>
+            <li>
+                <a href="/Inbound/Receipt/Create" class="@Active("/Inbound/Receipt/Create")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span><span class="menu-label">@L["CreateReceipt_Title"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inbound/Receipt" class="@Active("/Inbound/Receipt", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["InboundReceipt"]</span>
+                </a>
+            </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-truck-ramp-box"></i> @L["Outbound"]
+            </li>
+            <li>
+                <a href="/Outbound/Receipt/Create" class="@Active("/Outbound/Receipt/Create")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-plus"></i></span><span class="menu-label">@L["CreateOutboundReceipt_Title"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Outbound/Receipt" class="@Active("/Outbound/Receipt", true)">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span class="menu-label">@L["OutboundReceipt"]</span>
+                </a>
+            </li>
+                <li class="menu-title">
+                    <i class="fa-solid fa-list"></i> @L["Planning"]
+                </li>
+                <li>
+                    <a href="/Planning/Picking" class="@Active("/Planning/Picking")">
+                        <span class="icon"
+                              aria-hidden="true">
+                            <i class="fa-solid fa-truck-fast"></i>
+                        </span><span class="menu-label">@L["PickingPlan"]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Planning/Packing" class="@Active("/Planning/Packing")">
+                        <span class="icon"
+                              aria-hidden="true">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </span><span class="menu-label">@L["PackingPlan"]</span>
+                    </a>
+                </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-boxes-stacked"></i> @L["Inventory"]
+            </li>
+            <li>
+                <a href="/Inventory/Search" class="@Active("/Inventory/Search")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span><span class="menu-label">@L["Search"]</span>
+                </a>
+            </li>
+            <li>    
+                <a href="/Inventory/Adjustment" class="@Active("/Inventory/Adjustment")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-sliders"></i></span><span class="menu-label">@L["Adjustment"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Inventory/Transfer" class="@Active("/Inventory/Transfer")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa-solid fa-right-left"></i></span><span class="menu-label">@L["Transfer"]</span>
+                </a>
+            </li>
+                
+            <li>
+                <a href="/Inventory/Beginning" class="@Active("/Inventory/Beginning")">
+                    <span class="icon"
+                          aria-hidden="true"><i class="fa fa-tasks"></i></span><span class="menu-label">@L["Beginning"]</span>
+                </a>
+            </li>
+            <li class="menu-title">
+                <i class="fa-solid fa-warehouse"></i> @L["Warehouse"]
+            </li>
+                <li>
+                    <a href="/Warehouse/List" class="@Active("/Warehouse/List")">
+                        <span class="icon"
+                              aria-hidden="true"><i class="fa-solid fa-warehouse"></i></span><span class="menu-label">@L["WarehouseList"]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Reports/StockOnShelf" class="@Active("/Reports/StockOnShelf")">
+                        <span class="icon" aria-hidden="true"><i class="fa-solid fa-map-location-dot"></i></span>
+                        <span class="menu-label">@L["StockOnShelf"]</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/Inventory/LowStockAlert" class="@Active("/Inventory/LowStockAlert")">
+                        <span class="icon text-orange-600 dark:text-orange-400 text-red-700"
+                              aria-hidden="true"><i class="fa fa-exclamation-triangle"></i></span><span class="menu-label">@L["LowStock"]</span>
+                    </a>
+                </li>
+             
+            <li class="menu-title">
+                <i class="fa-solid fa-chart-bar"></i> @L["Reports"]
+            </li>
+            @* <li>
+                <a href="/Reports/Index" class="@Active("/Reports/Index")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span class="menu-label">@L["Summary_Report"]</span>
+                </a>
+            </li> *@
+               
+            <li>
+                    <a href="/Reports/ReportInbound" class="@Active("/Reports/ReportInbound")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-import"></i></span>
+                    <span class="menu-label">@L["Report_Inbound"]</span>
+                </a>
+            </li>
+            <li>
+                    <a href="/Reports/ReportOutbound" class="@Active("/Reports/ReportOutbound")">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-file-export"></i></span>
+                    <span class="menu-label">@L["Report_Outbound"]</span>
+                </a>
+            </li>
+                <li>
+                    <a href="/Reports/InOutStatement" class="@Active("/Reports/InOutStatement")">
+                        <span class="icon" aria-hidden="true"><i class="fa-solid fa-cubes"></i></span>
+                        <span class="menu-label">@L["InOutStatement"]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Reports/InventoryCard" class="@Active("/Reports/InventoryCard")">
+                        <span class="icon" aria-hidden="true"><i class="fa fa-address-card" aria-hidden="true"></i></span>
+                        <span class="menu-label">@L["InventoryCard"]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/Reports/WarehouseInventory" class="@Active("/Reports/WarehouseInventory")">
+                        <span class="icon"
+                              aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span><span class="menu-label">@L["InOutStock"]</span>
+                    </a>
+                </li>
+               
+            <li class="menu-title">
+                <i class="fa-solid fa-cog"></i> @L["Settings"]
+            </li>
+            <li>
+                <a href="/Setting/Sku" class="@Active("/Setting/Sku") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-box"></i></span>
+                    <span class="menu-label">@L["Sku"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Setting/Customer" class="@Active("/Setting/Customer") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    <span class="menu-label">@L["Customer"]</span>
+                </a>
+            </li>
+            <li>
+                <a href="/Setting/Unit" class="@Active("/Setting/Unit") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-weight-scale text-sm"></i></span>
+                    <span class="menu-label">@L["Unit"]</span>
+                </a>
+            </li>            
+            <li>
+                <a href="/Setting/Supplier" class="@Active("/Setting/Supplier") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-truck"></i></span>
+                    <span class="menu-label">@L["Supplier"]</span>
+                </a>
+            </li>
+            
+            <li class="menu-title">
+                <i class="fa-solid fa-user-cog"></i>@L["System"]
+            </li>
+            <li>
+                <a href="/System/Users" class="@Active("/System/Users") pl-11">
+                    <span class="icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                    <span class="menu-label">@L["ManageUsers"]</span>
+                </a>
+            </li>
+
+        }
+
+            
+        @if (showVendors == "ShowVendors")            
+        {
+            <li class="menu-title bg-yellow-400">
+                    <i class="fa fa-shopping-cart" aria-hidden="true"></i> @L["Markets"]
+            </li>
+                
+            <li>
+                <a href="/Vendors" class="@Active("/Vendors") pl-11">
+                        <span class="icon" aria-hidden="true"><i class="fa fa-university" aria-hidden="true"></i></span>
+                   <span class="menu-label">@L["Vendors"]</span>
+                </a>
+            </li>
+        }
+            <li class="menu-title bg-yellow-400" title="@versionApp">
+                <i class="fa fa-copyright"></i> @L["Version"]
+            </li>
+            <li>
+                <a class="pl-11">
+                    <span class="icon" aria-hidden="true">
+                        <i class="fa fa-copyright" aria-hidden="true"></i>
+                    </span>
+                    <span class="menu-label"> @versionApp</span>
+                </a>                
+            </li>
+    </ul>
+</nav>
+
+</div>

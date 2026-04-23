@@ -1,0 +1,68 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model IEnumerable<WcsLocationDto>
+
+@if(Model == null || !Model.Any())
+{
+    <p class="text-center text-gray-500">Không có dữ liệu vị trí nào để hiển thị.</p>
+    return;
+}
+
+@{
+    var distinctLevels = Model.Select(m => m.Level).Distinct().OrderBy(l => l);
+    var maxCoordX = Model.Max(m => m.CoordX);
+    int boxWidth = 10;
+    int boxHeight = 10;
+}
+
+<div class="grid grid-cols-1 space-y-3 gap-1 p-2" >
+    @foreach (var level in distinctLevels)
+    {
+        <div class="space-y-3 items-center justify-center text-center">
+            <p>Tầng @level</p>
+            <div class="grid grid-cols-1">
+                @{
+                    var wcsLayers = Model.Where(m => m.Level == level);
+                    var distinctY = wcsLayers.Select(m => m.CoordY).Distinct().OrderBy(y => y);
+                }
+                @foreach (var y in distinctY)
+                {
+                    var wcsLayerYs = wcsLayers.Where(m => m.CoordY == y);
+                    <div class="flex gap-1 p-2">
+                        @for (int x = 1; x <= maxCoordX; x++)
+                        {
+                            var item = wcsLayerYs.FirstOrDefault(m => m.CoordX == x);
+                            if (item == null || string.IsNullOrEmpty(item.Type))
+                            {
+                                <div class="w-@boxWidth h-@boxHeight bg-gray-200 rounded-lg flex-1 items-center justify-center font-bold"></div>
+                            }
+                            else if (item.Type == "LiftPoint")
+                            {
+                                <div class="w-@boxWidth h-@boxHeight bg-yellow-300 rounded-lg flex-1 items-center justify-center font-bold" title="Lift Point">
+                                    @item.Address
+                                </div>
+                            }
+                            else if (item.Type == "StorageSlot")
+                            {
+                                <div class="w-@boxWidth h-@boxHeight bg-green-300 rounded-lg flex-1 items-center justify-center font-bold" title="Storage Slot @item.Address">
+                                    @item.Address
+                                </div>
+                            }
+                            else if (item.Type == "HorizontalPath")
+                            {
+                                <div class="w-@boxWidth h-@boxHeight bg-blue-300 rounded-lg flex-1 items-center justify-center font-bold" title="Path @item.Address">
+                                    @item.Address
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="w-@boxWidth h-@boxHeight bg-gray-200 rounded-lg flex-1 items-center justify-center font-bold" title="Location @item.Address">
+                                    @item.Address
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

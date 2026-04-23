@@ -1,0 +1,72 @@
+{
+  "Warehouses": [
+    {
+      "Id": 1,
+      "Name": "Main Warehouse"
+    },
+    {
+      "Id": 2,
+      "Name": "Distribution Center"
+    }
+  ],
+  "Locations": [
+    {
+      "Id": 1,
+      "WarehouseId": 1,
+      "Code": "ZONE-A-1-1"
+    },
+    {
+      "Id": 2,
+      "WarehouseId": 1,
+      "Code": "ZONE-A-1-2"
+    },
+    {
+      "Id": 3,
+      "WarehouseId": 2,
+      "Code": "ZONE-B-1-1"
+    }
+  ],
+  "Items": [
+    {
+      "Id": 1,
+      "Sku": "IP15-PRO",
+      "Name": "iPhone 15 Pro Max"
+    },
+    {
+      "Id": 2,
+      "Sku": "SS-S24",
+      "Name": "Samsung Galaxy S24"
+    },
+    {
+      "Id": 3,
+      "Sku": "MAC-M3",
+      "Name": "MacBook Pro M3"
+    }
+  ],
+  "InventoryRecords": [
+    {
+      "Id": 101,
+      "ItemId": 1,
+      "LocationId": 1,
+      "Quantity": 40
+    },
+    {
+      "Id": 102,
+      "ItemId": 2,
+      "LocationId": 2,
+      "Quantity": 48
+    },
+    {
+      "Id": 103,
+      "ItemId": 3,
+      "LocationId": 3,
+      "Quantity": 9
+    },
+    {
+      "Id": 105,
+      "ItemId": 2,
+      "LocationId": 1,
+      "Quantity": 0
+    }
+  ]
+}

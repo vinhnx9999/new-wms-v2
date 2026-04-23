@@ -1,0 +1,154 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.Order.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = "Lệnh xuất kho";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="px-6 pb-6">
+    <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
+        <div class="flex items-end gap-2">
+            <div class="flex-1 flex flex-col gap-1">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm..."
+                           class="w-full pl-10 px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white">
+                </div>
+            </div>
+
+            <a href="/Outbound/Order/Create" title="Thêm"
+                   class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors shadow-sm flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <div id="outboundGrid" class="ag-theme-alpine w-full" style="height: 600px;"></div>
+</div>
+
+@section Scripts {
+
+    <script>
+        // 1. Dữ liệu Dummy Data
+        let dummyData = [
+      
+        ];
+
+        // 2. Các hàm Render tùy chỉnh
+        function renderStatusBadge(params) {
+        const status = params.value;
+        const statusMap = {
+        0: { text: 'Đợi xử lý', class: 'bg-yellow-100 text-yellow-800' },
+        1: { text: 'Đang xử lý', class: 'bg-blue-100 text-blue-800' },
+        2: { text: 'Hoàn thành', class: 'bg-green-100 text-green-800' },
+        8: { text: 'Đã hủy', class: 'bg-red-100 text-red-800' },
+        99: { text: 'Không xác định', class: 'bg-slate-100 text-slate-800' }
+        };
+        const s = statusMap[status] || statusMap[99];
+        return `<span class="px-2 py-1 rounded text-xs font-semibold ${s.class}">${s.text}</span>`;
+        }
+
+        function renderActions(params) {
+        const row = params.data;
+        const status = Number(row?.status);
+        const hideDeleteForStatuses = [1, 2, 8, 99];
+        const canDelete = !hideDeleteForStatuses.includes(status);
+            
+        if (!canDelete) return '';
+
+        return `
+        <div class="flex justify-end gap-2 items-center h-full mt-1">
+        <button type="button"
+        class="p-1.5 rounded hover:bg-red-50 text-red-600"
+        title="Xoá"
+        onclick="deleteOutboundOrder(${row.id})">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+        </svg>
+        </button>
+        </div>
+        `;
+        }
+
+        // 3. Cấu hình AG Grid (Phần bạn bị thiếu)
+        const gridOptions = {
+        rowData: dummyData,
+        columnDefs: [
+            {
+            headerName: 'Số lệnh xuất kho',
+            field: 'orderNo',
+            cellRenderer: (params) => {
+            let html = `<a href="/Outbound/Order/Detail/${params.data.id}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium" title="Chi tiết">${params.value ?? ''}</a>`;
+            if (params.data.has_rejected_items) {
+            html += `<span class="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full" title="Có hàng bị từ chối">!</span>`;
+            }
+            return html;
+            }
+        },
+        { headerName: 'Ngày lập lệnh', field: 'createdDate' },
+        { headerName: 'Hạn xuất kho', field: 'etaDate' },
+        { headerName: 'Kho xuất', field: 'warehouse' },
+        { headerName: 'Người thực hiện', field: 'executor' },
+        { headerName: 'Tham chiếu', field: 'reference' },
+        { headerName: 'Loại lệnh', valueGetter: () => 'Outbound' },
+        { headerName: 'Tình trạng', field: 'status', cellRenderer: renderStatusBadge, cellClass: 'flex items-center' },
+        { headerName: '', field: 'actions', cellRenderer: renderActions, sortable: false, filter: false, maxWidth: 80 }
+        ],
+        defaultColDef: {
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        resizable: true
+        },
+        pagination: true,
+        paginationPageSize: 10,
+        rowHeight: 50
+        };
+
+        // Biến lưu trữ API của Grid
+        let gridApi;
+
+        // 4. Khởi tạo Grid khi DOM tải xong
+        document.addEventListener('DOMContentLoaded', () => {
+        const gridDiv = document.querySelector('#outboundGrid');
+            
+        // Khởi tạo theo chuẩn AG Grid v30+
+        gridApi = agGrid.createGrid(gridDiv, gridOptions);
+
+        // Xử lý Quick Filter (Tìm kiếm)
+        const searchInput = document.getElementById('searchInput');
+        if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+        gridApi.setGridOption('quickFilterText', e.target.value);
+        });
+        }
+        });
+
+        // 5. Hàm xóa
+        function deleteOutboundOrder(id) {
+        if (confirm('Bạn có chắc muốn xoá lệnh xuất kho này không?')) {
+        // Xóa khỏi mảng dữ liệu mẫu
+        dummyData = dummyData.filter(item => item.id !== id);
+                
+        // Cập nhật lại Grid
+        gridApi.setGridOption('rowData', dummyData);
+                
+        if (typeof Notify !== 'undefined') {
+        Notify.success('Xoá thành công');
+        } else {
+        alert('Đã xoá thành công');
+        }
+        }
+        }
+    </script>
+}

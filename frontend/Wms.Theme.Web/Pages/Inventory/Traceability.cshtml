@@ -1,0 +1,189 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.TraceabilityModel
+
+@{
+    ViewData["Title"] = Html.Raw(L["TraceabilityTitle"]);
+}
+
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 mb-6">
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">@Html.Raw(L["TraceabilityTitle"])</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">@Html.Raw(L["TraceabilityDescription"])</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div class="col-span-1">
+            <label for="txtSkuId"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@Html.Raw(L["ProductCodeOrName"])</label>
+            <input type="text" id="txtSkuId"
+                class="form-input w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-200"
+                placeholder="@Html.Raw(L["EnterProductCodeOrName"])">
+        </div>
+
+        <div class="col-span-1">
+            <label for="txtSeries"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@Html.Raw(L["SerialOrBatch"])</label>
+            <input type="text" id="txtSeries"
+                class="form-input w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-200"
+                placeholder="@Html.Raw(L["EnterSerialOrBatch"])">
+        </div>
+
+        <div class="col-span-1">
+            <label for="txtFromDate"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@Html.Raw(L["FromDate"])</label>
+            <input type="date" id="txtFromDate"
+                class="form-input w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-200">
+        </div>
+
+        <div class="col-span-1">
+            <label for="txtToDate"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@Html.Raw(L["ToDate"])</label>
+            <input type="date" id="txtToDate"
+                class="form-input w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-200">
+        </div>
+
+        <div class="col-span-1 flex gap-2">
+            <button id="btnSearch" type="button"
+                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow transition duration-150 ease-in-out flex justify-center items-center gap-2">
+                <i class="fas fa-search"></i> @Html.Raw(L["Search"])
+            </button>
+            <button id="btnClear" type="button"
+                class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-bold py-2 px-4 rounded shadow transition duration-150 ease-in-out"
+                title="@Html.Raw(L["ClearFilter"])">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="bg-gray-50 dark:bg-gray-900 shadow-inner rounded-lg overflow-hidden relative min-h-[500px]">
+    <div id="loadingOverlay"
+        class="absolute inset-0 bg-white/50 dark:bg-black/50 z-10 hidden flex justify-center items-center backdrop-blur-sm">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+    </div>
+
+    <div id="tableContainer" class="p-4 h-full">
+        <div class="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-500">
+            <i class="fas fa-search text-6xl mb-4 opacity-50"></i>
+            <p class="text-xl font-light">@Html.Raw(L["StartSearchingToViewTimeline"])</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // 1. Tự động điền input từ URL (nếu có)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('skuId')) $('#txtSkuId').val(urlParams.get('skuId'));
+            if (urlParams.has('seriesNumber')) $('#txtSeries').val(urlParams.get('seriesNumber'));
+            if (urlParams.has('fromDate')) $('#txtFromDate').val(urlParams.get('fromDate'));
+            if (urlParams.has('toDate')) $('#txtToDate').val(urlParams.get('toDate'));
+
+            // 2. GỌI HÀM NGAY KHI VÀO TRANG (Auto Load if params exist)
+            if (urlParams.has('skuId') || urlParams.has('seriesNumber')) {
+                loadTraceabilityData(1);
+            }
+
+            // 3. Sự kiện click nút Tìm kiếm (Dùng jQuery on click)
+            $('#btnSearch').on('click', function () {
+                loadTraceabilityData(1);
+            });
+
+            // 3b. Sự kiện click nút Clear
+            $('#btnClear').on('click', function () {
+                // Clear inputs
+                $('#txtSkuId').val('');
+                $('#txtSeries').val('');
+                $('#txtFromDate').val('');
+                $('#txtToDate').val('');
+
+                // Clear URL
+                if (history.pushState) {
+                    var newurl = window.location.pathname;
+                    window.history.pushState({ path: newurl }, '', newurl);
+                }
+
+                // Reset View
+                $('#tableContainer').html(`
+                        <div class="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-search text-6xl mb-4 opacity-50"></i>
+                            <p class="text-xl font-light">@Html.Raw(L["StartSearchingToViewTimeline"])</p>
+                        </div>
+                    `);
+            });
+
+            // 4. Sự kiện nhấn Enter
+            $('input').on('keypress', function (e) {
+                if (e.which == 13) {
+                    loadTraceabilityData(1);
+                }
+            });
+        });
+
+        // HÀM AJAX CHÍNH
+        function loadTraceabilityData(pageIndex) {
+            // Lấy dữ liệu input
+            var skuId = $('#txtSkuId').val();
+            var seriesNumber = $('#txtSeries').val();
+            var fromDate = $('#txtFromDate').val();
+            var toDate = $('#txtToDate').val();
+
+            if (!skuId && !seriesNumber) {
+                Notify.warning("@Html.Raw(L["PleaseEnterSearchTerm"])");
+                return;
+            }
+
+            // Hiển thị Loading
+            $('#loadingOverlay').removeClass('hidden');
+
+            // Gọi AJAX về Server Handler: OnGetDataTable
+            $.ajax({
+                url: '?handler=DataTable',
+                type: 'GET',
+                data: {
+                    pageIndex: pageIndex,
+                    pageSize: 20, // Increased page size for timeline
+                    skuId: skuId,
+                    seriesNumber: seriesNumber,
+                    fromDate: fromDate,
+                    toDate: toDate
+                },
+                success: function (response) {
+                    // Đổ HTML vào container
+                    $('#tableContainer').html(response);
+
+                    // Cập nhật URL (Optional UX)
+                    updateUrlState(skuId, seriesNumber, fromDate, toDate);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi tải dữ liệu:", error);
+                    $('#tableContainer').html('<div class="text-center text-red-500 py-10">@Html.Raw(L["ConnectionError"])</div>');
+                },
+                complete: function () {
+                    // Tắt Loading
+                    $('#loadingOverlay').addClass('hidden');
+                }
+            });
+        }
+
+        // Hàm cập nhật URL không reload trang
+        function updateUrlState(sku, series, from, to) {
+            if (history.pushState) {
+                var params = new URLSearchParams();
+                if (sku) params.set('skuId', sku);
+                if (series) params.set('seriesNumber', series);
+                if (from) params.set('fromDate', from);
+                if (to) params.set('toDate', to);
+
+                var newurl = window.location.pathname + "?" + params.toString();
+                window.history.pushState({ path: newurl }, '', newurl);
+            }
+        }
+
+        // Hàm hỗ trợ Phân trang (Được gọi từ ViewComponent nếu có phân trang)
+        function changePage(index) {
+            loadTraceabilityData(index);
+        }
+    </script>
+}

@@ -1,0 +1,117 @@
+﻿/* Headings */
+.dark .text-gray-800 {
+    color: #e5e7eb;
+}
+
+/* Cards & containers */
+.dark .bg-white {
+    background-color: #1e293b;
+}
+
+.dark .border-gray-200 {
+    border-color: #334155;
+}
+
+.dark .bg-gray-50 {
+    background-color: #1e293b;
+}
+
+/* Labels */
+.dark .text-gray-700 {
+    color: #cbd5e1;
+}
+
+.dark .text-gray-600 {
+    color: #94a3b8;
+}
+
+.dark .text-gray-500 {
+    color: #64748b;
+}
+
+.dark .text-gray-400 {
+    color: #64748b;
+}
+
+/* Inputs, selects, textareas */
+.dark input[type="text"],
+.dark input[type="number"],
+.dark select {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+.dark input::placeholder {
+    color: #475569;
+}
+
+.dark input:focus, .dark select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Checkbox */
+.dark input[type="checkbox"] {
+    background-color: #0f172a;
+    border-color: #475569;
+}
+
+/* Warehouse dropdown */
+.dark #warehouseDropdown {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+    .dark #warehouseDropdown li {
+        color: #e2e8f0;
+        border-color: #334155;
+    }
+
+        .dark #warehouseDropdown li:hover {
+            background-color: #334155;
+        }
+
+/* Buttons - cancel/secondary */
+.dark .border-gray-300 {
+    border-color: #475569;
+}
+
+.dark button.bg-white,
+.dark .bg-white.border {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+    .dark button.bg-white:hover {
+        background-color: #334155;
+    }
+
+/* + button next to warehouse */
+.dark button.bg-gray-50 {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+    .dark button.bg-gray-50:hover {
+        background-color: #334155;
+        color: #60a5fa;
+    }
+
+/* AG Grid dark mode */
+.dark .ag-theme-quartz {
+    --ag-background-color: #0f172a;
+    --ag-header-background-color: #1e293b;
+    --ag-odd-row-background-color: #0f172a;
+    --ag-row-hover-color: #1e293b;
+    --ag-foreground-color: #e2e8f0;
+    --ag-border-color: #334155;
+    --ag-header-foreground-color: #94a3b8;
+    --ag-secondary-foreground-color: #94a3b8;
+    --ag-input-focus-border-color: #3b82f6;
+    --ag-range-selection-border-color: #3b82f6;
+    --ag-selected-row-background-color: #1e3a5f;
+    --ag-row-border-color: #1e293b;
+}
+

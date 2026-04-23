@@ -1,0 +1,1151 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.StockCountModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = @Html.Raw(L["StockTakingList"]);
+}
+
+@Html.AntiForgeryToken()
+
+<div class="p-2 bg-gray-50 overflow-hidden flex flex-col" style="height: calc(100vh - 120px);">
+    <div class="flex items-center gap-4 mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 shrink-0">
+        <div class="flex items-center gap-2">
+            <select id="warehouseSelect" class="block w-48 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @foreach (var wh in Model.ListWarehouse)
+                {
+                    <option value="@wh.Id" data-block-id="@wh.WcsBlockId">@wh.Name</option>
+                }
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <select id="logSelect"
+                    class="block w-72 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Chọn log</option>
+            </select>
+        </div>
+
+        <button id="btnLoadWarehouse"
+                onclick="loadWarehouseData()"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded shadow transition-all active:scale-95 uppercase">
+            Load kho
+        </button>
+
+        <button id="btnApplyLog"
+                type="button"
+                onclick="applySelectedLog()"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded shadow transition-all active:scale-95 uppercase">
+            Apply
+        </button>
+    </div>
+
+    <div class="flex-1 min-h-0 overflow-hidden">
+        <div id="stockCountGrid"
+             class="ag-theme-alpine w-full h-full shadow-lg rounded-lg border border-gray-200"
+             style="min-height: 320px;"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let gridApi;
+        let currentSyncLogs = [];
+        let appliedTraceId = '';
+
+        const reasonTextMap = {
+            MATCHED: 'Khớp dữ liệu',
+            LOCATION_MISMATCH: 'Sai vị trí',
+            WCS_ONLY: 'Chỉ có ở WCS',
+            WMS_ONLY: 'Chỉ có ở WMS',
+            PALLET_CODE_MERGE_CANDIDATE: 'Lệch mã pallet cùng vị trí'
+        };
+
+               const columnDefs = [
+            {
+                headerName: 'ĐỐI SOÁT PALLET',
+                headerClass: 'bg-gray-100 font-bold border-r border-gray-300 text-center',
+                children: [
+                    {
+                        headerName: 'Pallet',
+                        field: 'pallet',
+                        sortable : true,
+                        width: 170,
+                        rowSpan: params => Math.max(1, params?.data?.rowSpan ?? 1),
+                        cellClassRules: {
+                            'flex items-center font-bold border-r border-gray-200 bg-white text-gray-800': "data.matchStatus === 'OK'",
+                            'flex items-center font-bold border-r border-gray-200 bg-rose-50 text-rose-700': "data.matchStatus === 'ERROR'"
+                        }
+                    },
+                    {
+                        headerName: 'Vị trí WCS',
+                        field: 'wcsLocation',
+                        sortable : true,
+                        width: 140,
+                        rowSpan: params => Math.max(1, params?.data?.rowSpan ?? 1),
+                        cellClassRules: {
+                            'flex items-center border-r border-gray-200 bg-white text-gray-700': "data.matchStatus === 'OK'",
+                            'flex items-center border-r border-gray-200 bg-rose-50 text-rose-700': "data.matchStatus === 'ERROR'"
+                        }
+                    },
+                    {
+                        headerName: 'Vị trí WMS',
+                        field: 'wmsLocation',
+                        sortable : true,
+                        width: 140,
+                        rowSpan: params => Math.max(1, params?.data?.rowSpan ?? 1),
+                        cellClassRules: {
+                            'flex items-center border-r border-gray-200 bg-white text-gray-700': "data.matchStatus === 'OK'",
+                            'flex items-center border-r border-gray-200 bg-rose-50 text-rose-700': "data.matchStatus === 'ERROR'"
+                        }
+                    }
+                ]
+            },
+            {
+                headerName: 'HÀNG TRONG WMS',
+                headerClass: 'bg-blue-50 font-bold text-blue-800',
+                children: [
+                    {
+                        headerName: 'SKU Code',
+                        field: 'skuCode',
+                        sortable : true,
+                        width: 160,
+                        cellClass: 'flex items-center px-2 border-r border-gray-100'
+                    },
+                    {
+                        headerName: 'SKU Name',
+                        field: 'skuName',
+                        sortable : true,
+                        minWidth: 260,
+                        flex: 1,
+                        cellClass: 'flex items-center px-2 border-r border-gray-100'
+                    },
+                    {
+                        headerName: 'SL',
+                        field: 'qty',
+                        sortable : true,
+                        width: 90,
+                        type: 'numericColumn',
+                        cellClass: 'flex items-center justify-end px-2 border-r border-gray-100 font-semibold'
+                    },
+                    {
+                        headerName: 'Kết quả',
+                        field: 'reasonCode',
+                        sortable : true,
+                        width: 150,
+                        cellRenderer: params => {
+                            const code = params.value || '';
+                            const text = reasonTextMap[code] || code;
+                            return params.data.matchStatus === 'ERROR'
+                                ? `<span class="text-rose-600 font-semibold">${text}</span>`
+                                : `<span class="text-emerald-600 font-semibold">${text}</span>`;
+                        },
+                        cellClass: 'flex items-center px-2 border-r border-gray-100'
+                    }
+                ]
+            },
+            {
+              headerName: 'THAO TÁC',
+              headerClass: 'bg-emerald-50 font-bold text-emerald-800',
+              pinned: 'right',
+              children: [
+              {
+                headerName: 'Xử lý',
+                width: 150,
+                sortable : true,
+                cellRenderer: params => {
+                    const row = params.data;
+                    const reason = row.reasonCode;
+
+                    if (reason === 'WCS_ONLY') {
+                        return `<div class="flex items-center h-full px-1">
+                        <button onclick="handleInbound('${row.id}')"
+                                class="w-full py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] font-black rounded shadow-sm transition-all uppercase active:scale-95">
+                            NHẬP HÀNG
+                        </button>
+                        </div>`;
+                    }
+
+                    if (reason === 'LOCATION_MISMATCH') {
+                        return `<div class="flex items-center h-full px-1">
+                        <button onclick="handleFixLocation('${row.id}')"
+                                class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black rounded shadow-sm transition-all uppercase active:scale-95">
+                            SỬA VỊ TRÍ
+                        </button>
+                        </div>`;
+                    }
+
+                    if (reason === 'WMS_ONLY') {
+                        return `<div class="flex items-center h-full px-1">
+                        <button onclick="handleAdjustWmsOnly('${row.id}')"
+                                class="w-full py-2 bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black rounded shadow-sm transition-all uppercase active:scale-95">
+                            ĐIỀU CHỈNH
+                        </button>
+                        </div>`;
+                    }
+                    if (reason === 'PALLET_CODE_MERGE_CANDIDATE') {
+                        return `<div class="flex items-center h-full px-1">
+                        <button onclick="handleMergePalletCode('${row.id}')"
+                                class="w-full py-2 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black rounded shadow-sm transition-all uppercase active:scale-95">
+                            Merge
+                        </button>
+                        </div>`;
+                    }
+                    
+                    return '';
+                    }
+                }
+              ]
+            }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: [],
+            defaultColDef: {
+                resizable: true,
+                sortable: false,
+                filter: false,
+                suppressMovable: true
+            },
+            rowHeight: 58,
+            suppressRowTransform: true,
+            headerHeight: 45,
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridDiv = document.querySelector('#stockCountGrid');
+            if (gridDiv && !gridApi) {
+                gridApi = agGrid.createGrid(gridDiv, gridOptions);
+            }
+
+            const logSelect = document.getElementById('logSelect');
+            if (logSelect) {
+                logSelect.addEventListener('change', async (e) => {
+                    const traceId = e.target.value;
+                    await loadConflictsByTrace(traceId);
+                });
+            }
+
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            if (warehouseSelect) {
+                warehouseSelect.addEventListener('change', () => {
+                    const logSelect = document.getElementById('logSelect');
+                    if (logSelect) {
+                        logSelect.innerHTML = `<option value="">Chọn log</option>`;
+                    }
+                    gridApi?.setGridOption('rowData', []);
+                 
+                });
+            }
+        });
+
+        function mapGridRows(rows) {
+            return (rows || []).map(x => ({
+                id: x.id ?? x.Id,
+                pallet: x.palletCode ?? x.PalletCode ?? x.wcsPalletCode ?? x.WcsPalletCode ?? '',
+                wcsPalletCode: x.wcsPalletCode ?? x.WcsPalletCode ?? '',
+                wmsPalletCode: x.wmsPalletCode ?? x.WmsPalletCode ?? '',
+                wcsLocation: x.wcsLocation ?? x.WcsLocation,
+                wmsLocation: x.wmsLocation ?? x.WmsLocation,
+                skuCode: x.skuCode ?? x.SkuCode,
+                skuName: x.skuName ?? x.SkuName,
+                qty: x.qty ?? x.Qty ?? 0,
+                skuId: x.skuId ?? x.SkuId ?? null,
+                supplierId: x.supplierId ?? x.SupplierId ?? null,
+                supplierName: x.supplierName ?? x.SupplierName ?? '',
+                expiryDate: x.expiryDate ?? x.ExpiryDate ?? null,
+                rowSpan: x.rowSpan ?? x.RowSpan ?? 1,
+                matchStatus: x.matchStatus ?? x.MatchStatus ?? "ERROR",
+                reasonCode: x.reasonCode ?? x.ReasonCode
+            }));
+        }
+
+        function renderLogSelect(logs) {
+            const logSelect = document.getElementById('logSelect');
+            logSelect.innerHTML = `<option value="">Chọn log đồng bộ</option>`;
+
+            (logs || []).forEach(l => {
+                const traceId = l.traceId ?? l.TraceId;
+                const actionTime = l.actionTime ?? l.ActionTime;
+                const inserted = l.conflictInserted ?? l.ConflictInserted ?? 0;
+                const updated = l.conflictUpdated ?? l.ConflictUpdated ?? 0;
+
+                const label = `${actionTime ? new Date(actionTime).toLocaleString('vi-VN') : traceId}`;
+                logSelect.insertAdjacentHTML('beforeend', `<option value="${traceId}">${label}</option>`);
+            });
+        }
+
+        async function loadWarehouseData() {
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            const warehouseId = warehouseSelect?.value;
+            const blockId = warehouseSelect?.selectedOptions?.[0]?.dataset?.blockId;
+
+            if (!warehouseId || !blockId) {
+                Notify.error("Vui lòng chọn kho!");
+                return;
+            }
+
+                   
+            gridApi?.setGridOption('rowData', []);
+            currentSyncLogs = [];
+            document.getElementById('logSelect').innerHTML = `<option value="">Chọn log đồng bộ</option>`;
+          
+            
+            try {
+                const logsRes = await fetch(`?handler=LocationSyncLogs&warehouseId=${encodeURIComponent(warehouseId)}`);
+                const logsJson = await logsRes.json();
+
+                if (!logsRes.ok || !logsJson?.success) {
+                    throw new Error(logsJson?.message || "Không tải được log đồng bộ.");
+                }
+
+                currentSyncLogs = logsJson.data || [];
+                renderLogSelect(currentSyncLogs);
+
+                if (!currentSyncLogs.length) {
+                    gridApi?.setGridOption('rowData', []);
+                    Notify.warning("Không có log đồng bộ.");
+                    return;
+                }
+
+                const firstTraceId = currentSyncLogs[0].traceId ?? currentSyncLogs[0].TraceId;
+                document.getElementById('logSelect').value = firstTraceId;
+                await loadConflictsByTrace(firstTraceId);
+            } catch (err) {
+                console.error(err);
+                Notify.error("Không tải được dữ liệu log.");
+            }
+        }
+
+        async function loadConflictsByTrace(traceId) {
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            const warehouseId = warehouseSelect?.value;
+            const blockId = warehouseSelect?.selectedOptions?.[0]?.dataset?.blockId;
+
+            if (!traceId || !warehouseId || !blockId) {
+                gridApi?.setGridOption('rowData', []);
+                return;
+            }
+
+            try {
+                const url = `?handler=LocationSyncConflictsByTrace&traceId=${encodeURIComponent(traceId)}&blockId=${encodeURIComponent(blockId)}&warehouseId=${encodeURIComponent(warehouseId)}`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (!res.ok || !json?.success) {
+                    throw new Error(json?.message || "Không tải được conflict theo log.");
+                }
+
+                const rowData = mapGridRows(json.rows || []);
+                gridApi?.setGridOption('rowData', rowData);
+            } catch (err) {
+                console.error(err);
+                Notify.error("Không tải được dữ liệu conflict.");
+                gridApi?.setGridOption('rowData', []);
+            }
+        }
+
+
+        function handleConfirm(id) { console.log("Xác nhận ID:", id); }
+        function handleReject(id) { console.log("Từ chối ID:", id); }
+
+        function findRowById(id) {
+          let found = null;
+          gridApi?.forEachNode(node => {
+            if (!found && node?.data?.id === id) found = node.data;
+          });
+          return found;
+        }
+
+        function closeInboundModal() {
+            document.getElementById('wcsOnlyInboundModal')?.classList.add('hidden');
+            hideSkuSuggestPortal();
+        }
+
+        function handleInbound(id) {
+            const row = findRowById(id);
+            if (!row) {
+                Notify.error("Không tìm thấy dòng dữ liệu.");
+                return;
+            }
+            openInboundModal(row);
+        }
+
+        function openInboundModal(row) {
+            const warehouseSelect = document.getElementById('warehouseSelect');
+            const warehouseId = warehouseSelect?.value || '';
+            const warehouseName = warehouseSelect?.selectedOptions?.[0]?.text || '';
+            
+            document.getElementById('inbWarehouseId').value = warehouseId;
+            document.getElementById('inbWarehouseName').value = warehouseName;
+            document.getElementById('inbPalletCode').value = row?.pallet || '';
+            document.getElementById('inbWcsLocation').value = row?.wcsLocation || '';
+            document.getElementById('inbNote').value = '';
+
+            const itemsBody = document.getElementById('inbItemsBody');
+            itemsBody.innerHTML = '';
+            addInboundItemRow(); 
+
+            document.getElementById('wcsOnlyInboundModal')?.classList.remove('hidden');
+        }
+
+        function addInboundItemRow() {
+            const itemsBody = document.getElementById('inbItemsBody');
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-all';
+
+            row.innerHTML = `
+                <td class="p-2">
+                    <div class="relative">
+                        <input type="text" class="inb-skuSearch w-full border rounded px-2 py-1 text-xs"
+                               placeholder="Tìm sku code / name" autocomplete="off" />
+                        <input type="hidden" class="inb-skuId" />
+                    </div>
+                </td>
+                <td class="p-2"><input type="number" min="1" class="inb-qty w-full border rounded px-2 py-1 text-xs text-right" /></td>
+                <td class="p-2"><input type="number" min="1" class="inb-supplierId w-full border rounded px-2 py-1 text-xs" readonly /></td>
+                <td class="p-2"><input type="date" class="inb-expiryDate w-full border rounded px-2 py-1 text-xs" /></td>
+                <td class="p-2"><input type="number" min="0" step="0.01" class="inb-price w-full border rounded px-2 py-1 text-xs text-right" /></td>
+                <td class="p-2 text-center">
+                    <button type="button" onclick="removeInboundItemRow(this)" class="text-red-500 hover:text-red-700 font-bold text-lg">&times;</button>
+                </td>
+            `;
+
+            itemsBody.appendChild(row);
+            wireSkuSearch(row);
+        }
+
+        function debounce(fn, delay = 300) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        async function fetchSkuSuggest(keyword) {
+            const warehouseId = Number(document.getElementById('inbWarehouseId')?.value || 0);
+            const url = `?handler=SkuSearch&warehouseId=${warehouseId}&keyword=${encodeURIComponent(keyword)}`;
+            const res = await fetch(url);
+            const json = await res.json();
+            return json?.success ? (json.data || []) : [];
+        }
+
+        let skuSuggestPortal = null;
+
+        function ensureSkuSuggestPortal() {
+            if (skuSuggestPortal) return skuSuggestPortal;
+
+            skuSuggestPortal = document.createElement('div');
+            skuSuggestPortal.id = 'skuSuggestPortal';
+            skuSuggestPortal.className = 'fixed hidden bg-white border rounded shadow max-h-56 overflow-y-auto overflow-x-hidden';
+            skuSuggestPortal.style.minWidth = '360px';
+            skuSuggestPortal.style.zIndex = '9999';
+            document.body.appendChild(skuSuggestPortal);
+            return skuSuggestPortal;
+        }
+
+        function hideSkuSuggestPortal() {
+            const portal = ensureSkuSuggestPortal();
+            portal.classList.add('hidden');
+            portal.innerHTML = '';
+            portal.dataset.owner = '';
+        }
+
+        function positionSkuSuggestPortal(inputEl) {
+            const portal = ensureSkuSuggestPortal();
+            const rect = inputEl.getBoundingClientRect();
+            portal.style.left = `${rect.left}px`;
+            portal.style.top = `${rect.bottom + 4}px`;
+            portal.style.width = `${Math.max(rect.width, 360)}px`;
+        }
+
+        function wireSkuSearch(row) {
+            const txt = row.querySelector('.inb-skuSearch');
+            const hid = row.querySelector('.inb-skuId');
+            const supplier = row.querySelector('.inb-supplierId');
+            const portal = ensureSkuSuggestPortal();
+
+            const run = debounce(async () => {
+                const kw = (txt.value || '').trim();
+                hid.value = '';
+
+                if (!kw) {
+                    hideSkuSuggestPortal();
+                    return;
+                }
+
+                positionSkuSuggestPortal(txt);
+
+                const list = await fetchSkuSuggest(kw);
+                if (!list.length) {
+                    portal.innerHTML = `<div class="px-2 py-1 text-xs text-gray-500">Không có dữ liệu</div>`;
+                    portal.dataset.owner = String(Date.now());
+                    txt.dataset.owner = portal.dataset.owner;
+                    portal.classList.remove('hidden');
+                    return;
+                }
+
+                const owner = String(Date.now());
+                portal.dataset.owner = owner;
+                txt.dataset.owner = owner;
+
+                portal.innerHTML = list.map(x => `
+                    <button type="button"
+                            class="block w-full text-left px-2 py-1.5 text-xs hover:bg-gray-100 border-b last:border-b-0"
+                            data-sku-id="${x.skuId}"
+                            data-sku-code="${x.skuCode}"
+                            data-sku-name="${x.skuName}"
+                            data-supplier-id="${x.supplierId ?? ''}">
+                        <span class="font-semibold">${x.skuCode}</span>
+                        <span class="text-gray-600 ml-1">${x.skuName}</span>
+                    </button>
+                `).join('');
+
+                portal.classList.remove('hidden');
+
+            portal.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (txt.dataset.owner !== portal.dataset.owner) return;
+
+                    hid.value = btn.dataset.skuId || '';
+                    txt.value = `${btn.dataset.skuCode} - ${btn.dataset.skuName}`;
+
+                  
+                    supplier.value = btn.dataset.supplierId || '';
+
+                    hideSkuSuggestPortal();
+                });
+            });
+            }, 250);
+
+            txt.addEventListener('input', run);
+            txt.addEventListener('focus', run);
+
+            txt.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (document.activeElement?.closest('#skuSuggestPortal')) return;
+                    hideSkuSuggestPortal();
+                }, 150);
+            });
+
+            document.getElementById('inbModalBody')?.addEventListener('scroll', () => {
+                if (!portal.classList.contains('hidden')) positionSkuSuggestPortal(txt);
+            });
+            window.addEventListener('resize', () => {
+                if (!portal.classList.contains('hidden')) positionSkuSuggestPortal(txt);
+            });
+        }
+
+        function removeInboundItemRow(button) {
+            const row = button.closest('tr');
+            if (row) row.remove();
+
+            const itemsBody = document.getElementById('inbItemsBody');
+            if (!itemsBody.querySelector('tr')) addInboundItemRow();
+        }
+
+        async function submitInboundModal() {
+            const warehouseId = Number(document.getElementById('inbWarehouseId')?.value || 0);
+            const palletCode = document.getElementById('inbPalletCode')?.value || '';
+            const wcsLocation = document.getElementById('inbWcsLocation')?.value || '';
+            const note = document.getElementById('inbNote')?.value || '';
+
+            const items = [...document.querySelectorAll('#inbItemsBody tr')]
+                .map(r => ({
+                    skuId: Number(r.querySelector('.inb-skuId')?.value || 0),
+                    qty: Number(r.querySelector('.inb-qty')?.value || 0),
+                    supplierId: r.querySelector('.inb-supplierId')?.value ? Number(r.querySelector('.inb-supplierId')?.value) : null,
+                    expiryDate: r.querySelector('.inb-expiryDate')?.value || null,
+                    price: r.querySelector('.inb-price')?.value ? Number(r.querySelector('.inb-price')?.value) : null
+                }))
+                .filter(x => x.skuId > 0 && x.qty > 0);
+
+            if (warehouseId <= 0 || !wcsLocation || items.length === 0) {
+                Notify.error("Vui lòng nhập đủ dữ liệu hợp lệ.");
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch('?handler=ResolveWcsOnlyInbound', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ warehouseId, palletCode, wcsLocation, note, items })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.success) {
+                Notify.error(result?.message || "Nhập hàng thất bại.");
+                return;
+            }
+
+            Notify.success(result.message || "Nhập hàng thành công.");
+            closeInboundModal();
+            await loadWarehouseData();
+        }
+
+                let mergeSourceItems = [];
+
+        function parseItemMetaFromRow(row) {
+            return {
+                skuId: row.skuId ? Number(row.skuId) : null,
+                supplierId: row.supplierId ?? null,
+                expiryDate: row.expiryDate ?? null
+            };
+        }
+
+        function buildMergeItems(location, wmsPalletCode) {
+            const items = [];
+            gridApi?.forEachNode(n => {
+                const d = n.data;
+                if (!d) return;
+
+                if ((d.wmsLocation || '') === location && (d.wmsPalletCode || '') === wmsPalletCode && d.skuCode) {
+                    const meta = parseItemMetaFromRow(d);
+                    items.push({
+                        skuCode: d.skuCode,
+                        skuName: d.skuName,
+                        qty: Number(d.qty || 0),
+                        skuId: meta.skuId,
+                        supplierId: meta.supplierId,
+                        supplierName: d.supplierName || '',
+                        expiryDate: meta.expiryDate
+                    });
+                }
+            });
+            return items;
+        }
+
+        function removeMergeItem(idx) {
+            mergeSourceItems.splice(idx, 1);
+            renderMergeItems(mergeSourceItems);
+        }
+
+          function toggleMergeItem(idx) {
+            const cb = document.querySelector(`.merge-item-check[data-idx="${idx}"]`);
+            if (!cb) return;
+            cb.checked = !cb.checked;
+        }
+
+        function renderMergeItems(items) {
+            const body = document.getElementById('mergeItemBody');
+            body.innerHTML = '';
+
+            if (!items.length) {
+                body.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-gray-500">Không có hàng từ WMS</td></tr>`;
+                return;
+            }
+
+            items.forEach((x, idx) => {
+                const expiryText = x.expiryDate ? new Date(x.expiryDate).toLocaleDateString('vi-VN') : '';
+                body.insertAdjacentHTML('beforeend', `
+                    <tr class="border-t hover:bg-gray-50 cursor-pointer" onclick="toggleMergeItem(${idx})">
+                        <td class="p-2 text-center">
+                            <input type="checkbox"
+                                   class="merge-item-check"
+                                   data-idx="${idx}"
+                                   checked
+                                   onclick="event.stopPropagation();" />
+                        </td>
+                        <td class="p-2">${x.skuCode || ''}</td>
+                        <td class="p-2">${x.skuName || ''}</td>
+                        <td class="p-2">${x.supplierName || ''}</td>
+                        <td class="p-2">${expiryText}</td>
+                        <td class="p-2 text-right">${x.qty ?? 0}</td>
+                        <td class="p-2 text-center">
+                            <button type="button"
+                                    onclick="event.stopPropagation(); removeMergeItem(${idx});"
+                                    class="text-red-600 hover:text-red-800 font-bold"
+                                    title="Xóa khỏi danh sách merge">✕</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function handleMergePalletCode(id) {
+           
+            const row = findRowById(id);
+            if (!row) return;
+
+            const warehouseId = document.getElementById('warehouseSelect')?.value || '';
+            const location = row.wmsLocation || row.wcsLocation || '';
+
+            let wcsPallet = row.wcsPalletCode || '';
+            let wmsPallet = row.wmsPalletCode || '';
+
+            if ((!wcsPallet || !wmsPallet) && (row.pallet || '').includes('⇄')) {
+                const [a, b] = row.pallet.split('⇄').map(v => (v || '').trim());
+                wcsPallet = wcsPallet || a || '';
+                wmsPallet = wmsPallet || b || '';
+            }
+
+            document.getElementById('mergeWarehouseId').value = warehouseId;
+            document.getElementById('mergeLocation').value = location;
+            document.getElementById('mergeWcsPallet').value = wcsPallet;
+            document.getElementById('mergeWmsPallet').value = wmsPallet;
+            document.getElementById('mergeNote').value = '';
+
+            const sel = document.getElementById('mergeCanonical');
+            sel.innerHTML = `<option value="">Chọn mã chuẩn</option>`;
+            [wcsPallet, wmsPallet]
+                .filter(Boolean)
+                .filter((v, i, arr) => arr.indexOf(v) === i)
+                .forEach(v => sel.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`));
+
+            mergeSourceItems = buildMergeItems(location, wmsPallet);
+            renderMergeItems(mergeSourceItems);
+
+            document.getElementById('palletMergeModal')?.classList.remove('hidden');
+        }
+
+        function closePalletMergeModal() {
+            document.getElementById('palletMergeModal')?.classList.add('hidden');
+        }
+
+        async function submitPalletMergeModal() {
+            const checkedIndexes = [...document.querySelectorAll('.merge-item-check:checked')]
+                .map(x => Number(x.dataset.idx));
+
+            const selectedItems = mergeSourceItems
+                .filter((_, idx) => checkedIndexes.includes(idx))
+                .map(x => ({
+                    skuId: x.skuId,
+                    supplierId: x.supplierId,
+                    expiryDate: x.expiryDate,
+                    qty: x.qty
+                }))
+                .filter(x => x.skuId && x.qty > 0);
+
+            const payload = {
+                warehouseId: Number(document.getElementById('mergeWarehouseId').value || 0),
+                locationName: document.getElementById('mergeLocation').value || '',
+                wcsPalletCode: document.getElementById('mergeWcsPallet').value || '',
+                wmsPalletCode: document.getElementById('mergeWmsPallet').value || '',
+                targetPalletCode: document.getElementById('mergeCanonical').value || '', // đúng backend DTO
+                note: document.getElementById('mergeNote').value || '',
+                items: selectedItems
+            };
+
+            if (!payload.warehouseId || !payload.locationName || !payload.targetPalletCode) {
+                Notify.error("Thiếu thông tin merge.");
+                return;
+            }
+
+            if (!payload.items.length) {
+                Notify.error("Vui lòng chọn ít nhất 1 hàng hóa hợp lệ.");
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch('?handler=ResolvePalletMergeSameLocation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.success) {
+                Notify.error(result?.message || "Merge thất bại.");
+                return;
+            }
+
+            Notify.success(result.message || "Merge thành công.");
+            closePalletMergeModal();
+            await loadWarehouseData();
+        }
+
+        let wmsOnlyTarget = null;
+
+        function closeWmsOnlyClearModal() {
+            document.getElementById('wmsOnlyClearModal')?.classList.add('hidden');
+            wmsOnlyTarget = null;
+        }
+
+        function handleAdjustWmsOnly(id) {
+          
+            const row = findRowById(id);
+            if (!row) {
+                Notify.error("Không tìm thấy dữ liệu dòng.");
+                return;
+            }
+
+            const warehouseId = Number(document.getElementById('warehouseSelect')?.value || 0);
+            const locationName = row.wmsLocation || '';
+
+            if (!warehouseId || !locationName) {
+                Notify.error("Thiếu thông tin kho hoặc vị trí.");
+                return;
+            }
+
+            wmsOnlyTarget = { warehouseId, locationName, palletCode: row.wmsPalletCode || row.pallet || '' };
+
+            document.getElementById('wmsOnlyWarehouseId').value = String(warehouseId);
+            document.getElementById('wmsOnlyLocation').value = locationName;
+            document.getElementById('wmsOnlyPallet').value = wmsOnlyTarget.palletCode;
+            document.getElementById('wmsOnlyNote').value = '';
+
+            document.getElementById('wmsOnlyClearModal')?.classList.remove('hidden');
+        }
+
+        async function submitWmsOnlyClearModal() {
+            if (!wmsOnlyTarget) return;
+
+            const payload = {
+                warehouseId: Number(document.getElementById('wmsOnlyWarehouseId').value || 0),
+                locationName: document.getElementById('wmsOnlyLocation').value || '',
+                note: document.getElementById('wmsOnlyNote').value || ''
+            };
+
+            if (!payload.warehouseId || !payload.locationName) {
+                Notify.error("Thiếu thông tin để xử lý.");
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch('?handler=ResolveWmsOnlyClearLocation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.success) {
+                Notify.error(result?.message || "Xử lý thất bại.");
+                return;
+            }
+
+            Notify.success(result.message || "Đã xóa toàn bộ hàng hóa tại vị trí.");
+            closeWmsOnlyClearModal();
+            await loadWarehouseData();
+        }
+
+
+        let locationFixTarget = null;
+
+        function closeLocationFixModal() {
+            document.getElementById('locationFixModal')?.classList.add('hidden');
+            locationFixTarget = null;
+        }
+
+        function handleFixLocation(id) {
+          
+            const row = findRowById(id);
+            if (!row) return Notify.error("Không tìm thấy dòng dữ liệu.");
+
+            const warehouseId = Number(document.getElementById('warehouseSelect')?.value || 0);
+            const palletCode = row.wmsPalletCode || row.wcsPalletCode || row.pallet || '';
+            const wmsLocation = row.wmsLocation || '';
+            const wcsLocation = row.wcsLocation || '';
+
+            if (!warehouseId || !palletCode || !wmsLocation || !wcsLocation) {
+                return Notify.error("Thiếu dữ liệu để sửa vị trí.");
+            }
+
+            locationFixTarget = { warehouseId, palletCode, wmsLocation, wcsLocation };
+
+            document.getElementById('fixWarehouseId').value = String(warehouseId);
+            document.getElementById('fixPalletCode').value = palletCode;
+            document.getElementById('fixWmsLocation').value = wmsLocation;
+            document.getElementById('fixWcsLocation').value = wcsLocation;
+            document.getElementById('fixNote').value = '';
+
+            document.getElementById('locationFixModal')?.classList.remove('hidden');
+        }
+
+        async function submitLocationFixModal() {
+            if (!locationFixTarget) return;
+
+            const payload = {
+                warehouseId: Number(document.getElementById('fixWarehouseId').value || 0),
+                palletCode: document.getElementById('fixPalletCode').value || '',
+                wmsLocation: document.getElementById('fixWmsLocation').value || '',
+                wcsLocation: document.getElementById('fixWcsLocation').value || '',
+                note: document.getElementById('fixNote').value || ''
+            };
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch('?handler=ResolveLocationMismatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.success) {
+                return Notify.error(result?.message || "Sửa vị trí thất bại.");
+            }
+
+            Notify.success(result.message || "Đã sửa vị trí thành công.");
+            closeLocationFixModal();
+            await loadWarehouseData();
+        }
+
+        async function applySelectedLog() {
+            const warehouseId = Number(document.getElementById('warehouseSelect')?.value || 0);
+            const traceId = document.getElementById('logSelect')?.value || '';
+
+            if (!warehouseId || !traceId) {
+                Notify.error("Vui lòng chọn kho và log.");
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                const res = await fetch('?handler=CancelPreviousLogs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ warehouseId, traceId })
+                });
+
+                const json = await res.json();
+                if (!res.ok || !json?.success) {
+                    throw new Error(json?.message || "Không thể áp dụng log.");
+                }
+
+                Notify.success(`Đã cancel ${json.canceledLogs} log trước và xóa ${json.deletedConflicts} conflict.`);
+                await loadWarehouseData(); 
+                document.getElementById('logSelect').value = traceId;
+                await loadConflictsByTrace(traceId);
+             
+            } catch (e) {
+                console.error(e);
+                Notify.error(e.message || "Áp dụng log thất bại.");
+            }
+        }
+
+       
+    </script>
+}
+
+<div id="wcsOnlyInboundModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" onclick="closeInboundModal()"></div>
+
+    <div class="relative mx-auto mt-10 w-[95vw] max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-xl border border-gray-200">
+        
+        <div class="px-4 py-3 border-b flex items-center justify-between shrink-0">
+            <h3 class="text-sm font-bold uppercase text-gray-700">Nhập hàng (WCS_ONLY)</h3>
+            <button type="button" onclick="closeInboundModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div id="inbModalBody" class="p-4 space-y-4 overflow-y-auto flex-1">
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Warehouse</label>
+                    <input id="inbWarehouseId" type="hidden" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                    <input id="inbWarehouseName"
+                           type="text"
+                           class="w-full mt-1 px-3 py-2 border rounded bg-gray-50"
+                           readonly />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Pallet</label>
+                    <input id="inbPalletCode" type="text" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">WCS Location</label>
+                    <input id="inbWcsLocation" type="text" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Ghi chú</label>
+                <input id="inbNote" type="text" class="w-full mt-1 px-3 py-2 border rounded" />
+            </div>
+
+            <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold uppercase text-gray-700">Danh sách item</h4>
+                <button type="button" onclick="addInboundItemRow()"
+                        class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">
+                    +
+                </button>
+            </div>
+
+            <div class="border rounded">
+                <table class="w-full text-xs">
+                    <thead class="bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th class="p-2 text-left w-24">Sku</th>
+                            <th class="p-2 text-right w-20">Qty</th>
+                            <th class="p-2 text-left w-24">SupplierId</th>
+                            <th class="p-2 text-left w-36">ExpiryDate</th>
+                            <th class="p-2 text-right w-24">Price</th>
+                            <th class="p-2 text-center w-10">#</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inbItemsBody" class="p-4 space-y-4 overflow-y-auto flex-1"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="px-4 py-3 border-t flex justify-end gap-2 shrink-0 bg-gray-50 rounded-b-lg">
+            <button type="button" onclick="closeInboundModal()"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm transition-colors">
+                Hủy
+            </button>
+            <button type="button" onclick="submitInboundModal()"
+                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-semibold transition-colors">
+                Lưu nhập hàng
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="palletMergeModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 z-0" onclick="closePalletMergeModal()"></div>
+
+    <div class="relative z-10 mx-auto mt-10 w-[95vw] max-w-3xl max-h-[90vh] flex flex-col bg-white rounded-lg shadow-xl border border-gray-200">
+        
+        <div class="px-4 py-3 border-b flex items-center justify-between shrink-0">
+            <h3 class="text-sm font-bold uppercase text-gray-700">Merge mã pallet cùng vị trí</h3>
+            <button type="button" onclick="closePalletMergeModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div class="p-4 space-y-4 overflow-y-auto flex-1">
+            <input id="mergeWarehouseId" type="hidden" />
+
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Vị trí</label>
+                    <input id="mergeLocation" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Pallet WCS</label>
+                    <input id="mergeWcsPallet" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Pallet WMS</label>
+                    <input id="mergeWmsPallet" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Mã pallet chuẩn</label>
+                    <select id="mergeCanonical" class="w-full mt-1 px-3 py-2 border rounded">
+                        <option value="">Chọn mã chuẩn</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-600">Ghi chú</label>
+                    <input id="mergeNote" class="w-full mt-1 px-3 py-2 border rounded" />
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-2">
+                <h4 class="text-xs font-bold uppercase text-gray-700">Hàng hóa từ WMS</h4>
+            </div>
+
+            <div class="border rounded">
+                <table class="w-full text-xs">
+                    <thead class="bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                            <th class="p-2 w-12 text-center border-r border-white">#</th>
+                            <th class="p-2 text-left w-32 border-r border-white">Sku Code</th>
+                            <th class="p-2 text-left border-r border-white">Sku Name</th>
+                            <th class="p-2 text-left w-24 border-r border-white">Supplier</th>
+                            <th class="p-2 text-left w-32 border-r border-white">Expiry</th>
+                            <th class="p-2 text-right w-24 border-r border-white">Qty</th>
+                            <th class="p-2 w-12 text-center">#</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mergeItemBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="px-4 py-3 border-t flex justify-end gap-2 shrink-0 bg-gray-50 rounded-b-lg">
+            <button type="button" onclick="closePalletMergeModal()"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm transition-colors">
+                Hủy
+            </button>
+            <button type="button" onclick="submitPalletMergeModal()"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-semibold transition-colors">
+                Xác nhận merge
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<div id="wmsOnlyClearModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" onclick="closeWmsOnlyClearModal()"></div>
+    <div class="relative mx-auto mt-20 w-[95vw] max-w-xl bg-white rounded-lg shadow-xl border border-gray-200">
+        <div class="px-4 py-3 border-b flex items-center justify-between">
+            <h3 class="text-sm font-bold uppercase text-rose-700">Xác nhận xóa hàng hóa tại vị trí</h3>
+            <button type="button" onclick="closeWmsOnlyClearModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div class="p-4 space-y-3">
+            <input id="wmsOnlyWarehouseId" type="hidden" />
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Vị trí WMS</label>
+                <input id="wmsOnlyLocation" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Pallet</label>
+                <input id="wmsOnlyPallet" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Ghi chú</label>
+                <input id="wmsOnlyNote" class="w-full mt-1 px-3 py-2 border rounded" />
+            </div>
+            <p class="text-xs text-rose-600 font-semibold">
+                Hành động này sẽ xóa toàn bộ tồn kho tại vị trí trên trong WMS.
+            </p>
+        </div>
+
+        <div class="px-4 py-3 border-t flex justify-end gap-2 bg-gray-50 rounded-b-lg">
+            <button type="button" onclick="closeWmsOnlyClearModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm">
+                Hủy
+            </button>
+            <button type="button" onclick="submitWmsOnlyClearModal()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded text-sm font-semibold">
+                Xác nhận xóa
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<div id="locationFixModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" onclick="closeLocationFixModal()"></div>
+
+    <div class="relative mx-auto mt-20 w-[95vw] max-w-xl bg-white rounded-lg shadow-xl border border-gray-200">
+        <div class="px-4 py-3 border-b flex items-center justify-between">
+            <h3 class="text-sm font-bold uppercase text-amber-700">Xác nhận sửa vị trí pallet</h3>
+            <button type="button" onclick="closeLocationFixModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div class="p-4 space-y-3">
+            <input id="fixWarehouseId" type="hidden" />
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Pallet</label>
+                <input id="fixPalletCode" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Vị trí WMS hiện tại</label>
+                <input id="fixWmsLocation" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Vị trí WCS mục tiêu</label>
+                <input id="fixWcsLocation" class="w-full mt-1 px-3 py-2 border rounded bg-gray-50" readonly />
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600">Ghi chú</label>
+                <input id="fixNote" class="w-full mt-1 px-3 py-2 border rounded" />
+            </div>
+        </div>
+
+        <div class="px-4 py-3 border-t flex justify-end gap-2 bg-gray-50 rounded-b-lg">
+            <button type="button" onclick="closeLocationFixModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded text-sm">Hủy</button>
+            <button type="button" onclick="submitLocationFixModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-sm font-semibold">Xác nhận</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "WMSSolution\\WMSSolution.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\frontend\\Wms.Theme.Web\\Wms.Theme.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

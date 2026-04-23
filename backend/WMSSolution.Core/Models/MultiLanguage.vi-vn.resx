@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="carrier" xml:space="preserve">
+    <value>Nhà vận chuyển</value>
+  </data>
+  <data name="departure_city" xml:space="preserve">
+    <value>Thành phố xuất phát</value>
+  </data>
+  <data name="arrival_city" xml:space="preserve">
+    <value>Thành phố đến</value>
+  </data>
+  <data name="price_per_weight" xml:space="preserve">
+    <value>Phí vận chuyển theo kg</value>
+  </data>
+  <data name="price_per_volume" xml:space="preserve">
+    <value>Phí vận chuyển theo m3</value>
+  </data>
+  <data name="min_payment" xml:space="preserve">
+    <value>Phí vận chuyển tối thiểu</value>
+  </data>
+  <data name="creator" xml:space="preserve">
+    <value>Người tạo</value>
+  </data>
+  <data name="create_time" xml:space="preserve">
+    <value>Thời gian tạo</value>
+  </data>
+  <data name="last_update_time" xml:space="preserve">
+    <value>Thời gian cập nhật cuối</value>
+  </data>
+  <data name="is_valid" xml:space="preserve">
+    <value>Có hiệu lực</value>
+  </data>
+  <data name="user_num" xml:space="preserve">
+    <value>Mã nhân viên</value>
+  </data>
+  <data name="user_name" xml:space="preserve">
+    <value>Tên nhân viên</value>
+  </data>
+  <data name="user_role" xml:space="preserve">
+    <value>Vai trò</value>
+  </data>
+  <data name="contact_tel" xml:space="preserve">
+    <value>Số điện thoại liên hệ</value>
+  </data>
+  <data name="sex" xml:space="preserve">
+    <value>Giới tính</value>
+  </data>
+  <data name="warehouseSetting" xml:space="preserve">
+    <value>Cài đặt kho</value>
+  </data>
+  <data name="reservoirSetting" xml:space="preserve">
+    <value>Cài đặt khu vực kho</value>
+  </data>
+  <data name="locationSetting" xml:space="preserve">
+    <value>Cài đặt vị trí kho</value>
+  </data>
+  <data name="locationSelectModal" xml:space="preserve">
+    <value>Hộp chọn vị trí kho</value>
+  </data>
+  <data name="email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="WarehouseName" xml:space="preserve">
+    <value>Tên kho</value>
+  </data>
+  <data name="city" xml:space="preserve">
+    <value>Thành phố</value>
+  </data>
+  <data name="address" xml:space="preserve">
+    <value>Địa chỉ chi tiết</value>
+  </data>
+  <data name="manager" xml:space="preserve">
+    <value>Người phụ trách</value>
+  </data>
+  <data name="area_name" xml:space="preserve">
+    <value>Tên khu vực kho</value>
+  </data>
+  <data name="area_property" xml:space="preserve">
+    <value>Loại khu vực kho</value>
+  </data>
+  <data name="LocationName" xml:space="preserve">
+    <value>Mã vị trí kho</value>
+  </data>
+  <data name="location_length" xml:space="preserve">
+    <value>Chiều dài vị trí</value>
+  </data>
+  <data name="location_width" xml:space="preserve">
+    <value>Chiều rộng vị trí</value>
+  </data>
+  <data name="location_heigth" xml:space="preserve">
+    <value>Chiều cao vị trí</value>
+  </data>
+  <data name="location_volume" xml:space="preserve">
+    <value>Thể tích vị trí</value>
+  </data>
+  <data name="location_load" xml:space="preserve">
+    <value>Tải trọng vị trí</value>
+  </data>
+  <data name="roadway_number" xml:space="preserve">
+    <value>Số lối đi</value>
+  </data>
+  <data name="shelf_number" xml:space="preserve">
+    <value>Số kệ</value>
+  </data>
+  <data name="layer_number" xml:space="preserve">
+    <value>Số tầng</value>
+  </data>
+  <data name="tag_number" xml:space="preserve">
+    <value>Số thẻ</value>
+  </data>
+  <data name="picking_area" xml:space="preserve">
+    <value>Khu vực lấy hàng</value>
+  </data>
+  <data name="stocking_area" xml:space="preserve">
+    <value>Khu vực lưu trữ</value>
+  </data>
+  <data name="receiving_area" xml:space="preserve">
+    <value>Khu vực nhận hàng</value>
+  </data>
+  <data name="return_area" xml:space="preserve">
+    <value>Khu vực trả hàng</value>
+  </data>
+  <data name="defective_area" xml:space="preserve">
+    <value>Khu vực hàng lỗi</value>
+  </data>
+  <data name="inventory_area" xml:space="preserve">
+    <value>Khu vực kiểm kê</value>
+  </data>
+  <data name="customer_name" xml:space="preserve">
+    <value>Tên khách hàng</value>
+  </data>
+  <data name="supplier_name" xml:space="preserve">
+    <value>Tên nhà cung cấp</value>
+  </data>
+  <data name="role_name" xml:space="preserve">
+    <value>Vai trò người dùng</value>
+  </data>
+  <data name="company_name" xml:space="preserve">
+    <value>Tên công ty</value>
+  </data>
+  <data name="goods_owner_name" xml:space="preserve">
+    <value>Chủ hàng</value>
+  </data>
+  <data name="category_name" xml:space="preserve">
+    <value>Loại hàng hóa</value>
+  </data>
+  <data name="parent_name" xml:space="preserve">
+    <value>Danh mục cha</value>
+  </data>
+  <data name="menu_name" xml:space="preserve">
+    <value>Tên menu</value>
+  </data>
+  <data name="spu_code" xml:space="preserve">
+    <value>Mã hàng hóa</value>
+  </data>
+  <data name="spu_name" xml:space="preserve">
+    <value>Tên hàng hóa</value>
+  </data>
+  <data name="sku_code" xml:space="preserve">
+    <value>Mã quy cách</value>
+  </data>
+  <data name="sku_name" xml:space="preserve">
+    <value>Tên quy cách</value>
+  </data>
+  <data name="spu_description" xml:space="preserve">
+    <value>Mô tả hàng hóa</value>
+  </data>
+  <data name="bar_code" xml:space="preserve">
+    <value>Mã vạch</value>
+  </data>
+  <data name="brand" xml:space="preserve">
+    <value>Thương hiệu</value>
+  </data>
+  <data name="unit" xml:space="preserve">
+    <value>Đơn vị tính</value>
+  </data>
+  <data name="cost" xml:space="preserve">
+    <value>Giá vốn</value>
+  </data>
+  <data name="price" xml:space="preserve">
+    <value>Giá bán</value>
+  </data>
+  <data name="origin" xml:space="preserve">
+    <value>Xuất xứ</value>
+  </data>
+  <data name="length_unit" xml:space="preserve">
+    <value>Đơn vị chiều dài</value>
+  </data>
+  <data name="volume_unit" xml:space="preserve">
+    <value>Đơn vị thể tích</value>
+  </data>
+  <data name="weight_unit" xml:space="preserve">
+    <value>Đơn vị khối lượng</value>
+  </data>
+  <data name="weight" xml:space="preserve">
+    <value>Khối lượng hàng hóa</value>
+  </data>
+  <data name="lenght" xml:space="preserve">
+    <value>Chiều dài hàng hóa</value>
+  </data>
+  <data name="width" xml:space="preserve">
+    <value>Chiều rộng hàng hóa</value>
+  </data>
+  <data name="height" xml:space="preserve">
+    <value>Chiều cao hàng hóa</value>
+  </data>
+  <data name="volume" xml:space="preserve">
+    <value>Thể tích hàng hóa</value>
+  </data>
+  <data name="warehouse" xml:space="preserve">
+    <value>Tên kho</value>
+  </data>
+  <data name="qty_available" xml:space="preserve">
+    <value>Số lượng khả dụng</value>
+  </data>
+  <data name="job_code" xml:space="preserve">
+    <value>Mã công việc</value>
+  </data>
+  <data name="job_type" xml:space="preserve">
+    <value>Loại công việc</value>
+  </data>
+  <data name="process_status" xml:space="preserve">
+    <value>Trạng thái xử lý</value>
+  </data>
+  <data name="processor" xml:space="preserve">
+    <value>Người xử lý</value>
+  </data>
+  <data name="process_time" xml:space="preserve">
+    <value>Thời gian xử lý</value>
+  </data>
+  <data name="qty" xml:space="preserve">
+    <value>Số lượng</value>
+  </data>
+  <data name="is_source" xml:space="preserve">
+    <value>Là nguồn</value>
+  </data>
+  <data name="target_warehouse" xml:space="preserve">
+    <value>Kho đích</value>
+  </data>
+  <data name="target_location" xml:space="preserve">
+    <value>Vị trí đích</value>
+  </data>
+  <data name="is_update_stock" xml:space="preserve">
+    <value>Cập nhật tồn kho</value>
+  </data>
+  <data name="adjust_status" xml:space="preserve">
+    <value>Cập nhật tồn kho</value>
+  </data>
+  <data name="source" xml:space="preserve">
+    <value>Nguồn</value>
+  </data>
+  <data name="target" xml:space="preserve">
+    <value>Đích</value>
+  </data>
+  <data name="move_status" xml:space="preserve">
+    <value>Trạng thái di chuyển</value>
+  </data>
+  <data name="handler" xml:space="preserve">
+    <value>Người thao tác</value>
+  </data>
+  <data name="handle_time" xml:space="preserve">
+    <value>Thời gian thao tác</value>
+  </data>
+  <data name="orig_goods_warehouse" xml:space="preserve">
+    <value>Kho gốc</value>
+  </data>
+  <data name="orig_goods_LocationName" xml:space="preserve">
+    <value>Vị trí gốc</value>
+  </data>
+  <data name="dest_googs_warehouse" xml:space="preserve">
+    <value>Kho đích</value>
+  </data>
+  <data name="dest_googs_LocationName" xml:space="preserve">
+    <value>Vị trí đích</value>
+  </data>
+  <data name="freeze" xml:space="preserve">
+    <value>Đóng băng</value>
+  </data>
+  <data name="unfreeze" xml:space="preserve">
+    <value>Gỡ đóng băng</value>
+  </data>
+  <data name="job_status" xml:space="preserve">
+    <value>Trạng thái công việc</value>
+  </data>
+  <data name="book_qty" xml:space="preserve">
+    <value>Số lượng sổ sách</value>
+  </data>
+  <data name="counted_qty" xml:space="preserve">
+    <value>Số lượng thực tế</value>
+  </data>
+  <data name="difference_qty" xml:space="preserve">
+    <value>Số lượng chênh lệch</value>
+  </data>
+  <data name="confirmTaking" xml:space="preserve">
+    <value>Xác nhận lấy hàng</value>
+  </data>
+  <data name="stockLocation" xml:space="preserve">
+    <value>Vị trí tồn kho</value>
+  </data>
+  <data name="stock" xml:space="preserve">
+    <value>Tồn kho</value>
+  </data>
+  <data name="sku_id" xml:space="preserve">
+    <value>Mã SKU</value>
+  </data>
+  <data name="qty_locked" xml:space="preserve">
+    <value>Số lượng đã khóa</value>
+  </data>
+  <data name="qty_frozen" xml:space="preserve">
+    <value>Số lượng đã đóng băng</value>
+  </data>
+  <data name="qty_asn" xml:space="preserve">
+    <value>Số lượng ASN</value>
+  </data>
+  <data name="qty_to_unload" xml:space="preserve">
+    <value>Số lượng cần dỡ</value>
+  </data>
+  <data name="qty_to_sort" xml:space="preserve">
+    <value>Số lượng cần phân loại</value>
+  </data>
+  <data name="qty_sorted" xml:space="preserve">
+    <value>Số lượng đã phân loại</value>
+  </data>
+  <data name="shortage_qty" xml:space="preserve">
+    <value>Số lượng thiếu hụt</value>
+  </data>
+  <data name="id" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="asn_no" xml:space="preserve">
+    <value>Số ASN</value>
+  </data>
+  <data name="asn_status" xml:space="preserve">
+    <value>Trạng thái ASN</value>
+  </data>
+  <data name="spu_id" xml:space="preserve">
+    <value>Mã SPU</value>
+  </data>
+  <data name="asn_qty" xml:space="preserve">
+    <value>Số lượng ASN</value>
+  </data>
+  <data name="actual_qty" xml:space="preserve">
+    <value>Số lượng thực nhận</value>
+  </data>
+  <data name="sorted_qty" xml:space="preserve">
+    <value>Số lượng đã phân loại</value>
+  </data>
+  <data name="more_qty" xml:space="preserve">
+    <value>Số lượng dư</value>
+  </data>
+  <data name="damage_qty" xml:space="preserve">
+    <value>Số lượng hư hỏng</value>
+  </data>
+  <data name="supplier_id" xml:space="preserve">
+    <value>Mã nhà cung cấp</value>
+  </data>
+  <data name="goods_owner_id" xml:space="preserve">
+    <value>Mã chủ hàng</value>
+  </data>
+  <data name="shipment" xml:space="preserve">
+    <value>Hóa đơn</value>
+  </data>
+  <data name="preShipment" xml:space="preserve">
+    <value>Chuẩn bị giao hàng</value>
+  </data>
+  <data name="newShipment" xml:space="preserve">
+    <value>Giao hàng mới</value>
+  </data>
+  <data name="goodsToBePicked" xml:space="preserve">
+    <value>Hàng cần lấy</value>
+  </data>
+  <data name="picked" xml:space="preserve">
+    <value>Đã lấy</value>
+  </data>
+  <data name="toBePackaged" xml:space="preserve">
+    <value>Cần đóng gói</value>
+  </data>
+  <data name="package" xml:space="preserve">
+    <value>Đóng gói</value>
+  </data>
+  <data name="packaged" xml:space="preserve">
+    <value>Đã đóng gói</value>
+  </data>
+  <data name="toBeWeighed" xml:space="preserve">
+    <value>Cần cân</value>
+  </data>
+  <data name="weigh" xml:space="preserve">
+    <value>Cân</value>
+  </data>
+  <data name="weighed" xml:space="preserve">
+    <value>Đã cân</value>
+  </data>
+  <data name="delivery" xml:space="preserve">
+    <value>Giao hàng</value>
+  </data>
+  <data name="toBeDelivered" xml:space="preserve">
+    <value>Cần giao hàng</value>
+  </data>
+  <data name="outOfWarehouse" xml:space="preserve">
+    <value>Xuất kho</value>
+  </data>
+  <data name="signIn" xml:space="preserve">
+    <value>Đăng nhập</value>
+  </data>
+  <data name="signedIn" xml:space="preserve">
+    <value>Đã đăng nhập</value>
+  </data>
+  <data name="dispatch_no" xml:space="preserve">
+    <value>Số phiếu giao hàng</value>
+  </data>
+  <data name="dispatch_status" xml:space="preserve">
+    <value>Trạng thái phiếu giao hàng</value>
+  </data>
+  <data name="detailQty" xml:space="preserve">
+    <value>Số lượng</value>
+  </data>
+  <data name="data_changed" xml:space="preserve">
+    <value>Dữ liệu đã thay đổi. Vui lòng làm mới và thử lại thao tác</value>
+  </data>
+  <data name="delete_failed" xml:space="preserve">
+    <value>Xóa thất bại</value>
+  </data>
+  <data name="delete_referenced" xml:space="preserve">
+    <value>Dữ liệu đã được tham chiếu và không thể xóa</value>
+  </data>
+  <data name="delete_success" xml:space="preserve">
+    <value>Xóa thành công</value>
+  </data>
+  <data name="exists_entity" xml:space="preserve">
+    <value>{0}:{1} đã tồn tại</value>
+  </data>
+  <data name="not_exists_entity" xml:space="preserve">
+    <value>Dữ liệu không tồn tại hoặc đã bị xóa</value>
+  </data>
+  <data name="WcsBlock_exists" xml:space="preserve">
+    <value>Dữ liệu WcsBlock tồn tại, vui lòng kiểm tra lại !</value>
+  </data>
+  <data name="MaxLength" xml:space="preserve">
+    <value>Độ dài nhập {0} phải nhỏ hơn hoặc bằng {1}</value>
+  </data>
+  <data name="operation_failed" xml:space="preserve">
+    <value>Thao tác thất bại</value>
+  </data>
+  <data name="operation_success" xml:space="preserve">
+    <value>Thao tác thành công</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>{0} là bắt buộc</value>
+  </data>
+  <data name="save_failed" xml:space="preserve">
+    <value>Lưu thất bại</value>
+  </data>
+  <data name="save_success" xml:space="preserve">
+    <value>Lưu thành công</value>
+  </data>
+  <data name="status_changed" xml:space="preserve">
+    <value>Trạng thái dữ liệu đã thay đổi. Vui lòng làm mới và thử lại thao tác</value>
+  </data>
+  <data name="status_not_delete" xml:space="preserve">
+    <value>Không thể xóa ở trạng thái hiện tại</value>
+  </data>
+  <data name="ASN_Status_Is_Not_Pre_Delivery" xml:space="preserve">
+    <value>Trạng thái ASN không phải là PreDelivery</value>
+  </data>
+  <data name="ASN_Status_Is_Not_Pre_Load" xml:space="preserve">
+    <value>Trạng thái ASN không phải là PreLoad</value>
+  </data>
+  <data name="ASN_Status_Is_Not_Pre_Sort" xml:space="preserve">
+    <value>Trạng thái ASN không phải là PreSort</value>
+  </data>
+  <data name="ASN_Status_Is_Not_Sorted" xml:space="preserve">
+    <value>Trạng thái ASN không phải là Sorted</value>
+  </data>
+  <data name="ASN_Status_Is_Not_Sorting" xml:space="preserve">
+    <value>Trạng thái ASN không phải là Sorting</value>
+  </data>
+  <data name="ASN_Status_Is_Putaway" xml:space="preserve">
+    <value>Trạng thái ASN là Putaway</value>
+  </data>
+  <data name="ASN_Total_PutAway_Qty_Greater_Than_Sorted_Qty" xml:space="preserve">
+    <value>Số lượng putaway của ASN lớn hơn số lượng đã phân loại</value>
+  </data>
+  <data name="putaway_success" xml:space="preserve">
+    <value>Putaway thành công</value>
+  </data>
+  <data name="putaway_failed" xml:space="preserve">
+    <value>Putaway thất bại</value>
+  </data>
+  <data name="sorted_success" xml:space="preserve">
+    <value>Phân loại thành công</value>
+  </data>
+  <data name="sorted_failed" xml:space="preserve">
+    <value>Phân loại thất bại</value>
+  </data>
+  <data name="try_agin" xml:space="preserve">
+    <value>Không thể thực hiện thao tác hiện tại. Vui lòng làm mới và thử lại</value>
+  </data>
+  <data name="unpackgeqty_lessthen" xml:space="preserve">
+    <value>Số lượng chưa đóng gói nhỏ hơn số lượng cần đóng gói. Vui lòng làm mới và thử lại</value>
+  </data>
+  <data name="unweightqty_lessthen" xml:space="preserve">
+    <value>Số lượng chưa cân nhỏ hơn số lượng cần cân. Vui lòng làm mới và thử lại</value>
+  </data>
+  <data name="login_failed" xml:space="preserve">
+    <value>Đăng nhập thất bại</value>
+  </data>
+  <data name="exist_location_not_delete" xml:space="preserve">
+    <value>Đã thiết lập vị trí kho dưới khu vực kho này và không thể xóa</value>
+  </data>
+  <data name="exist_warehousearea_not_delete" xml:space="preserve">
+    <value>Đã thiết lập khu vực kho dưới kho này và không thể xóa</value>
+  </data>
+  <data name="dispatch_not_comfirm" xml:space="preserve">
+    <value>Còn phiếu giao hàng chưa phát hành</value>
+  </data>
+  <data name="move_not_comfirm" xml:space="preserve">
+    <value>Còn thao tác di chuyển tồn kho chưa xác nhận tại vị trí này</value>
+  </data>
+  <data name="process_not_comfirm" xml:space="preserve">
+    <value>Còn thao tác xử lý kho chưa xác nhận</value>
+  </data>
+  <data name="is_incorrect" xml:space="preserve">
+    <value>không chính xác</value>
+  </data>
+  <data name="old_password" xml:space="preserve">
+    <value>Mật khẩu cũ</value>
+  </data>
+  <data name="location_exist_stock_not_delete" xml:space="preserve">
+    <value>Tồn kho tại vị trí này. Không thể xóa vị trí kho</value>
+  </data>
+  <data name="username_existed" xml:space="preserve">
+    <value>Tên đăng nhập đã tồn tại</value>
+  </data>
+</root>

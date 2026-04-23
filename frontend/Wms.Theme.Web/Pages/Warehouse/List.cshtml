@@ -1,0 +1,283 @@
+@page
+@model Wms.Theme.Web.Pages.Warehouse.ListModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = L["Warehouses"];
+    var role = TempData.Peek("UserRole")?.ToString();
+}
+
+@if (role != "Admin" && role != "Operator")
+{
+    <div class="flex items-end gap-2"></div>
+}
+else
+{
+   
+    <div class="space-y-2">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">@L["Warehouses"]</h1>
+                <p class="mt-1 text-gray-600">@L["ManageWarehousesTagline"]</p>
+            </div>
+            <div class="flex justify-end">
+                <!-- Grid icon -->
+                <button type="button" onclick="openWarehouseGrid()"
+                        class="inline-flex items-center px-3 py-2 bg-gray-50 rounded-l-md border border-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-6 w-6 text-gray-600"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h4v4H4V6zm6 0h4v4h-4V6zm6 0h4v4h-4V6zM4 12h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 18h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
+                    </svg>
+                </button>
+
+                <!-- Card icon -->
+                <button type="button" onclick="openWarehouseCard()"
+                        class="inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-6 w-6 text-gray-600"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 7h18M3 12h18M3 17h18" />
+                    </svg>
+                </button>
+
+                <button type="button"
+                        title="@L["NewWarehouse"]"
+                        onclick="openWarehouseModal()"
+                        class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-r-md text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            
+            </div>
+        </div>
+    
+        @await Html.PartialAsync("Warehouses/_WarehouseModal")
+        <div id="gridWarehousePartial">
+            @await Html.PartialAsync("Warehouses/_WarehouseGrid", Model.Warehouses)
+        </div>
+        <div id="cardWarehousePartial" class="hidden">
+            @await Html.PartialAsync("Warehouses/_WarehouseListPartial", Model.Warehouses)
+        </div>
+    </div>
+ 
+}
+<script>
+
+    function openWarehouseModal() {
+      document.getElementById("warehouseModal").classList.remove("hidden");
+      document.getElementById("warehouseModal").classList.add("flex");
+
+      document.getElementById('newWhName').value = '';
+      document.getElementById('newWhCity').value = '';
+      document.getElementById('newWhAddress').value = '';
+      document.getElementById('newWhManager').value = '';
+      document.getElementById('newWhEmail').value = '';
+      document.getElementById('newWhContactTel').value = '';
+    }
+
+    function closeWarehouseModal() {
+      document.getElementById("warehouseModal").classList.remove("flex");
+      document.getElementById("warehouseModal").classList.add("hidden");
+    }
+        function openWarehouseGrid() {
+        const grid = document.getElementById("gridWarehousePartial");
+        const card = document.getElementById("cardWarehousePartial");
+
+        grid.classList.remove("hidden");
+        grid.classList.add("grid");   // use grid for layout
+        card.classList.add("hidden");
+        card.classList.remove("flex"); // clean up
+    }
+
+    function openWarehouseCard() {
+        const grid = document.getElementById("gridWarehousePartial");
+        const card = document.getElementById("cardWarehousePartial");
+
+        card.classList.remove("hidden");
+        card.classList.add("flex");   // use flex for card stack
+        grid.classList.add("hidden");
+        grid.classList.remove("grid"); // clean up
+    }
+            
+    function activeWarehouse(warehouseId) {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        
+        fetch(`?handler=ActiveWarehouse`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({ Id: warehouseId })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.success) {                        
+                Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                Notify.info(result.message || 'Failed to activate warehouse');
+            }
+        })
+        .catch(error => {
+            console.error('Error activating warehouse:', error);
+            Notify.info('Connection error');
+        });
+    }
+
+     function deActiveWarehouse(warehouseId) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+             
+            fetch(`?handler=DeActiveWarehouse`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ Id: warehouseId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.success) {
+                    Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    Notify.info(result.message || 'Failed to activate warehouse');
+                }
+            })
+            .catch(error => {
+                console.error('Error activating warehouse:', error);
+                Notify.info('Connection error');
+            });
+        }
+
+async function saveNewWarehouse() {
+    const name = document.getElementById('newWhName').value.trim();
+    const city = document.getElementById('newWhCity').value.trim();
+    const address = document.getElementById('newWhAddress').value.trim();
+    const manager = document.getElementById('newWhManager').value.trim();
+    const email = document.getElementById('newWhEmail').value.trim();
+    const contactTel = document.getElementById('newWhContactTel').value.trim();
+        const L = {
+                               colItemCode: '@Html.Raw(Localizer["CreateReceipt_ColItemCode"])',
+                               colItemName: '@Html.Raw(Localizer["CreateReceipt_ColItemName"])',
+                               colUom: '@Html.Raw(Localizer["CreateReceipt_ColUom"])',
+                               colQuantity: '@Html.Raw(Localizer["CreateReceipt_ColQuantity"])',
+                               colLocation: '@Html.Raw(Localizer["CreateReceipt_ColLocation"])',
+                               colPalletCode: '@Html.Raw(Localizer["CreateReceipt_ColPalletCode"])',
+                               colReference: '@Html.Raw(Localizer["CreateReceipt_ColReference"])',
+                               colActions: '@Html.Raw(Localizer["CreateReceipt_ColActions"])',
+                               noWarehouseFound: '@Html.Raw(Localizer["CreateReceipt_NoWarehouseFound"])',
+                               noItemFound: '@Html.Raw(Localizer["CreateReceipt_NoItemFound"])',
+                               searching: '@Html.Raw(Localizer["CreateReceipt_Searching"])',
+                               clickToSearchItem: '@Html.Raw(Localizer["CreateReceipt_ClickToSearchItem"])',
+                               loadingLocationMap: '@Html.Raw(Localizer["CreateReceipt_LoadingLocationMap"])',
+                               locationLoadError: '@Html.Raw(Localizer["CreateReceipt_LocationLoadError"])',
+                               noLocationData: '@Html.Raw(Localizer["CreateReceipt_NoLocationData"])',
+                               locationEmpty: '@Html.Raw(Localizer["CreateReceipt_LocationEmpty"])',
+                               searchingPallet: '@Html.Raw(Localizer["CreateReceipt_SearchingPallet"])',
+                               noPalletFound: '@Html.Raw(Localizer["CreateReceipt_NoPalletFound"])',
+                               select: '@Html.Raw(Localizer["Common_Select"])',
+                               referenceBtn: '@Html.Raw(Localizer["CreateReceipt_ReferenceBtn"])',
+                               orderDetailPrefix: '@Html.Raw(Localizer["CreateReceipt_OrderDetailPrefix"])',
+                               deleteRowTitle: '@Html.Raw(Localizer["CreateReceipt_DeleteRowTitle"])',
+                               validReceiptNo: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptNo"])',
+                               validReceiptDate: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptDate"])',
+                               validReceiptType: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptType"])',
+                               validWarehouse: '@Html.Raw(Localizer["CreateReceipt_ValidWarehouse"])',
+                               validAtLeastOneItem: '@Html.Raw(Localizer["CreateReceipt_ValidAtLeastOneItem"])',
+                               saveSuccess: '@Html.Raw(Localizer["CreateReceipt_SaveSuccess"])',
+                               saveFailed: '@Html.Raw(Localizer["CreateReceipt_SaveFailed"])',
+                               connectionError: '@Html.Raw(Localizer["Common_ConnectionError"])',
+                               validWhName: '@Html.Raw(Localizer["CreateReceipt_ValidWhName"])',
+                               validWhCity: '@Html.Raw(Localizer["CreateReceipt_ValidWhCity"])',
+                               validWhAddress: '@Html.Raw(Localizer["CreateReceipt_ValidWhAddress"])',
+                               whSaveSuccess: '@Html.Raw(Localizer["CreateReceipt_WhSaveSuccess"])',
+                               whSaveFailed: '@Html.Raw(Localizer["CreateReceipt_WhSaveFailed"])',
+                               validSelectWhFirst: '@Html.Raw(Localizer["CreateReceipt_ValidSelectWhFirst"])',
+                               palletGenerateError: '@Html.Raw(Localizer["CreateReceipt_PalletGenerateError"])',
+                               palletNoResponse: '@Html.Raw(Localizer["CreateReceipt_PalletNoResponse"])',
+                               palletCreatedAssigned: '@Html.Raw(Localizer["CreateReceipt_PalletCreatedAssigned"])',
+                               palletCreated: '@Html.Raw(Localizer["CreateReceipt_PalletCreated"])',
+                               validSelectAtLeastOneItem: '@Html.Raw(Localizer["CreateReceipt_ValidSelectAtLeastOneItem"])',
+                               validWhContactTel: '@Html.Raw(Localizer["CreateReceipt_ValidWhContactTel"])',
+                               validWhContactTel: '@Html.Raw(Localizer["CreateReceipt_ValidWhContactTel"])',
+                               palletLocationConflict: '@Html.Raw(Localizer["CreateReceipt_PalletLocationConflict"])',
+                               msgAddAtLeastOneItem : '@Html.Raw(Localizer["CreateReceipt_MsgAddAtLeastOneItem"])',
+                               validSupplier: '@Html.Raw(Localizer["CreateReceipt_ValidSupplier"])',
+                               validQtyPerItem: '@Html.Raw(Localizer["CreateReceipt_ValidQtyPerItem"])',
+                               validExpiryPerItem: '@Html.Raw(Localizer["CreateReceipt_ValidExpiryPerItem"])',
+                               validLocationLoadError: '@Html.Raw(Localizer["CreateReceipt_LocationLoadError"])',
+                               connectionError: '@Html.Raw(Localizer["Common_ConnectionError"])',
+                               noLocationData: '@Html.Raw(Localizer["CreateReceipt_NoLocationData"])',
+                               searching: '@Html.Raw(Localizer["CreateReceipt_Searching"])',                                       
+                               msgCreateWarehouseFail: '@Html.Raw(Localizer["CreateWarehouseFail"])',                                           
+                               msgCreateWarehouseSuccess: '@Html.Raw(Localizer["CreateWarehouseSuccess"])',
+                           };
+    if(!name) {
+        Notify.info(L.validWhName);
+        return;
+    }
+    if(!city) {
+        Notify.info(L.validWhCity);
+        return;
+    }
+    if(!address) {
+        Notify.info(L.validWhAddress);
+        return;
+    }
+    if(contactTel) {
+        const phoneRegex = / ^ [+]?[(]?[0 - 9]{ 1,4} [)] ? [-\s. / 0 - 9] * $ /;
+        if(!phoneRegex.test(contactTel)) {
+            Notify.info(L.validWhContactTel);
+            return;
+        }
+    }
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    try {
+        
+        const response = await fetch('?handler=AddWareHouse', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({
+                warehouseName: name,
+                city: city,
+                address: address,
+                email: email,
+                manager: manager,
+                contactTel: contactTel
+            })
+        });
+
+        const result = await response.json();
+        if(result.success) {
+            Notify.info(L.msgCreateWarehouseSuccess);
+            closeWarehouseModal();
+            selectedWarehouseIdInput.value = result.id ?? '';
+
+        } else {
+            Notify.info(result.message || L.msgCreateWarehouseFail);
+        }
+    } catch (error) {
+        console.error('Error saving warehouse:', error);
+        Notify.info(L.msgConnectionError);
+    }    
+}
+</script>

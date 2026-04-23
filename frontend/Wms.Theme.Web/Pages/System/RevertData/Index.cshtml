@@ -1,0 +1,420 @@
+﻿@page
+@model Wms.Theme.Web.Pages.System.RevertData.IndexModel
+@{
+    ViewData["Title"] = L["RevertData"];
+}
+
+@Html.AntiForgeryToken()
+
+<div class="space-y-2">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900"
+                id="titleRevertInbound">
+                @L["Inbound"]
+            </h1>
+            <h1 class="hidden text-2xl font-bold text-gray-900"
+                id="titleRevertOutbound">
+                @L["Outbound"]
+            </h1>
+            <p class="mt-1 text-gray-600">@L["RevertDataTagline"]</p>
+        </div>
+
+        <div class="flex justify-end">
+            <!-- Inbound icon -->
+            <button type="button" onclick="openInboundRevert()"
+                    class="inline-flex items-center px-3 py-2 bg-gray-50 rounded-l-md border border-gray-300">
+                <i class="fa-solid fa-dolly"></i>
+            </button>
+
+            <!-- Outbound icon -->
+            <button type="button" onclick="openOutboundRevert()"
+                    class="inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+            </button>
+        </div>
+    </div>    
+
+    <div id="divInboundRevert">
+        <div id="gridInboundRevert" class="ag-theme-quartz" style="height: calc(100vh - 220px); width: 100%;"></div>
+    </div>
+    <div id="divOutboundRevert" class="hidden">
+        <div id="gridOutboundRevert" class="ag-theme-quartz" style="height: calc(100vh - 220px); width: 100%;"></div>
+    </div>
+</div>
+
+
+<script>
+
+    function openOutboundRevert() {
+        const divInbound = document.getElementById("divInboundRevert");
+        const divOutbound = document.getElementById("divOutboundRevert");
+
+        const titleInbound = document.getElementById("titleRevertInbound");
+        const titleOutbound = document.getElementById("titleRevertOutbound");
+
+        titleInbound.classList.add("hidden");
+        titleInbound.classList.remove("grid");
+        titleInbound.classList.remove("flex");
+
+        titleOutbound.classList.remove("hidden");
+        titleOutbound.classList.add("flex");
+
+        divOutbound.classList.remove("hidden");
+        divOutbound.classList.add("flex");
+
+        divInbound.classList.add("hidden");
+        divInbound.classList.remove("grid");
+        divInbound.classList.remove("flex");
+    }
+
+    function openInboundRevert() {
+        const divInbound = document.getElementById("divInboundRevert");
+        const divOutbound = document.getElementById("divOutboundRevert");
+
+        const titleInbound = document.getElementById("titleRevertInbound");
+        const titleOutbound = document.getElementById("titleRevertOutbound");
+
+        titleInbound.classList.remove("hidden");
+        titleInbound.classList.add("flex");
+
+        divInbound.classList.remove("hidden");
+        divInbound.classList.add("flex");   // use flex for card stack
+
+        titleOutbound.classList.add("hidden");
+        titleOutbound.classList.remove("grid");
+        titleOutbound.classList.remove("flex");
+
+        divOutbound.classList.add("hidden");
+        divOutbound.classList.remove("grid");
+        divOutbound.classList.remove("flex");
+    }
+
+    const receiptTypeLabels = {
+            'PURCHASE': '@Html.Raw(L["CreateReceipt_TypePurchase"])',
+            'RETURN':   '@Html.Raw(L["CreateReceipt_TypeReturn"])',
+            'TRANSFER': '@Html.Raw(L["CreateReceipt_TypeTransfer"])',
+            'MISC':     '@Html.Raw(L["CreateReceipt_TypeMisc"])'
+    };
+         
+    let rowDataInbound = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.InboundRevertList,
+                                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+    let rowDataOutbound = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OutboundRevertList,
+                                                                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+    
+    const columnOutboundDefs = [
+            {
+                headerName: '@Html.Raw(L["CreateReceipt_ReceiptNumber"])',
+                field: "receiptNo",
+                minWidth: 140,
+                pinned : "left",
+                cellRenderer: params => {
+                    if (!params.data) return '';
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    let isCompleted = +(params.data.status ?? 0) === 3;
+                    
+                    let cssRow = isCancelled ? "line-through text-orange-600 dark:text-orange-400  text-red-700" : 
+                        isCompleted ? " text-green-700" : "text-gray-700 dark:text-gray-500";
+
+                    if (!params.data) return `<span class="text-gray-400 italic text-sm ${cssRow}"><i class="fas fa-spinner fa-spin"></i></span>`;
+                    return `<a href="/Outbound/Receipt/Detail/${params.data.id}" class="hover:underline font-bold ${cssRow}">${params.value || ''}</a>`;
+                }
+            },
+            {
+                headerName: '@Html.Raw(L["CreateOutboundReceipt_IssueType"])',
+                field: "type", 
+                minWidth: 75,
+                width: 120,
+                sortable: true,
+                valueFormatter: (params) => receiptTypeLabels[params.value] || params.value
+            },
+            {
+                headerName: '@Html.Raw(L["Consignee"])',
+                field: "consignee",
+                flex: 1,
+                minWidth: 125
+            },
+            {
+                headerName: '@Html.Raw(L["CreateOutboundReceipt_Customer"])',
+                field: "customerName",
+                flex: 1,
+                minWidth: 165
+            },
+            {
+                headerName: '@Html.Raw(L["CreateOutboundReceipt_Warehouse"])',
+                field: "warehouseName",
+                flex: 1,
+                minWidth: 150
+            },
+            {
+                headerName: '@Html.Raw(L["CreateOutboundReceipt_Gateway"])',
+                field: "outBoundGatewayName",
+                width: 120
+            },
+            {
+                headerName: '@Html.Raw(L["TotalQuantity"])',
+                field: "totalQty",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+            },
+            {
+                headerName: '@Html.Raw(L["CreatedDate"])',
+                field: "strReceiptDate",
+                width: 130
+            },
+            {
+                headerName: '@Html.Raw(L["Description"])',
+                sortable : true,
+                field: "description",
+                flex: 1,
+                minWidth: 200
+            },
+            {
+                headerName: '@Html.Raw(L["DeletedDate"])',
+                field: "strDeletedDate",
+                width: 130
+            },
+            {
+                headerName: '',
+                width: 45,
+                sortable: false,
+                filter: false,
+                pinned: 'right',
+                cellRenderer: params => {
+                    if (!params.data) return '';
+                    
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    if(isCancelled) {
+                        return `<div class="flex items-center justify-center h-full text-orange-600 dark:text-orange-400 " title="Phục hồi">
+                            <a href="javascript:void(0)" onclick="revertReceiptOutbound(${params.data.id})">
+                                <i class="fa fa-reply"></i>
+                            </a>
+                        </div>`
+                    }
+
+                    return '';
+                }
+            }
+        ];
+
+    const columnInboundDefs = [
+            {
+                headerName: '@Html.Raw(L["CreateReceipt_ReceiptNumber"])',
+                field: "receiptNo",
+                minWidth: 95,
+                pinned: 'left',
+                sortable : true,
+                cellRenderer: params => {
+                    if (!params.data) return '';
+
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    let isCompleted = +(params.data.status ?? 0) === 3;
+                    let cssRow = isCancelled ? "line-through text-orange-600 dark:text-orange-400 text-red-700" :
+                        isCompleted ? " text-green-700" : "text-gray-700 dark:text-gray-500";
+
+                    if (!params.data) {
+                        return `<span class="italic text-sm ${cssRow}"><i class="fas fa-spinner fa-spin mr-1"></i></span>`;
+                    }
+                    let linkHtml = `<a href="/Inbound/Receipt/Detail/${params.data.id}" class="hover:underline font-bold">${params.value || ''}</a>`;
+
+                    let exceptionIcon = '';
+                    if (params.data.isException) {
+                        exceptionIcon = `
+                            <span title="@L["Error"]"
+                                  class="ml-2 inline-flex items-center justify-center text-red-500 bg-red-100 rounded-full h-5 w-5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </span>`;
+                    }
+
+                    return `<div class="flex items-center h-full ${cssRow}">${linkHtml} ${exceptionIcon}</div>`;
+                }
+            },
+            {
+                headerName: '@Html.Raw(L["CreateReceipt_ReceiptType"])',
+                field: "receiptType",
+                width: 120,
+                valueFormatter: (params) => receiptTypeLabels[params.value] || params.value
+            },
+            {
+                headerName: '@Html.Raw(L["Supplier"])',
+                sortable : true,
+                field: "supplierName",
+                flex: 1,
+                minWidth: 200
+            },
+            {
+                headerName: '@Html.Raw(L["Warehouse"])',
+                sortable : true,
+                field: "warehouseName",
+                flex: 1,
+                minWidth: 200
+            },
+            {
+                headerName: '@Html.Raw(L["TotalQuantity"])',
+                sortable : true,
+                field: "totalQty",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+                valueFormatter: params => {
+                    if (!params.data) return '';
+
+                    return params.value ? params.value : '0';
+                }
+            },
+            {
+                headerName: '@Html.Raw(L["CreatedDate"])',
+                field: "strReceiptDate",
+                width: 130
+            },
+           {
+                headerName: '@Html.Raw(L["CreateReceipt_IsStored"])',
+                sortable : true,
+                field: "isStored",
+                width: 80,
+                cellRenderer: params => {
+                    if (!params.data) return '';
+                    if (params.value) {
+
+                        return `
+                            <div class="flex items-center justify-center w-full h-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>`;
+                    } else {
+
+                        return `
+                            <div class="flex items-center justify-center w-full h-full text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+                                </svg>
+                            </div>`;
+                    }
+                }
+           },
+            {
+                headerName: '@Html.Raw(L["Description"])',
+                sortable : true,
+                field: "description",
+                flex: 1,
+                minWidth: 200,
+            },
+            {
+                headerName: '@Html.Raw(L["DeletedDate"])',
+                field: "strDeletedDate",
+                width: 130
+            },
+            {
+                headerName: '',
+                width: 45,
+                sortable: false,
+                filter: false,
+                pinned: 'right',
+                cellRenderer: params => {
+                    if (!params.data) return '';
+
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    if(isCancelled) {
+                        return `<div class="flex items-center justify-center h-full text-orange-600 dark:text-orange-400 " title="Phục hồi">
+                            <a href="javascript:void(0)" onclick="revertReceiptInbound(${params.data.id})">
+                                <i class="fa fa-reply"></i>
+                            </a>
+                        </div>`
+                    }
+
+                    return '';
+                }
+            }
+        ];
+
+     const gridOutboundOptions = {
+        columnDefs: columnOutboundDefs,
+        rowData: rowDataOutbound,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    const gridInboundOptions = {
+        columnDefs: columnInboundDefs,
+        rowData: rowDataInbound,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridInboundDiv = document.querySelector('#gridInboundRevert');
+         const gridInboundApi = agGrid.createGrid(gridInboundDiv, gridInboundOptions);
+
+         const gridOutboundDiv = document.querySelector('#gridOutboundRevert');
+         const gridOutboundApi = agGrid.createGrid(gridOutboundDiv, gridOutboundOptions);
+    });
+
+    async function revertReceiptInbound(id) {
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("__RequestVerificationToken", tokenInput.value);
+                const response = await fetch(`?handler=RevertDataInbound`,
+                    {
+                       method: 'POST',
+                       body: formData
+                    }
+                );
+
+                if (!response.ok) throw new Error('@L["Error_Connection"]');
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => window.location.reload(), 100);
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('@L["Error"]', error);
+                Notify.error('@L["Error"]');
+            }
+        }
+
+    async function revertReceiptOutbound(id) {
+        try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("__RequestVerificationToken", tokenInput.value);
+                const response = await fetch(`?handler=RevertDataOutbound`,
+                    {
+                       method: 'POST',
+                       body: formData
+                    }
+                );
+
+                if (!response.ok) throw new Error('@L["Error_Connection"]');
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => window.location.reload(), 100);
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('@L["Error"]', error);
+                Notify.error('@L["Error"]');
+            }
+    }
+
+</script>

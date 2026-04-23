@@ -1,0 +1,89 @@
+﻿@page
+@model Wms.Theme.Web.Pages.LandingPage.IndexModel
+@{
+    ViewData["Title"] = L["LandingPage"];
+    Layout = "_LandingLayout";
+}
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        position: relative; /* allows strip positioning */
+    }
+
+    .container {
+        text-align: center;
+    }
+
+    .signin-btn {        
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        position: absolute;
+        top: 45%;
+        left: 40%;
+        margin-top: -50px;
+        margin-left: -250px;
+        z-index: 2; /* keeps button above strip */
+        margin-bottom: 1rem; /* space above the strip */
+    }
+
+    .side {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .side img {
+            max-width: 100%;
+            height: auto;
+        }
+
+    #btnRegister:hover {
+        background: #0066cc;
+        padding: 1rem 2rem;
+    }
+
+    #btnLogin:hover {
+        background: #0066cc;
+        padding: 1rem 2rem;
+    }
+
+    .box {
+        width: 350px;
+        height: 350px;
+        background-color: red;
+        position: relative;
+        /* animation: tên_hiệu_ứng thời_gian kiểu_chạy lặp_lại hướng_chạy */        
+    }
+</style>
+<div class="container">    
+    
+    <!-- Center button -->
+    <div class="center">        
+        <div class="signin-btn">  
+            <h1 style="margin-bottom: 26px; background: rgba(0,0,0,0.3); padding: 0.8rem;">@L["SloganWMS"]</h1>
+            <a href="/Auth/Index" id="btnLogin" style="margin-right: 25px">
+                <i class="fa fa-sign-in" aria-hidden="true"></i>
+                @L["LoginHere"]</a>
+            <a href="/Auth/Register" id="btnRegister">
+                <i class="fa-solid fa-building-user"></i> @L["Register"]
+            </a>
+        </div>        
+    </div>
+
+    <!-- Left image -->
+    <div class="side">        
+        <img src="~/img/WMS.jpg" alt="Left Image">
+    </div>
+</div> 

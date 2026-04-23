@@ -1,0 +1,217 @@
+@page
+@using Wms.Theme.Web.Util
+@model Wms.Theme.Web.Pages.Dashboard.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+
+@{
+    ViewData["Title"] = L["Dashboard"];
+}
+
+<div class="mx-auto max-w-[1400px] px-2 space-y-2 text-slate-100"> 
+        
+    @await Html.PartialAsync("Dashboard/_SummaryPartial", Model.Info)
+    @await Html.PartialAsync("Dashboard/_OrderListPartial", Model.Info)
+    
+    <section class="grid gap-4 md:grid-cols-2">        
+        <!-- Inbound trend full width -->
+        @await Html.PartialAsync("Dashboard/_TrendChartPartial", Model.Info)
+        <!-- Outbound trend full width -->
+        <div class="bg-dashboard-card rounded-xl border border-slate-700/70 ring-1 ring-white/10 bg-slate-900/70 p-6 shadow-2xl backdrop-blur">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold tracking-tight">Xu hướng Xuất kho</h2>
+                    <p class="text-[11px] uppercase tracking-wider text-slate-400">Số đơn xuất theo ngày</p>
+                </div>
+                <div class="text-[11px] text-slate-400">7 ngày gần nhất</div>
+            </div>
+            <div class="mt-3 h-72">
+                <canvas id="outboundTrendChart" aria-label="Biểu đồ xu hướng xuất kho" role="img"></canvas>
+            </div>
+        </div>
+    </section>
+    
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.5/dist/chart.umd.min.js"></script>
+    <script>
+        function getMasterDataFromLocal() {
+          const storedData = localStorage.getItem("masterData");
+          return storedData ? JSON.parse(storedData) : null;
+        }
+
+        async function loadMasterData() {
+            try {
+                const storedData = getMasterDataFromLocal();
+                
+                if (storedData !== null) {
+                    console.error("Current Data :", storedData);
+                    return;
+                }
+
+                // Gọi API (ví dụ: lấy danh sách sản phẩm)
+                const response = await fetch(`?handler=LoadMasterData`);
+                const data = await response.json();
+
+                // Lưu dữ liệu vào localStorage (chuyển sang chuỗi JSON)
+                localStorage.setItem("masterData", JSON.stringify(data));
+                console.log("Master data đã được lưu vào localStorage");
+            } catch (error) {
+                console.error("Lỗi khi gọi API:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMasterData();
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#cbd5f5', usePointStyle: true } },
+                    tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.85)', borderColor: '#1e293b', borderWidth: 1 }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+                }
+            };
+
+            var inboundCanvas = document.getElementById('inboundTrendChart');
+            if (inboundCanvas) {
+                var ic = inboundCanvas.getContext('2d');
+                let labelCharts = ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06', '2026-04-07'];
+
+                var inboundGradient = ic.createLinearGradient(0, 0, 0, inboundCanvas.offsetHeight);
+                inboundGradient.addColorStop(0, 'rgba(56, 189, 248, 0.28)');
+                inboundGradient.addColorStop(1, 'rgba(56, 189, 248, 0.02)');
+                new Chart(ic, {
+                    type: 'line',
+                    data: {
+                        labels: labelCharts,
+                        datasets: [{
+                            label: 'Số phiếu nhập',
+                            data: [12, 18, 14, 26, 21, 17, 28],
+                            borderColor: '#22d3ee',
+                            backgroundColor: inboundGradient,
+                            tension: 0.35,
+                            fill: true,
+                            pointBackgroundColor: '#22d3ee'
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+
+            var outboundCanvas = document.getElementById('outboundTrendChart');
+            if (outboundCanvas) {
+                var oc = outboundCanvas.getContext('2d');
+                var outboundGradient = oc.createLinearGradient(0, 0, 0, outboundCanvas.offsetHeight);
+                outboundGradient.addColorStop(0, 'rgba(52, 211, 153, 0.25)');
+                outboundGradient.addColorStop(1, 'rgba(52, 211, 153, 0.02)');
+                new Chart(oc, {
+                    type: 'line',
+                    data: {
+                        labels: ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-04', '2026-04-05', '2026-04-06', '2026-04-07'],
+                        datasets: [{
+                            label: 'Số đơn xuất',
+                            data: [8, 12, 10, 15, 19, 14, 21],
+                            borderColor: '#34d399',
+                            backgroundColor: outboundGradient,
+                            tension: 0.35,
+                            fill: true,
+                            pointBackgroundColor: '#34d399'
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
+
+            var warehouseCtx = document.getElementById('warehouseComparisonChart');
+            if (warehouseCtx) {
+                new Chart(warehouseCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Kho A', 'Kho B', 'Kho C'],
+                        datasets: [
+                            {
+                                label: 'Nhập',
+                                data: [120, 95, 110],
+                                backgroundColor: '#60a5fa',
+                                borderRadius: 12
+                            },
+                            {
+                                label: 'Xuất',
+                                data: [85, 70, 88],
+                                backgroundColor: '#34d399',
+                                borderRadius: 12
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: chartOptions.plugins,
+                        scales: {
+                            x: {
+                                stacked: false,
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.15)' }
+                            },
+                            y: {
+                                stacked: false,
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.15)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var inventoryCtx = document.getElementById('inventoryDistributionChart');
+            if (inventoryCtx) {
+                new Chart(inventoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Kho A: 4,500', 'Kho B: 3,200', 'Kho C: 2,100'],
+                        datasets: [{
+                            data: [4500, 3200, 2100],
+                            backgroundColor: ['#60a5fa', '#34d399', '#fbbf24'],
+                            borderColor: '#0f172a'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#cbd5f5', usePointStyle: true }
+                            },
+                            tooltip: chartOptions.plugins.tooltip
+                        }
+                    }
+                });
+            }
+        });
+        
+        function gotoWarehouseList()         
+        {
+             // Navigate to the Warehouse Razor Page
+             window.location.href = '/Warehouse/List';
+        }
+                 
+        function calculateCapacityPercent(currentInventory, maxCapacity) {
+            if (maxCapacity === 0) {
+                return 0; // tránh chia cho 0
+            }
+            const percent = (currentInventory / maxCapacity) * 100;
+            return percent.toFixed(2); // làm tròn 2 chữ số thập phân
+        }
+
+
+    </script>
+}

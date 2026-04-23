@@ -1,0 +1,27 @@
+﻿@using Wms.Theme.Web.Model.GoodLocation
+@model IEnumerable<GoodSkuLocationInfo>
+
+
+<div class="col-span-full text-center text-gray-500 py-8">
+    @if (Model.Count() < 1)
+    {
+        <span>Không có dữ liệu vị trí từ Server.</span>        
+    }
+    else
+    {
+        
+    }
+</div>
+
+<div id="locationGridContainer" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    <div class="border-2 rounded-lg p-3 text-center transition-all duration-200 flex flex-col justify-center items-center relative cursor-pointer border-green-400 bg-green-50 hover:bg-green-100 hover:shadow-md hover:-translate-y-1 h-24 group">
+        <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        <span class="text-sm font-bold text-green-700 leading-tight"></span>
+        <span class="text-[10px] font-medium text-green-600">Trống</span>
+    </div>
+    <div class="border-2 rounded-lg p-3 text-center transition-all duration-200 flex flex-col justify-center items-center relative cursor-pointer border-green-400 bg-green-50 hover:bg-green-100 hover:shadow-md hover:-translate-y-1 h-24 group">
+        <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        <span class="text-sm font-bold text-green-700 leading-tight"></span>
+        <span class="text-[10px] font-medium text-green-600">Trống</span>
+    </div>
+</div>

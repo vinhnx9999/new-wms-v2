@@ -1,0 +1,388 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.PackingModel
+
+@{
+    ViewData["Title"] = L["Packing"];
+}
+@Html.AntiForgeryToken()
+
+<div x-data="AlpineDataTable(getPackingConfig())" @@datatable-reload.window="reload()" class="p-6">
+    <!-- Top Bar: Search and Actions -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Search -->
+        <div class="relative max-w-md w-full">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" x-model="filters.dispatchNo" @@input.debounce.600ms="reload()"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-sm"
+                placeholder="@Html.Raw(L["SearchDispatchNo"]) ...">
+        </div>
+
+    </div>
+
+    <div class="pb-6">
+        <partial name="Shared/Components/_AlpineDataTable" />
+    </div>
+
+    <!-- Modals remain here, will be updated to use same x-data if needed or continue with global functions -->
+
+    <!-- Modal Đóng Gói (Packing) -->
+    <div id="modalPacking" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div
+                class="px-6 py-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">@Html.Raw(L["ConfirmPacking"])</h3>
+                <button onclick="closeModal('modalPacking')" class="text-gray-500 hover:text-red-500 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-100 dark:bg-gray-800">
+                        <tr>
+                            <th
+                                class="px-4 py-2 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">
+                                @Html.Raw(L["DispatchCode"])</th>
+                            <th
+                                class="px-4 py-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">
+                                @Html.Raw(L["PickedQty"])</th>
+                            <th
+                                class="px-4 py-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase w-32">
+                                @Html.Raw(L["PackingQty"])</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyPacking"
+                        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t dark:border-gray-700 flex justify-end gap-3">
+                <button onclick="closeModal('modalPacking')"
+                    class="px-4 py-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">@Html.Raw(L["Cancel"])</button>
+                <button onclick="submitPacking()"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition shadow-sm">
+                    @Html.Raw(L["SavePacking"])</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cân Hàng (Weighing) -->
+    <div id="modalWeighing"
+        class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div
+                class="px-6 py-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white">@Html.Raw(L["ConfirmWeighing"])</h3>
+                <button onclick="closeModal('modalWeighing')"
+                    class="text-gray-500 hover:text-red-500 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-100 dark:bg-gray-800">
+                        <tr>
+                            <th
+                                class="px-4 py-2 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">
+                                @Html.Raw(L["DispatchCode"])</th>
+                            <th
+                                class="px-4 py-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">
+                                @Html.Raw(L["PickedQty"])</th>
+                            <th
+                                class="px-4 py-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase w-24">
+                                @Html.Raw(L["WeighingQty"])</th>
+                            <th
+                                class="px-4 py-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400 uppercase w-32">
+                                @Html.Raw(L["WeightKg"])</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyWeighing"
+                        class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t dark:border-gray-700 flex justify-end gap-3">
+                <button onclick="closeModal('modalWeighing')"
+                    class="px-4 py-2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition">@Html.Raw(L["Cancel"])</button>
+                <button onclick="submitWeighing()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition shadow-sm">
+                    @Html.Raw(L["SaveWeighing"])</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js"></script>
+    <script>
+        function getPackingConfig() {
+            return {
+                apiUrl: '?handler=DataTable',
+                options: {
+                    selection: true
+                },
+                columns: [
+                    { title: '@Html.Raw(L["dispatch_no"])', field: 'dispatchNo', sortable: true, class: 'font-medium text-gray-900 dark:text-white' },
+                    { title: '@Html.Raw(L["customer_name"])', field: 'customerName', sortable: true },
+                    { title: '@Html.Raw(L["Status"])', field: 'dispatchStatus', render: (row) => renderStatusBadge(row.dispatchStatus) },
+                    { title: '@Html.Raw(L["Qty"])', field: 'qty', class: 'text-right', render: (row) => formatNumber(row.qty) },
+                    { title: '@Html.Raw(L["Weight"])', field: 'weight', class: 'text-right', render: (row) => formatNumber(row.weight, 2) },
+                    { title: '@Html.Raw(L["Volume"])', field: 'volume', class: 'text-right', render: (row) => formatNumber(row.volume, 2) },
+                    { title: '@Html.Raw(L["Creator"])', field: 'creator' },
+                    { title: '@Html.Raw(L["PickedQty"])', field: 'pickedQty', class: 'text-right font-bold text-blue-600', render: (row) => formatNumber(row.pickedQty) },
+                    { title: '@Html.Raw(L["Action"])', field: null, sortable: false, class: 'text-center', render: (row) => renderActions(row) }
+                ],
+                searchFields: [
+                    { name: 'sales_order_no', placeholder: '@Html.Raw(L["sales_order_no"])' },
+                    { name: 'customer_name', placeholder: '@Html.Raw(L["customer_name"])' }
+                ],
+                filters: {
+                    dispatchNo: ''
+                }
+            };
+        }
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                0: { text: '@Html.Raw(L["StatusNew"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+                1: { text: '@Html.Raw(L["StatusWaitPickup"])', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+                2: { text: '@Html.Raw(L["StatusPicked"])', class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300' },
+                3: { text: '@Html.Raw(L["StatusPacking"])', class: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300' },
+                4: { text: '@Html.Raw(L["StatusPacked"])', class: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+                5: { text: '@Html.Raw(L["StatusWeighed"])', class: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' },
+                6: { text: '@Html.Raw(L["StatusExported"])', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+                7: { text: '@Html.Raw(L["StatusCompleted"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }
+            };
+            const s = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+            return `<span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase border shadow-sm ${s.class}">${s.text}</span>`;
+        }
+
+        function formatNumber(value, decimals = 0) {
+            if (value === null || value === undefined) return '0';
+            return new Intl.NumberFormat('vi-VN', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        function renderActions(row) {
+            let actions = `<div class="flex justify-center gap-2">`;
+
+            // Hiển thị nút Pack khi status = 2 (Picked) hoặc 3 (Packing)
+            if (row.dispatchStatus === 2 || row.dispatchStatus === 3) {
+                actions += `
+                            <button onclick='openPackModal(${JSON.stringify(row)})'
+                                class="inline-flex items-center gap-1 px-2 py-1.5 bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition border border-green-100 dark:border-green-800"
+                                title="@Html.Raw(L["Pack"])">
+                                <i class="fas fa-box-open"></i>
+                            </button>`;
+            }
+
+            // Hiển thị nút Weigh khi status = 4 (Packed)
+            if (row.dispatchStatus === 4) {
+                actions += `
+                            <button onclick='openWeighModal(${JSON.stringify(row)})' 
+                                class="inline-flex items-center gap-1 px-2 py-1.5 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition border border-red-100 dark:border-red-800"
+                                title="@Html.Raw(L["Weigh"])">
+                                <i class="fas fa-weight"></i>
+                            </button>`;
+            }
+
+            actions += `</div>`;
+            return actions;
+        }
+
+        function viewDetail(dispatchNo) {
+            window.location.href = `/Outbound/SalesOrders/Detail/${dispatchNo}`;
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        /**
+         * Mở Modal Đóng Gói (Packing) cho 1 dòng.
+         * @@param { Object } row - Dữ liệu dòng từ datatable
+        */
+        function openPackModal(row) {
+            const item = {
+                id: row.id,
+                dispatchNo: row.dispatchNo,
+                pickedQty: row.pickedQty || 0,
+                status: row.dispatchStatus
+            };
+
+            const tbody = document.getElementById('bodyPacking');
+            tbody.innerHTML = '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 font-medium">${item.dispatchNo}</td>
+                            <td class="px-4 py-2 text-center text-sm font-bold text-blue-600 dark:text-blue-400">${item.pickedQty}</td>
+                            <td class="px-4 py-2 text-center">
+                                <input type="number" class="pack-input w-24 text-center border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-green-500 py-1"
+                                    value="${item.pickedQty}" data-id="${item.id}" data-no="${item.dispatchNo}" data-status="${item.status}"
+                                    data-picked="${item.pickedQty}" min="0" max="${item.pickedQty}"
+                                    onkeydown="return !['e', 'E', '-', '+'].includes(event.key)" readonly>
+                            </td>
+                        `;
+            tbody.appendChild(tr);
+
+            document.getElementById('modalPacking').classList.remove('hidden');
+        }
+
+        /**
+         * Gửi dữ liệu đóng gói về Server thông qua Ajax.
+         * Gọi API handler: ?handler=ConfirmPacked
+         * @@returns {Promise<void>}
+         */
+        async function submitPacking() {
+            // Thu thập dữ liệu từ các ô input trong modal
+            const inputs = document.querySelectorAll('.pack-input');
+
+            // Map dữ liệu theo đúng cấu trúc DTO C#: DispatchListPackageDTO
+            const payload = Array.from(inputs).map(inp => ({
+                id: parseInt(inp.getAttribute('data-id')),
+                dispatch_no: inp.getAttribute('data-no'),
+                dispatch_status: parseInt(inp.getAttribute('data-status')),
+                picked_qty: parseInt(inp.getAttribute('data-picked')),
+                package_qty: parseInt(inp.value) || 0 // Lấy giá trị user nhập
+            }));
+
+
+
+            // Validate payload
+            if (payload.some(i => i.package_qty < 0)) {
+                Notify.error("@L["InvalidQuantity"]");
+                return;
+            }
+            if (payload.some(i => i.package_qty > i.picked_qty)) {
+                Notify.error("@L["Exceeded"] " + " @L["Picked"]"); // Simple error message for exceeding qty
+                return;
+            }
+
+            try {
+                const response = await fetch('?handler=ConfirmPacked', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Notify.success(result.message);
+                    closeModal('modalPacking');
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                Notify.error("Lỗi kết nối đến máy chủ.");
+            }
+        }
+
+        /**
+         * Mở Modal Cân Hàng (Weighing) cho 1 dòng.
+         * @@param { Object } row - Dữ liệu dòng từ datatable
+        */
+        function openWeighModal(row) {
+            const item = {
+                id: row.id,
+                dispatchNo: row.dispatchNo,
+                pickedQty: row.pickedQty || 0,
+                status: row.dispatchStatus
+            };
+
+            const tbody = document.getElementById('bodyWeighing');
+            tbody.innerHTML = '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                            <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 font-medium">${item.dispatchNo}</td>
+                            <td class="px-4 py-2 text-center text-sm font-bold text-blue-600 dark:text-blue-400">${item.pickedQty}</td>
+                            <td class="px-4 py-2 text-center">
+                                <input type="number" readonly
+                                    class="weigh-qty-input w-20 text-center border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-red-500 py-1"
+                                    value="${item.pickedQty}" data-id="${item.id}" data-status="${item.status}" data-no="${item.dispatchNo}"
+                                    data-picked="${item.pickedQty}"
+                                    onkeydown="return !['e', 'E', '-', '+'].includes(event.key)">
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <input type="number" step="0.01"
+                                    class="weigh-val-input w-28 text-center border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:ring-red-500 py-1"
+                                    placeholder="0.00"
+                                    onkeydown="return !['e', 'E', '-', '+'].includes(event.key)">
+                            </td>
+                        `;
+            tbody.appendChild(tr);
+
+            document.getElementById('modalWeighing').classList.remove('hidden');
+        }
+
+        /**
+         * Gửi dữ liệu cân hàng về Server thông qua Ajax.
+         * Gọi API handler: ?handler=WeightDispatchList
+         * @@returns {Promise<void>}
+         */
+        async function submitWeighing() {
+            const rows = document.querySelectorAll('#bodyWeighing tr');
+
+            // Map dữ liệu theo đúng cấu trúc DTO C#: DispatchListWeightDTO
+            const payload = Array.from(rows).map(tr => {
+                const qtyInput = tr.querySelector('.weigh-qty-input');
+                const weightInput = tr.querySelector('.weigh-val-input');
+
+                return {
+                    id: parseInt(qtyInput.getAttribute('data-id')),
+                    dispatch_no: qtyInput.getAttribute('data-no'),
+                    dispatch_status: parseInt(qtyInput.getAttribute('data-status')),
+                    picked_qty: parseInt(qtyInput.getAttribute('data-picked')),
+                    weighing_qty: parseInt(qtyInput.value) || 0,
+                    weighing_weight: parseFloat(weightInput.value) || 0
+                };
+            });
+
+            // Validate payload
+            if (payload.some(i => i.weighing_qty < 0 || i.weighing_weight < 0)) {
+                Notify.error("@L["InvalidQuantity"]");
+                return;
+            }
+
+            try {
+                const response = await fetch('?handler=WeightDispatchList', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Notify.success(result.message);
+                    closeModal('modalWeighing');
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                Notify.error("Lỗi kết nối đến máy chủ.");
+            }
+        }
+    </script>
+}

@@ -1,0 +1,108 @@
+@page "{id}"
+@model Wms.Theme.Web.Pages.Outbound.SalesOrdersEditModel
+
+@{
+    ViewData["Title"] = "Edit Sales Order";
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Edit Sales Order</h1>
+        <p class="mt-1 text-gray-600">Update sales order information</p>
+    </div>
+
+    <!-- Alerts -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="text-red-700">
+                    <p class="font-medium">Error</p>
+                    <p class="text-sm">@Model.ErrorMessage</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Form Container -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Order Information</h3>
+        </div>
+
+        <form method="post" class="space-y-6 p-6">
+            <!-- Warehouse Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="WarehouseId" class="label">
+                        Warehouse <span class="text-red-500">*</span>
+                    </label>
+                    <select id="WarehouseId" asp-for="Input.WarehouseId" class="input">
+                        <option value="">-- Select Warehouse --</option>
+                        @foreach (var warehouse in Model.Warehouses)
+                        {
+                            <option value="@warehouse.Id">@warehouse.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.WarehouseId" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- SO Code -->
+                <div>
+                    <label for="Code" class="label">
+                        SO Code <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="Code" asp-for="Input.Code" class="input" />
+                    <span asp-validation-for="Input.Code" class="text-red-500 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Customer Name -->
+            <div>
+                <label for="Customer" class="label">
+                    Customer Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" id="Customer" asp-for="Input.Customer" class="input" />
+                <span asp-validation-for="Input.Customer" class="text-red-500 text-sm"></span>
+            </div>
+
+            <!-- Order Date -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="OrderDate" class="label">
+                        Order Date <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="OrderDate" asp-for="Input.OrderDate" class="input" />
+                    <span asp-validation-for="Input.OrderDate" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Expected Delivery Date -->
+                <div>
+                    <label for="ExpectedDeliveryDate" class="label">
+                        Expected Delivery Date
+                    </label>
+                    <input type="date" id="ExpectedDeliveryDate" asp-for="Input.ExpectedDeliveryDate" class="input" />
+                    <span asp-validation-for="Input.ExpectedDeliveryDate" class="text-red-500 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                <a href="/Outbound/SalesOrders" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Section -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p class="text-sm text-blue-800">
+            <strong>Note:</strong> You can edit basic order information here. To manage line items, please use the order detail view.
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

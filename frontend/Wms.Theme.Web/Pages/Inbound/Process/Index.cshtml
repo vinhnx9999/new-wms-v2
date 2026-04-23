@@ -1,0 +1,114 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inbound.Process.IndexModel
+@{
+    ViewBag.Title = @L["ProcessPageTitle"];
+}
+
+<div x-data="processPage()" x-init="init()" x-cloak>
+    @Html.AntiForgeryToken()
+
+    <!-- Tab Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <button @@click="switchTab('delivery')" type="button"
+            :class="activeTab === 'delivery' ? 'ring-2 ring-blue-500 bg-blue-50' : ''"
+            class="tab-card group text-left bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-gray-500 mb-1">@L["DeliveryTab"]</span>
+                <span x-text="tabCounts.delivery" class="text-3xl font-bold text-green-600">0</span>
+            </div>
+        </button>
+
+        <button @@click="switchTab('unload')" type="button"
+            :class="activeTab === 'unload' ? 'ring-2 ring-blue-500 bg-blue-50' : ''"
+            class="tab-card group text-left bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-gray-500 mb-1">@L["UnloadTab"]</span>
+                <span x-text="tabCounts.unload" class="text-3xl font-bold text-yellow-600">0</span>
+            </div>
+        </button>
+
+        <button @@click="switchTab('qc')" type="button"
+            :class="activeTab === 'qc' ? 'ring-2 ring-blue-500 bg-blue-50' : ''"
+            class="tab-card group text-left bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-gray-500 mb-1">@L["QCTab"]</span>
+                <span x-text="tabCounts.qc" class="text-3xl font-bold text-blue-600">0</span>
+            </div>
+        </button>
+
+        <button @@click="switchTab('putaway')" type="button"
+            :class="activeTab === 'putaway' ? 'ring-2 ring-blue-500 bg-blue-50' : ''"
+            class="tab-card group text-left bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none">
+            <div class="flex flex-col">
+                <span class="text-sm font-medium text-gray-500 mb-1">@L["PutawayTab"]</span>
+                <span x-text="tabCounts.putaway" class="text-3xl font-bold text-purple-600">0</span>
+            </div>
+        </button>
+    </div>
+
+    <!-- Tab Content - Using Partials -->
+    <div x-show="activeTab === 'delivery'" x-transition>
+        <partial name="Components/_DeliveryTab" />
+    </div>
+
+
+    <div x-show="activeTab === 'unload'" x-transition>
+        <partial name="Components/_UnloadTab" />
+    </div>
+
+
+    <div x-show="activeTab === 'qc'" x-transition>
+        <partial name="Components/_QcTab" />
+    </div>
+
+
+    <div x-show="activeTab === 'putaway'" x-transition>
+        <partial name="Components/_PutawayTab" />
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script src="~/js/components/alpine-datatable.js" asp-append-version="true"></script>
+
+    <script>
+        // --- ALPINE.JS COMPONENT FOR PAGE-LEVEL TAB MANAGEMENT ---
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('processPage', () => ({
+                activeTab: 'delivery',
+                tabCounts: {
+                    delivery: 0,
+                    unload: 0,
+                    qc: 0,
+                    putaway: 0
+                },
+
+                async init() {
+                    await this.loadTabCounts();
+                },
+
+                async loadTabCounts() {
+                    try {
+                        const response = await fetch('?handler=TabCounts');
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.tabCounts.delivery = data.delivery || 0;
+                            this.tabCounts.unload = data.unload || 0;
+                            this.tabCounts.qc = data.qc || 0;
+                            this.tabCounts.putaway = data.putaway || 0;
+                        }
+                    } catch (e) {
+                        console.error("Failed to load tab counts", e);
+                    }
+                },
+
+                switchTab(tabName) {
+                    this.activeTab = tabName;
+                    // Dispatch event for child components to reload data
+                    window.dispatchEvent(new CustomEvent('tab-changed', { detail: { tab: tabName } }));
+                }
+            }));
+        });
+    </script>
+}

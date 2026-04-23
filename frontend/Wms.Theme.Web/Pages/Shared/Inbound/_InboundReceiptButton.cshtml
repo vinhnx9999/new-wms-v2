@@ -1,0 +1,19 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+<div class="flex justify-end gap-3 mb-3 ">
+    <a href="/Inbound/Receipt"
+           class="inline-block px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors font-medium text-center">
+        @Localizer["Common_Back"]
+    </a>
+
+    <button type="button"
+            onclick="saveReceipt(true)"
+            class="px-6 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors font-medium">
+        @Localizer["Save_Draft"]
+    </button>   
+
+    <button type="button"
+            onclick="saveReceipt(false)"
+            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-lg transition-all font-medium transform active:scale-95">
+        @Localizer["CreateReceipt_Save"]
+    </button>
+</div>

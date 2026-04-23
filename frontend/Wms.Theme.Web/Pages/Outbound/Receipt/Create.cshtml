@@ -1,0 +1,1720 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.Receipt.CreateModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CreateOutboundReceipt_Title"];
+}
+
+@{
+    Dictionary<int, string> palletStatus = new Dictionary<int, string>
+    {
+        { 1, Localizer["CreateReceipt_PalletStatusAvailable"] },
+        { 2, Localizer["CreateReceipt_PalletStatusOccupied"] },
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/darkmode.css" />
+}
+
+@Html.AntiForgeryToken()
+
+@await Html.PartialAsync("Outbound/_OutboundCreateReceiptButton")
+
+@await Html.PartialAsync("Outbound/_OutboundReceiptForm")
+
+<div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-gray-800">@Localizer["CreateOutboundReceipt_DetailHeader"] </h2>   
+    <button type="button" onclick="addRow()" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+        @Localizer["CreateOutboundReceipt_AddRow"]
+    </button>
+</div>
+
+<div id="myGrid" class="ag-theme-quartz" style="max-height: calc(90vh - 260px); height: 260px; width: 100%;"></div>
+
+<!-- Customer modal popup -->
+@await Html.PartialAsync("Outbound/_CustomerModal")
+
+<!-- Gateway modal popup -->
+@await Html.PartialAsync("Outbound/_GatewayModal")
+
+<!--Item search mo-->
+@await Html.PartialAsync("Outbound/_SkuModal")
+
+<!--Modal locations-->
+@await Html.PartialAsync("Outbound/_LocationModal")
+
+<!--Order search modal -->
+@await Html.PartialAsync("Outbound/_OrderSearchModal")
+
+<!-- Pallet Modal -->
+@await Html.PartialAsync("Outbound/_PalletModal")
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Localized strings for JavaScript
+        const L = {
+                   colItemCode: '@Html.Raw(Localizer["CreateReceipt_ColItemCode"])',
+                   colItemName: '@Html.Raw(Localizer["CreateReceipt_ColItemName"])',
+                   colUom: '@Html.Raw(Localizer["CreateReceipt_ColUom"])',
+                   colQuantity: '@Html.Raw(Localizer["CreateReceipt_ColQuantity"])',
+                   colLocation: '@Html.Raw(Localizer["CreateReceipt_ColLocation"])',
+                   colPalletCode: '@Html.Raw(Localizer["CreateReceipt_ColPalletCode"])',
+                   colReference: '@Html.Raw(Localizer["CreateReceipt_ColReference"])',
+                   colActions: '@Html.Raw(Localizer["CreateReceipt_ColActions"])',
+                   noWarehouseFound: '@Html.Raw(Localizer["CreateReceipt_NoWarehouseFound"])',
+                   noItemFound: '@Html.Raw(Localizer["CreateReceipt_NoItemFound"])',
+                   searching: '@Html.Raw(Localizer["CreateReceipt_Searching"])',
+                   clickToSearchItem: '@Html.Raw(Localizer["CreateReceipt_ClickToSearchItem"])',
+                   loadingLocationMap: '@Html.Raw(Localizer["CreateReceipt_LoadingLocationMap"])',
+                   locationLoadError: '@Html.Raw(Localizer["CreateReceipt_LocationLoadError"])',
+                   noLocationData: '@Html.Raw(Localizer["CreateReceipt_NoLocationData"])',
+                   locationEmpty: '@Html.Raw(Localizer["CreateReceipt_LocationEmpty"])',
+                   searchingPallet: '@Html.Raw(Localizer["CreateReceipt_SearchingPallet"])',
+                   noPalletFound: '@Html.Raw(Localizer["CreateReceipt_NoPalletFound"])',
+                   select: '@Html.Raw(Localizer["Common_Select"])',
+                   referenceBtn: '@Html.Raw(Localizer["CreateReceipt_ReferenceBtn"])',
+                   orderDetailPrefix: '@Html.Raw(Localizer["CreateReceipt_OrderDetailPrefix"])',
+                   deleteRowTitle: '@Html.Raw(Localizer["CreateReceipt_DeleteRowTitle"])',
+                   validReceiptNo: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptNo"])',
+                   validReceiptDate: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptDate"])',
+                   validReceiptType: '@Html.Raw(Localizer["CreateReceipt_ValidReceiptType"])',
+                   validWarehouse: '@Html.Raw(Localizer["CreateOutboundReceipt_SelectWarehouseFirst"])',
+                   validAtLeastOneItem: '@Html.Raw(Localizer["CreateReceipt_ValidAtLeastOneItem"])',
+                   saveSuccess: '@Html.Raw(Localizer["CreateOutboundReceipt_SaveSuccess"])',
+                   saveFailed: '@Html.Raw(Localizer["CreateOutboundReceipt_SaveFailed"])',
+                   connectionError: '@Html.Raw(Localizer["Common_ConnectionError"])',
+                   validWhName: '@Html.Raw(Localizer["CreateReceipt_ValidWhName"])',
+                   validWhCity: '@Html.Raw(Localizer["CreateReceipt_ValidWhCity"])',
+                   validWhAddress: '@Html.Raw(Localizer["CreateReceipt_ValidWhAddress"])',
+                   whSaveSuccess: '@Html.Raw(Localizer["CreateReceipt_WhSaveSuccess"])',
+                   whSaveFailed: '@Html.Raw(Localizer["CreateReceipt_WhSaveFailed"])',
+                   validSelectWhFirst: '@Html.Raw(Localizer["CreateReceipt_ValidSelectWhFirst"])',
+                   palletGenerateError: '@Html.Raw(Localizer["CreateReceipt_PalletGenerateError"])',
+                   palletNoResponse: '@Html.Raw(Localizer["CreateReceipt_PalletNoResponse"])',
+                   palletCreatedAssigned: '@Html.Raw(Localizer["CreateReceipt_PalletCreatedAssigned"])',
+                   palletCreated: '@Html.Raw(Localizer["CreateReceipt_PalletCreated"])',
+                   validSelectAtLeastOneItem: '@Html.Raw(Localizer["CreateReceipt_ValidSelectAtLeastOneItem"])',
+                   validWhContactTel: '@Html.Raw(Localizer["CreateReceipt_ValidWhContactTel"])',
+                   validOutboundGateway : '@Html.Raw(Localizer["CreateOutboundReceipt_ValidWhOutboundGateway"])',
+                   msgSearchingItems: '@Html.Raw(Localizer["CreateOutboundReceipt_SearchingItems"])',
+                   noCustomerFound: '@Html.Raw(Localizer["CreateOutboundReceipt_NoCustomerFound"])',
+                   noGatewayFound: '@Html.Raw(Localizer["CreateOutboundReceipt_NoGatewayFound"])',
+                   selectItemBeforeLocation: '@Html.Raw(Localizer["CreateOutboundReceipt_SelectItemBeforeLocation"])',
+                   validCustomerCodeAndName: '@Html.Raw(Localizer["CreateOutboundReceipt_ValidCustomerCodeAndName"])',
+                   customerCodeExists: '@Html.Raw(Localizer["CreateOutboundReceipt_CustomerCodeExists"])',
+                   customerAddedSuccess: '@Html.Raw(Localizer["CreateOutboundReceipt_CustomerAddedSuccess"])',
+                   selectWarehouseFirst: '@Html.Raw(Localizer["CreateOutboundReceipt_SelectWarehouseFirst"])',
+                   availableQtyAtLocation: '@Html.Raw(Localizer["CreateOutboundReceipt_AvailableQtyAtLocation"])',
+                   virtualLocation :  '@Html.Raw(Localizer["VirtualLocation"])',
+                   msgSelectWarehouse : '@Html.Raw(Localizer["msgSelectWarehouse"])',
+                   PleaseEnterUnloadPerson : '@Html.Raw(Localizer["PleaseEnterUnloadPerson"])',
+                   save_failed : '@Html.Raw(Localizer["save_failed"])',
+                   CreateSuccess : '@Html.Raw(Localizer["CreateSuccess"])'
+               };
+    </script>
+    <script>
+         // init flat pickr for date input
+         document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#receiptDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                minDate: "today",
+                allowInput: true,
+            });
+
+            flatpickr("#pickingDate", {
+                dateFormat: "d/m/Y H:i",
+                altInput: true,
+                time_24hr: true,
+                enableTime: true,
+                altFormat: "d/m/Y H:i",
+                defaultDate: "today",
+                minDate: "today",
+                allowInput: true,
+            });
+
+            flatpickr("#exportDate", {
+                dateFormat: "d/m/Y H:i",
+                altInput: true,
+                time_24hr: true,
+                enableTime: true,
+                altFormat: "d/m/Y H:i",
+                defaultDate: "today",
+                minDate: "today",
+                allowInput: true,
+            });
+
+             fetch('?handler=GenarationReceiptNo')
+                .then(response => response.json())
+                .then(result => {
+                    const receiptNo = result?.receiptNo ?? result?.data?.receiptNo ?? result;
+                    if (receiptNo) {
+                        document.getElementById('receiptNumber').value = receiptNo;
+                    }
+                })
+                .catch(error => console.error('Error generating receipt number:', error));
+        });
+
+
+        function debounce (fn , delay){
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        const searchInput = document.getElementById('warehouseSearch');
+        const dropdown = document.getElementById('warehouseDropdown');
+        let selectedWarehouseId = null;
+        let currentAbortController = null;
+
+        async function fetchWarehouses(keyword = '' , pageIndex = 1)
+        {
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            currentAbortController = new AbortController();
+            try
+            {
+               const keyWordParam = keyword?.trim()
+                     ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                     : '';
+
+               const url = `?handler=SearchWareHouse${keyWordParam}&pageIndex=${pageIndex}`;
+               const response = await fetch(url , {
+                        signal : currentAbortController.signal
+               });
+               if (!response.ok) {
+                   return [];
+               }
+               return await response.json();
+            } catch (e) {
+               if (e.name === 'AbortError') {
+                   return null;
+               }
+                console.error('Error fetching warehouses:', e);
+                return [];
+            }
+        }
+
+
+        function renderDropdown(data) {
+            if(data === null){
+                return;
+            }
+            if(!Array.isArray(data)){
+                return
+            }
+            dropdown.innerHTML = '';
+            if (data.length === 0) {
+                dropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">${L.noWarehouseFound}</li>`;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(wh => {                
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${wh.warehouseName} (${wh.address})`;
+                li.onclick = () => {
+                    searchInput.value = `${wh.warehouseName} (${wh.address})`; //wh.warehouseName;
+                    selectedWarehouseId = wh.id;
+                    dropdown.classList.add('hidden');
+
+                    gatewaySearchInput.value = "";
+                    selectedGatewayId = null;
+                };
+
+                dropdown.appendChild(li);
+            });
+             dropdown.classList.remove('hidden');
+        }
+
+        const debouncedSearch = debounce(async function () {
+            const data = await fetchWarehouses(searchInput.value);
+            renderDropdown(data);
+        }, 300);
+
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('focus', async function () {
+            if (!dropdown.classList.contains('hidden')) return; 
+            const data = await fetchWarehouses(this.value);
+            renderDropdown(data);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // customer handling searching and dropdown
+        const customerSearchInput = document.getElementById('customerSearch');
+        const customerDropdown = document.getElementById('customerDropdown');
+        let customerAbortController = null;
+
+        async function fetchCustomers(keyword = '' , pageIndex = 1) {
+           if (customerAbortController) {
+                customerAbortController.abort();
+            }
+            customerAbortController = new AbortController();
+            try {
+                const keyWordParam = keyword?.trim()
+                    ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                    : '';
+
+                const url = `?handler=SearchCustomer${keyWordParam}&pageIndex=${pageIndex}`;
+                const response = await fetch(url, {
+                    signal: customerAbortController.signal
+                });
+                if (!response.ok) return [];
+                return await response.json();
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    return null;
+                }
+                console.error('Error fetching customers:', e);
+                return [];
+            }
+        }
+        
+         function renderCustomerDropdown(data) {
+            if (data === null) {
+                return;
+            }
+            if (!Array.isArray(data)) {
+                return;
+            }
+            customerDropdown.innerHTML = '';
+            if (data.length === 0) {
+                customerDropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">${L.noCustomerFound}</li>`;
+                customerDropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(cus => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${cus.customerName}`;
+                li.onclick = () => {
+                    customerSearchInput.value = cus.customerName;
+                    selectedCustomerId = cus.id;
+                    customerDropdown.classList.add('hidden');
+                };
+                customerDropdown.appendChild(li);
+            });
+            customerDropdown.classList.remove('hidden');
+         }
+
+         const debouncedCustomerSearch = debounce(async function () {
+            const data = await fetchCustomers(customerSearchInput.value);
+            renderCustomerDropdown(data);
+         }, 300);
+
+         customerSearchInput.addEventListener('input', function () {
+            selectedCustomerId = null;
+            debouncedCustomerSearch();
+         });
+
+         customerSearchInput.addEventListener('focus', async function () {
+            if (!customerDropdown.classList.contains('hidden')) return;
+            const data = await fetchCustomers(this.value);
+            renderCustomerDropdown(data);
+         });
+
+         document.addEventListener('click', function (e) {
+            if (!customerSearchInput.contains(e.target) && !customerDropdown.contains(e.target)) {
+                customerDropdown.classList.add('hidden');
+            }
+         });
+
+
+        // handle customer modal
+        const customerModal = document.getElementById('customerModal');
+        const newCusNameInput = document.getElementById('newCusName');
+        const newCusCityInput = document.getElementById('newCusCity');
+        const newCusAddressInput = document.getElementById('newCusAddress');
+        const newCusManagerInput = document.getElementById('newCusManager');
+        const newCusEmailInput = document.getElementById('newCusEmail');
+        const newCusContactTelInput = document.getElementById('newCusContactTel');
+        
+         function openCustomerModal() {
+            newCusNameInput.value = '';
+            newCusCityInput.value = '';
+            newCusAddressInput.value = '';
+            newCusManagerInput.value = '';
+            newCusEmailInput.value = '';
+            newCusContactTelInput.value = '';
+
+            customerModal.classList.remove('hidden');
+            setTimeout(() => newCusNameInput.focus(), 100);
+         }
+
+         function closeCustomerModal() {
+            customerModal.classList.add('hidden');
+         }
+
+         async function saveNewCustomer() {
+            const name = newCusNameInput.value.trim();
+            const city = newCusCityInput.value.trim();
+            const address = newCusAddressInput.value.trim();
+            const manager = newCusManagerInput.value.trim();
+            const email = newCusEmailInput.value.trim();
+            const contactTel = newCusContactTelInput.value.trim();
+
+               if (!name) {
+                    Notify.info(L.validCustomerCodeAndName);
+                    return;
+               }
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                const response = await fetch('?handler=AddCustomer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                     body: JSON.stringify({
+                         id: 0,
+                         customerName: name,
+                         city: city,
+                         address: address,
+                         manager: manager,
+                         email: email,
+                         contactTel: contactTel
+                     })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result?.success) {
+                     Notify.info(result?.message || L.saveFailed);
+                     return;
+                 }
+
+                selectedCustomerId = Number(result.id || 0);
+                customerSearchInput.value = result.customerName ?? name;
+                customerDropdown.classList.add('hidden');
+
+                closeCustomerModal();
+                Notify.info(result?.message || L.customerAddedSuccess);
+
+            } catch (e) {
+                console.error('saveNewCustomer error:', e);
+                Notify.info(L.connectionError);
+            }
+        } 
+
+         const gatewaySearchInput = document.getElementById('gatewaySearch');
+         const gatewayDropdown = document.getElementById('gatewayDropdown');
+         let selectedGatewayId = null;
+         let gatewayAbortController = null;
+
+         async function fetchGateways(keyword = '', pageIndex = 1) {
+            if (!selectedWarehouseId) {
+                return null;
+            }
+
+            if (gatewayAbortController) {
+                gatewayAbortController.abort();
+            }
+            gatewayAbortController = new AbortController();
+
+            try {
+                const keyWordParam = keyword?.trim()
+                    ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                    : '';
+
+                const url = `?handler=SearchOutboundGateway${keyWordParam}&warehouseId=${selectedWarehouseId}&pageIndex=${pageIndex}`;
+                const response = await fetch(url, {
+                    signal: gatewayAbortController.signal
+                });
+
+                if (!response.ok) {
+                    return [];
+                }
+                return await response.json();
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    return null;
+                }
+                console.error('Error fetching gateways:', e);
+                return [];
+            }
+         }
+
+
+         function renderGatewayDropdown(data) {
+            if (data === null) {
+                return;
+            }
+            if (!Array.isArray(data)) {
+                return;
+            }
+            gatewayDropdown.innerHTML = '';
+            if (data.length === 0) {
+                gatewayDropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">${L.noGatewayFound}</li>`;
+                gatewayDropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(gw => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = gw.gatewayName;
+                li.onclick = () => {
+                    gatewaySearchInput.value = gw.gatewayName;
+                    selectedGatewayId = gw.id;
+                    gatewayDropdown.classList.add('hidden');
+                };
+                gatewayDropdown.appendChild(li);
+            });
+            gatewayDropdown.classList.remove('hidden');
+         }
+
+         const debouncedGatewaySearch = debounce(async function () {
+            const data = await fetchGateways(gatewaySearchInput.value);
+            renderGatewayDropdown(data);
+         }, 300);
+
+         gatewaySearchInput.addEventListener('input', function () {
+            selectedGatewayId = null;
+            debouncedGatewaySearch();
+         });
+
+         gatewaySearchInput.addEventListener('focus', async function () {
+            if (!selectedWarehouseId) {
+                Notify.info(L.selectWarehouseFirst);
+                gatewayDropdown.classList.remove('hidden');
+                return;
+            }
+            if (!gatewayDropdown.classList.contains('hidden')) return;
+            const data = await fetchGateways(this.value);
+            renderGatewayDropdown(data);
+         });
+
+         document.addEventListener('click', function (e) {
+            if (!gatewaySearchInput.contains(e.target) && !gatewayDropdown.contains(e.target)) {
+                gatewayDropdown.classList.add('hidden');
+            }
+         });
+
+        // global state for ag-grid
+        let gridApi; 
+
+        function isQtyOverAvailable(data) {
+            const qty = Number(data?.qty ?? 0);
+            const availableQty = Number(data?.availableQty ?? 0);
+
+            if (!Number.isFinite(qty) || !Number.isFinite(availableQty)) return false;
+            return qty > 0 && qty > availableQty;
+        }
+
+        const columnDefs = [
+            { 
+                headerName: L.colItemCode,
+                field: "itemCode",
+                flex: 1.5,
+                editable: false,
+                cellClass: 'hover:bg-blue-50 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const displayValue = params.value ?
+                        `<span class="font-medium text-blue-700">${params.value}</span>` :
+                        `<span class="text-gray-400 italic"></span>`;
+
+                    const iconColor = params.value ? 'text-blue-600' : 'text-gray-400';
+
+                    return `
+                         <div class="flex justify-between items-center w-full h-full" onclick="openItemSearchModal('${params.node.id}')" title="Nhấn để tìm kiếm mặt hàng">
+                            <div class="truncate pr-2">${displayValue}</div>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-1 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                             </svg>
+                        </div>
+                    `;
+                }
+            },
+            { 
+                headerName: L.colItemName,
+                field: "itemName",
+                flex: 2,
+                editable: false,
+                wrapText : true,
+                autoHeight : true,
+                cellClass: 'py-3 px-3 leading-tight'
+            },
+            { 
+                headerName: L.colUom,
+                field: "uom",
+                flex: 1,
+                editable: false ,
+                cellRenderer: function(params) {
+                    return `<div class="flex items-center h-full w-full">${params.value || ''}</div>`;
+                }
+            },
+            {
+                headerName: L.availableQtyAtLocation,
+                field: "availableQty",
+                width: 150,
+                editable: false,
+               // cellClass: 'text-green-700 font-bold bg-green-50 border-r border-gray-200',
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center justify-end h-full w-full pr-2">${val}</div>`;
+                }
+            },
+            { 
+                headerName: L.colQuantity,
+                field: "qty",
+                flex: 1,
+                editable: true,
+                cellEditor: 'agNumberCellEditor' ,
+
+                cellEditorParams: {
+                    min: 0.001,
+                    step: 'any',
+                },
+
+                valueParser: function(params) {
+                    const num = parseFloat(params.newValue);
+                    if (isNaN(num) || num <= 0) {
+                        return null;
+                    }
+                    return num;
+                },
+
+                cellClass: function(params) {
+                    return isQtyOverAvailable(params.data)
+                        ? 'bg-red-50 border border-red-300 cursor-text font-semibold text-red-700'
+                        : 'bg-blue-50 border border-blue-100 cursor-text font-semibold text-blue-700';
+                },
+
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center h-full w-full">${val}</div>`;
+                }
+            },
+            { 
+                headerName: L.colLocation,
+                field: "location",
+                width: 150,
+                editable: false,
+                cellClass: 'hover:bg-yellow-100 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const val = params.value || '<span class="text-gray-400 italic"></span>';
+                    return `
+                        <div class="flex justify-between items-center w-full h-full" onclick="openLocationModal('${params.node.id}')">
+                            <span class="${params.value ? 'font-medium text-blue-700' : ''}">${val}</span>
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                             </svg>
+                        </div>`;
+                }
+            },
+            {
+                headerName: L.colPalletCode,
+                field: "pallet",
+                width: 150,
+                editable: false,
+                cellRenderer: function(params) {
+                    const val = params.value || '';
+                    return `<div class="flex items-center h-full w-full">
+                                <span class="font-medium text-gray-700">${val}</span>
+                            </div>`;
+                }
+            },
+            {
+                headerName: L.colReference,
+                field: "referenceCode",
+                width: 140,
+                editable: false,
+                cellRenderer: function(params) {
+
+                    if (params.value) {
+                        return `<div class="flex items-center h-full">
+                                    <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold border border-gray-200">
+                                        ${params.value}
+                                    </span>
+                                </div>`;
+                    }
+                    return '';
+                }
+            },
+            {
+                headerName: L.colActions,
+                width: 100,
+                sortable: false,
+                filter: false,
+                cellRenderer: function(params) {
+                    return `
+                        <button type="button" onclick="deleteRow('${params.node.id}')" class="text-red-500 hover:text-red-700 flex items-center justify-center w-full h-full" title="Xóa dòng này">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>`;
+                }
+            }
+        ];
+
+        const rowData = [
+            { id: "row-init"  ,itemCode: "", itemName: "", uom: "", qty: null }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+
+            getRowId: params => params.data.id ,
+            pagination: true,
+            paginationPageSize: 20,
+
+            singleClickEdit: true,
+            stopEditingWhenCellsLoseFocus: true
+        };
+
+        function addRow() {
+            const newRecord = { 
+                id: Math.random().toString(36).substr(2, 9), 
+                itemCode: "", 
+                itemName: "", 
+                uom: "", 
+                qty: null , 
+                referenceCode : ""
+            };
+            gridApi.applyTransaction({ add: [newRecord] });
+        }
+
+        function deleteRow(nodeId) {
+            const rowNode = gridApi.getRowNode(nodeId);
+            if(rowNode) {
+                gridApi.applyTransaction({ remove: [rowNode.data] });
+            }
+          updateReferenceUI();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#myGrid');
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                gridDiv.classList.remove('ag-theme-quartz');
+                gridDiv.classList.add('ag-theme-quartz-dark');
+            }
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+        });
+
+        // handle product search and selection in item search modal
+        let currentRowIdForItemSearch = null;
+        const itemSearchModal = document.getElementById('itemSearchModal');
+        const itemSearchInput = document.getElementById('itemSearchInput');
+        const itemSearchResultBody = document.getElementById('itemSearchResultBody');
+        let itemSearchAbortController = null;
+        let currentPage = 1;
+        const pageSize = 20;
+        let isFetching = false;
+        let hasMoreData = true;
+
+        async function fetchSkuItems(keyword = '' , pageIndex = 1){
+            if(itemSearchAbortController != null){
+                   itemSearchAbortController.abort();
+            }
+            itemSearchAbortController = new AbortController();
+            try {
+                   const keyWordParam = keyword?.trim()
+                      ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                      : '';
+
+                  const warehouseParam = selectedWarehouseId 
+                    ? `&warehouseId=${selectedWarehouseId}` 
+                    : '';
+
+                  const url = `?handler=SearchSku${keyWordParam}&pageIndex=${pageIndex}&pageSize=${pageSize}${warehouseParam}`;
+                  const response = await fetch(url, {
+                      signal: itemSearchAbortController.signal
+                  });
+
+                  if (!response.ok) return null;
+                  return await response.json();
+            } catch (e){
+                  if (e.name === 'AbortError') return null;
+                  console.error('Error fetching SKU items:', e);
+                  return [];
+            }
+          }
+
+          async function openItemSearchModal(rowNodeId) {
+            
+                currentPage = 1 ;
+                hasMoreData = true;
+                
+                currentRowIdForItemSearch = rowNodeId;
+                itemSearchInput.value = '';
+                scrollContainer.scrollTop = 0;
+                
+                showItemSearchLoading();
+                itemSearchModal.classList.remove('hidden');
+                setTimeout(() => itemSearchInput.focus(), 100);
+
+                isFetching = true;
+                const data = await fetchSkuItems('');
+                isFetching = false;
+                if (data !== null) {
+                    renderItemTable(data , false);
+                }
+          }
+
+
+          function closeItemSearchModal() {
+                itemSearchModal.classList.add('hidden');
+                currentRowIdForItemSearch = null;
+
+                if (itemSearchAbortController) {
+                    itemSearchAbortController.abort();
+                    itemSearchAbortController = null;
+                }
+          }
+
+        function renderItemTable(data , isAppend = false) {
+            if (!isAppend) {
+                  itemSearchResultBody.innerHTML = '';
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                 if (!isAppend) {
+                     itemSearchResultBody.innerHTML = `
+                         <tr>
+                             <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                 ${L.noItemFound}
+                             </td>
+                         </tr>`;
+                 }
+                 hasMoreData = false;
+                 scrollAnchor.classList.add('hidden');
+                 return;
+            }
+
+        if (data.length < pageSize) {
+        hasMoreData = false;
+        scrollAnchor.classList.add('hidden');
+             
+        } else {
+        hasMoreData = true;
+        scrollAnchor.classList.remove('hidden');
+        }
+
+            data.forEach(item => {
+                 const tr = document.createElement('tr');
+                 tr.className = "hover:bg-blue-50 cursor-pointer transition-colors border-b border-gray-100";
+                 tr.onclick = () => {
+                    selectItem(item.skuId, item.skuCode, item.skuName, item.unitName ?? '', item.skuUomId ?? 0 , item.warehouseId , item.warehouseName);
+                 };
+                 tr.innerHTML = `
+                     <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                         ${item.skuCode ?? ''}
+                     </td>
+                     <td class="px-6 py-3 text-sm text-gray-700">${item.skuName ?? ''}</td>
+                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                         ${item.unitName ?? ''}
+                     </td>
+                     <td class="px-6 py-3 whitespace-nowrap text-sm text-blue-600 font-medium">
+                         ${item.supplierName ?? ''}
+                     </td>
+                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-700">${item.warehouseName ?? ''}</td>
+                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                         ${(item.totalStock ?? 0)}
+                     </td>
+        
+                     <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-right font-mono ">
+                         ${(item.availableQty ?? 0)}
+                     </td>
+                 `;
+                 itemSearchResultBody.appendChild(tr);
+             });
+          }
+
+          function showItemSearchLoading(){
+                itemSearchResultBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            <div class="flex justify-center items-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                            stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                               @Html.Raw(L["Loading"])
+                            </div>
+                        </td>
+                    </tr>`;
+          }
+
+         const scrollContainer = document.getElementById('scrollContainer');
+         const scrollAnchor = document.getElementById('scroll-anchor');
+         const loadingIndicator = document.getElementById('loading-indicator');
+         const observerOptions = {
+            root: scrollContainer,
+            rootMargin: '0px 0px 100px 0px', 
+            threshold: 0
+         };
+
+         const infiniteScrollObserver = new IntersectionObserver(async (entries) => {
+            const target = entries[0];
+    
+          
+            if (target.isIntersecting && !isFetching && hasMoreData) {
+                isFetching = true;
+                loadingIndicator.classList.remove('hidden');
+
+                currentPage++;
+              
+                const keyword = itemSearchInput.value;
+
+                const data = await fetchSkuItems(keyword, currentPage);
+        
+                if (data !== null) {
+                    renderItemTable(data, true);
+                }
+
+                loadingIndicator.classList.add('hidden');
+                isFetching = false;
+            }
+        }, observerOptions);
+
+        
+         infiniteScrollObserver.observe(scrollAnchor);
+
+         const debouncedSkuSearch = debounce(async function () {
+             isFetching = true;
+
+             currentPage = 1;
+             hasMoreData = true;
+             showItemSearchLoading();
+             
+             const keyword = itemSearchInput.value;
+
+             try {
+                 const data = await fetchSkuItems(keyword, currentPage);
+                 if (data !== null) {
+                    renderItemTable(data, false); 
+                 }
+             }
+             finally {
+                 isFetching = false;
+             }
+         }, 300);
+
+         itemSearchInput.addEventListener('input', debouncedSkuSearch);
+
+         function selectItem(skuId, code, name, uom , skuUomId, warehouseId, warehouseName) {
+             if (!currentRowIdForItemSearch) return;
+
+             if (warehouseId && warehouseName) {
+                selectedWarehouseId = parseInt(warehouseId);
+        
+             
+                const whInput = document.getElementById('warehouseSearch');
+                if (whInput) {
+                    whInput.value = warehouseName;
+                }
+
+                selectedGatewayId = null;
+                const gatewayInput = document.getElementById('gatewaySearch');
+                if(gatewayInput) gatewayInput.value = "";
+            }
+
+             const rowNode = gridApi.getRowNode(currentRowIdForItemSearch);
+             if (rowNode) {
+                 rowNode.setDataValue('itemCode', code);
+                 rowNode.setDataValue('itemName', name);
+                 rowNode.setDataValue('uom', uom);
+                 rowNode.data.skuId = parseInt(skuId) || 0;
+                 rowNode.data.skuUomId = parseInt(skuUomId) || 0;
+             }
+             closeItemSearchModal();
+         }
+
+         // Handle for Location Modal
+        const locationSearchModal = document.getElementById('locationSearchModal');
+        const locationGridContainer = document.getElementById('locationGridContainer');
+        let currentRowIdForLocation = null;
+        let locationFetchAbortController = null;
+
+        function openLocationModal(rowNodeId) {            
+            const rowNode = gridApi.getRowNode(rowNodeId);
+            const skuId = rowNode?.data?.skuId ?? 0;
+            currentRowIdForLocation = rowNodeId;
+            locationSearchModal.classList.remove('hidden');
+            fetchLocationsFromServer(selectedWarehouseId, skuId);
+        }
+
+        function closeLocationModal() {
+             hideLocationTooltip();
+             locationSearchModal.classList.add('hidden');
+             currentRowIdForLocation = null;
+             if (locationFetchAbortController) {
+                 locationFetchAbortController.abort();
+                 locationFetchAbortController = null;
+             }
+        }
+
+        async function fetchLocationsFromServer(warehouseId , skuId) {
+            locationGridContainer.innerHTML = `
+                <div class="col-span-full text-center text-gray-500 py-8 flex justify-center items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        ${L.loadingLocationMap}
+                </div>`;
+
+            if(locationFetchAbortController) {
+                locationFetchAbortController.abort();
+            }
+
+            locationFetchAbortController = new AbortController();
+            try {
+                    const url = `?handler=SearchLocationWithPallet&warehouseId=${encodeURIComponent(warehouseId)}&skuId=${encodeURIComponent(skuId)}`;
+                    const response = await fetch(url, {
+                        signal: locationFetchAbortController.signal
+                    });
+
+                    if (!response.ok){
+                        locationGridContainer.innerHTML = `<div class="col-span-full text-center text-red-500 py-8">Lỗi tải dữ liệu vị trí.</div>`;
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    const mapped = (data ?? []).map(item => {
+                        const hasPallet = item.palletCode && item.palletCode !== '';
+                        const hasItems = (item.items && item.items.length > 0) || (item.currentQuantity > 0) || (item.availableQuantity > 0);
+
+                        let status;
+                        if (hasPallet) {
+                            status = 'has-pallet';
+                        } else if (hasItems) {
+                            status = 'buffer';
+                        } else {
+                            status = 'empty';
+                        }
+
+                        return {
+                            locationId: item.goodLocationId,
+                            locCode: item.goodLocationName,
+                            palletCode: item.palletCode || '',
+                            items: item.items ?? [],
+                            status: status,
+                            availableQty: item.availableQuantity ?? 0,
+                            qty: item.currentQuantity ?? 0,
+                            isVirtual: item.virtualLocation ?? false,
+                            skuId : item.skuId ?? 0,
+                            itemCode: item.skuCode ?? '',
+                            itemName: item.skuName ?? '',
+                            stockName: item.warehouseName ?? ''
+                        };
+                    });
+
+                    renderLocationBlocks(mapped);
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+                console.error('Error fetching locations:', e);
+                locationGridContainer.innerHTML = `<div class="col-span-full text-center text-red-500 py-8">Lỗi kết nối, vui lòng thử lại.</div>`;
+            }
+        }
+
+        function renderLocationBlocks(data) {
+            locationGridContainer.innerHTML = '';
+
+            if(!data || data.length === 0) {
+                locationGridContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8">Không có dữ liệu vị trí từ Server.</div>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const isEmpty = item.status === 'empty';
+                const hasPallet = item.status === 'has-pallet';
+                const isBuffer = item.status === 'buffer';
+
+                const baseClass = "border-2 rounded-lg p-3 text-center transition-all duration-200 flex flex-col justify-center items-center relative cursor-pointer ";
+
+                let styleClass;
+                if (isEmpty) {
+                    styleClass = "border-green-400 bg-green-50 hover:bg-green-100 hover:shadow-md hover:-translate-y-1 h-24";
+                } else if (hasPallet) {
+                    styleClass = "border-blue-400 bg-blue-50 hover:bg-blue-100 hover:shadow-md hover:-translate-y-1 h-24";
+                } else if (isBuffer) {
+                    styleClass = "border-yellow-400 bg-yellow-50 hover:bg-yellow-100 hover:shadow-md hover:-translate-y-1 h-24";
+                } else {
+                    styleClass = "border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed h-24";
+                }
+
+                const block = document.createElement('div');
+                block.className = baseClass + styleClass + " group";
+               
+                if (isEmpty || hasPallet || isBuffer) {
+                   block.onclick = () => selectLocation(
+                                            item.locationId, 
+                                            item.locCode, 
+                                            item.palletCode, 
+                                            item.items, 
+                                            item.skuId, 
+                                            item.itemCode, 
+                                            item.itemName, 
+                                            item.availableQty, 
+                                            item.qty
+                                        );
+                }
+
+                 if ((hasPallet || isBuffer) && item.items && item.items.length > 0) {
+                    const tipItems = item.items;
+                    const tipLabel = hasPallet ? item.palletCode : L.virtualLocation;
+                    block.addEventListener('mouseenter', e => showLocationTooltip(e, tipLabel, tipItems));
+                    block.addEventListener('mouseleave', hideLocationTooltip);
+                }
+
+                let dotColor, nameColor, subColor, label;
+
+                if(item.isVirtual) {
+                    dotColor = 'bg-yellow-500';
+                    nameColor = 'text-yellow-700';
+                    subColor = 'text-yellow-600';
+                    label = L.virtualLocation;
+                }
+                else if (isEmpty) {
+                    dotColor = 'bg-green-500';
+                    nameColor = 'text-green-700';
+                    subColor = 'text-green-600';
+                    label = 'Trống';
+                } else if (hasPallet) {
+                    dotColor = 'bg-blue-500';
+                    nameColor = 'text-blue-700';
+                    subColor = 'text-blue-600';
+                    label = item.palletCode;
+                } else {
+                    dotColor = 'bg-yellow-500';
+                    nameColor = 'text-yellow-700';
+                    subColor = 'text-yellow-600';
+                    label = L.virtualLocation;
+                }
+
+                 block.title = `${item.stockName} \n
+                    ${hasPallet ? `Pallet: ${item.palletCode}\n` : `${L.virtualLocation}`}
+                    ${`SKU: ${item.itemCode}\n`}
+                    ${`Name: ${item.itemName}\n`}
+                    Số lượng khả dụng: ${item.availableQty}\n
+                    Số lượng hiện tại: ${item.qty}`;
+
+                block.innerHTML = `
+                    <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${dotColor} ${isEmpty ? 'animate-pulse' : ''}"></div>
+                    <span class="text-sm font-bold ${nameColor} leading-tight">${item.locCode}</span>
+                    <span class="text-sm font-bold ${item.availableQty} leading-tight">                        
+                        ${item.availableQty}
+                        <i class="fa-solid fa-check"></i>                        
+                    </span>
+                    <span class="text-[10px] font-medium ${subColor}">${label}</span>
+                    <span class="text-[10px] font-medium">${item.itemCode}</span>
+                `;
+
+                locationGridContainer.appendChild(block);
+            });
+        }
+
+
+        let activeTooltipEl = null;
+
+        function showLocationTooltip(e, palletCode, items) {
+            hideLocationTooltip();
+            const tip = document.createElement('div');
+            tip.id = 'loc-floating-tooltip';
+            tip.innerHTML = `
+                <div style="font-weight:700;color:#1d4ed8;font-size:13px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-bottom:6px;">${palletCode}</div>
+                ${items.map(i => `
+                    <div style="display:flex;justify-content:space-between;gap:24px;padding:2px 0;">
+                        <span style="color:#374151;">${i.skuName}</span>
+                        <span style="color:#1d4ed8;font-weight:700;">${i.qty}</span>
+                    </div>`).join('')}
+            `;
+            Object.assign(tip.style, {
+                position:'fixed', zIndex:'9999', background:'#fff',
+                border:'1px solid #e5e7eb', borderRadius:'8px',
+                boxShadow:'0 10px 25px rgba(0,0,0,.15)',
+                padding:'10px 14px', fontSize:'12px',
+                pointerEvents:'none', width:'max-content', maxWidth:'460px'
+            });
+            document.body.appendChild(tip);
+            activeTooltipEl = tip;
+
+            const rect = e.currentTarget.getBoundingClientRect();
+            const tipRect = tip.getBoundingClientRect();
+            let top = rect.top - tipRect.height - 8;
+            if (top < 4) top = rect.bottom + 8;
+            let left = rect.left + rect.width / 2 - tipRect.width / 2;
+            left = Math.max(4, Math.min(left, window.innerWidth - tipRect.width - 4));
+            tip.style.top = top + 'px';
+            tip.style.left = left + 'px';
+        }
+
+        function hideLocationTooltip() {
+            if (activeTooltipEl) { activeTooltipEl.remove(); activeTooltipEl = null; }
+        }
+
+        function selectLocation(locationId , locCode, palletCode , items , skuId ,  skuCode , skuName , availableQty, currentQty) {
+             if (!currentRowIdForLocation) return;
+
+             const rowNode = gridApi.getRowNode(currentRowIdForLocation);
+             if (!rowNode) return;
+
+             rowNode.setDataValue('location', locCode);
+             rowNode.data.locationId = locationId;
+
+            if (skuId && skuId > 0) {
+                    rowNode.setDataValue('itemCode', skuCode);
+                    rowNode.setDataValue('itemName', skuName);
+                    rowNode.data.skuId = skuId;
+        
+                    rowNode.setDataValue('availableQty', availableQty);
+                    rowNode.setDataValue('qty', currentQty);
+                }
+
+             if (palletCode) {
+                 rowNode.setDataValue('pallet', palletCode);
+                 rowNode.data.palletSource = 'map';
+             } else {
+                
+                 rowNode.setDataValue('pallet', '');
+                 rowNode.data.palletSource = null;
+             }
+             closeLocationModal();
+        }
+
+         // ── Pallet Search Modal ──
+         const palletSearchModal = document.getElementById('palletSearchModal');
+         const palletSearchInput = document.getElementById('palletSearchInput');
+         const palletSearchResultBody = document.getElementById('palletSearchResultBody');
+         let currentRowIdForPallet = null;
+         let palletSearchAbortController = null;
+
+         const palletStatusMap = {
+             @foreach (var kvp in palletStatus)
+             {
+                   <text>@kvp.Key: '@kvp.Value',</text>
+             }
+         };
+
+         async function fetchPallets(keyword = '', pageIndex = 1) {
+             if (palletSearchAbortController) {
+                 palletSearchAbortController.abort();
+             }
+             palletSearchAbortController = new AbortController();
+             try {
+                 const keyWordParam = keyword?.trim()
+                     ? `&keyword=${encodeURIComponent(keyword.trim())}`
+                     : '';
+                 const url = `?handler=SearchPallet${keyWordParam}&pageIndex=${pageIndex}`;
+                 const response = await fetch(url, {
+                     signal: palletSearchAbortController.signal
+                 });
+                 if (!response.ok) return null;
+                 return await response.json();
+             } catch (e) {
+                 if (e.name === 'AbortError') return null;
+                 console.error('Error fetching pallets:', e);
+                 return [];
+             }
+         }
+
+          function openPalletSearchModal(rowNodeId) {
+             currentRowIdForPallet = rowNodeId;
+             palletSearchInput.value = '';
+             showPalletSearchLoading();
+             palletSearchModal.classList.remove('hidden');
+             setTimeout(() => palletSearchInput.focus(), 100);
+
+             fetchPallets('').then(data => renderPalletTable(data));
+         }
+
+          function closePalletSearchModal() {
+             palletSearchModal.classList.add('hidden');
+             currentRowIdForPallet = null;
+             if (palletSearchAbortController) {
+                 palletSearchAbortController.abort();
+                 palletSearchAbortController = null;
+             }
+         }
+
+          function showPalletSearchLoading() {
+             palletSearchResultBody.innerHTML = `
+                 <tr>
+                     <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+                         <div class="flex justify-center items-center gap-2">
+                             <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                  fill="none" viewBox="0 0 24 24">
+                                 <circle class="opacity-25" cx="12" cy="12" r="10"
+                                         stroke="currentColor" stroke-width="4"></circle>
+                                 <path class="opacity-75" fill="currentColor"
+                                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                             </svg>
+                                ${L.searchingPallet}
+                         </div>
+                     </td>
+                 </tr>`;
+         }
+
+
+         function renderPalletTable(response) {
+             palletSearchResultBody.innerHTML = '';
+
+             const data = response?.data?.rows ?? response?.rows ?? response;
+             if (!Array.isArray(data) || data.length === 0) {
+                 palletSearchResultBody.innerHTML = `
+                     <tr>
+                         <td colspan="3" class="px-6 py-4 text-center text-gray-500">
+                              ${L.noPalletFound}
+                         </td>
+                     </tr>`;
+                 return;
+             }
+
+             data.forEach(pallet => {
+                 const statusText = palletStatusMap[pallet.palletStatus] ?? `Status ${pallet.palletStatus}`;
+                 const isAvailable = pallet.palletStatus === 1;
+                 const statusClass = isAvailable
+                     ? 'bg-green-100 text-green-700'
+                     : 'bg-yellow-100 text-yellow-700';
+
+                 const formattedDate = pallet.createTime
+                         ? new Date(pallet.createTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                         : '';
+
+                 const tr = document.createElement('tr');
+                 tr.className = "hover:bg-blue-50 transition-colors cursor-pointer";
+                 tr.onclick = () => selectPallet(pallet.palletCode);
+                 tr.innerHTML = `
+                     <td class="hidden">${pallet.id}</td>
+                     <td class="px-6 py-3 text-sm font-bold text-blue-700">${pallet.palletCode}</td>
+                     <td class="px-6 py-3 text-sm text-gray-600">${formattedDate}</td>
+                     <td class="px-6 py-3">
+                         <span class="px-2 py-1 text-xs font-semibold rounded ${statusClass}">${statusText}</span>
+                     </td>
+                 `;
+                 palletSearchResultBody.appendChild(tr);
+             });
+         }
+
+         const debouncedPalletSearch = debounce(async function () {
+             showPalletSearchLoading();
+             const data = await fetchPallets(palletSearchInput.value);
+             renderPalletTable(data);
+         }, 300);
+
+         palletSearchInput.addEventListener('input', debouncedPalletSearch);
+
+         function selectPallet(palletCode) {
+             if (!currentRowIdForPallet) return;
+
+             const rowNode = gridApi.getRowNode(currentRowIdForPallet);
+             if (rowNode) {
+                 rowNode.setDataValue('pallet', palletCode);
+                 rowNode.data.palletSource = 'manual';
+             }
+             closePalletSearchModal();
+         }
+
+         async function quickCreatePalletCode() {
+             try {
+                 const response = await fetch('?handler=GeneratePalletCode');
+                 if (!response.ok) {
+                       Notify.info(L.palletGenerateError);
+                     return;
+                 }
+                 const result = await response.json();
+                 const newCode = result?.palletCode ?? result?.data?.palletCode;
+
+                 if (!newCode) {
+                     Notify.info(L.palletNoResponse);
+                     return;
+                 }
+
+                 if (currentRowIdForPallet) {
+                     const rowNode = gridApi.getRowNode(currentRowIdForPallet);
+                     if (rowNode) {
+                         rowNode.setDataValue('pallet', newCode);
+                         rowNode.data.palletSource = 'manual';
+                     }
+                     closePalletSearchModal();
+                     Notify.info(`${L.palletCreatedAssigned} ${newCode}`);
+                 } else {
+                     showPalletSearchLoading();
+                     const data = await fetchPallets('');
+                     renderPalletTable(data);
+                     Notify.info(`${L.palletCreated} ${newCode}`);
+                 }
+                 } catch (error) {
+                     console.error('Error generating pallet code:', error);
+                     Notify.info(L.connectionError);
+                 }
+         }
+    
+        let currentlyViewingOrderCode = "";
+        let currentOrderItems = [];
+     
+        function renderOrderTable(data) {
+            orderSearchResultBody.innerHTML = '';
+            data.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-3 text-sm font-bold text-blue-700">${order.orderCode}</td>
+                    <td class="px-6 py-3 text-sm text-gray-600">${order.expectedDate}</td>
+                    <td class="px-6 py-3 text-sm text-gray-600 font-medium">${order.customer}</td>
+                    <td class="px-6 py-3 text-right">
+                        <button type="button" onclick="selectOrder('${order.orderCode}', '${order.customer}')" class="bg-blue-100 text-blue-700 px-4 py-1.5 rounded shadow-sm hover:bg-blue-200 text-sm font-medium transition-colors">
+                            Tham Chiếu
+                        </button>
+                    </td>
+                `;
+                orderSearchResultBody.appendChild(tr);
+            });
+        }
+    
+        orderSearchInput.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase();
+            const filtered = mockOrders.filter(o =>
+                o.orderCode.toLowerCase().includes(keyword) ||
+                o.customer.toLowerCase().includes(keyword)
+            );
+            renderOrderTable(filtered);
+        });
+
+    
+        function selectOrder(orderCode, customerName) {
+            closeOrderModal(); 
+
+            const cusInput = document.getElementById('customerSearch');
+            if (cusInput) cusInput.value = customerName;
+
+            currentlyViewingOrderCode = orderCode;
+            document.getElementById('selectionModalTitle').textContent = `Chi tiết Lệnh: ${orderCode}`;
+
+            currentOrderItems = mockOrderDetails[orderCode] || [];
+            renderItemSelectionTable(currentOrderItems);
+
+            orderItemSelectionModal.classList.remove('hidden'); 
+        }
+
+        function closeOrderItemSelectionModal() {
+            orderItemSelectionModal.classList.add('hidden');
+        }
+
+        function renderItemSelectionTable(items) {
+            orderItemSelectionBody.innerHTML = '';
+            document.getElementById('selectAllItems').checked = false;
+            updateSelectedCount();
+
+            items.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 cursor-pointer border-b transition-colors";
+                tr.onclick = function(e) {
+                    if(e.target.type !== 'checkbox') {
+                        const cb = document.getElementById(`chk_item_${index}`);
+                        cb.checked = !cb.checked;
+                        updateSelectedCount();
+                    }
+                };
+
+                tr.innerHTML = `
+                    <td class="px-6 py-3">
+                        <input type="checkbox" id="chk_item_${index}" value="${index}" onchange="updateSelectedCount()" class="item-checkbox w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    </td>
+                    <td class="px-6 py-3 text-sm font-bold text-gray-800">${item.itemCode}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${item.itemName}</td>
+                    <td class="px-6 py-3 text-sm text-gray-500">${item.uom}</td>
+                    <td class="px-6 py-3 text-right text-sm font-bold text-blue-700">${item.reqQty}</td>
+                `;
+                orderItemSelectionBody.appendChild(tr);
+            });
+        }
+
+        function toggleAllItems(source) {
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = source.checked);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checkedCount = document.querySelectorAll('.item-checkbox:checked').length;
+            document.getElementById('selectedItemsCount').textContent = checkedCount;
+            const total = document.querySelectorAll('.item-checkbox').length;
+            document.getElementById('selectAllItems').checked = (checkedCount === total && total > 0);
+        }
+                
+        function confirmSelectedItems() {
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 mặt hàng!");
+                return;
+            }
+
+            const currentOrderCode = currentlyViewingOrderCode;
+            const selectedItemsToImport = [];
+            
+            checkboxes.forEach(cb => {
+                const item = currentOrderItems[cb.value];
+                selectedItemsToImport.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    itemCode: item.itemCode,    
+                    itemName: item.itemName,
+                    uom: item.uom,
+                    reqQty: item.reqQty,      
+                    availableQty: null,          
+                    qty: null,                  
+                    location: "",              
+                    pallet: "", 
+                    referenceCode: currentOrderCode
+                });
+            });
+
+          
+            const initRow = gridApi.getRowNode('row-init');
+            if (initRow && !initRow.data.itemCode) {
+                gridApi.applyTransaction({ remove: [initRow.data] });
+            }
+
+            gridApi.applyTransaction({ add: selectedItemsToImport });
+            
+            closeOrderItemSelectionModal();
+            updateReferenceUI(); // Cập nhật tag tham chiếu
+        }
+
+        function updateReferenceUI() {
+            const container = document.getElementById('referenceOrderContainer');
+            const placeholder = document.getElementById('refPlaceholder');
+            
+            const uniqueOrders = new Set();
+            gridApi.forEachNode(node => {
+                if (node.data.referenceCode) {
+                    uniqueOrders.add(node.data.referenceCode);
+                }
+            });
+
+            // Xóa các tag cũ
+            container.querySelectorAll('.order-chip').forEach(el => el.remove());
+
+            if (uniqueOrders.size > 0) {
+                placeholder.style.display = 'none';
+                uniqueOrders.forEach(code => {
+                    const chip = document.createElement('span');
+                    chip.className = "order-chip bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-md border border-blue-200 flex items-center shadow-sm";
+                    chip.innerHTML = `${code}`;
+                    container.appendChild(chip);
+                });
+            } else {
+                placeholder.style.display = 'block';
+            }
+        }
+
+        let selectedCustomerId = null;
+
+        function parseTimeOfDMYToIso(dateStr) {
+            if (!dateStr) return null;
+
+            let partsTime = dateStr.split(' ');
+            
+            if(partsTime.length === 2) {
+                const datePart = partsTime[0].trim();
+                const timePart = partsTime[1].trim();
+                const timeParts = timePart.split(':');
+
+                if (timeParts.length !== 2) return null;
+                const [hh, min] = timeParts.map(Number);
+                if (Number.isNaN(hh) || Number.isNaN(min)) return null;
+                const dateIso = parseDdMmYyyyToIso(datePart);
+                if (!dateIso) return null;
+                const dt = new Date(dateIso);
+                dt.setHours(hh, min, 0, 0);
+                if (Number.isNaN(dt.getTime())) return null;
+                return dt.toISOString();
+            }
+
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const [dd, mm, yyyy] = parts.map(Number);
+                if (!dd || !mm || !yyyy) return null;
+                const dt = new Date(yyyy, mm - 1, dd);
+                if (Number.isNaN(dt.getTime())) return null;
+                return dt.toISOString();
+            }
+            
+            if (parts.length === 5) {
+                const [dd, mm, yyyy, hh, min] = parts.map(Number);
+                if (!dd || !mm || !yyyy) return null;
+                const dt = new Date(yyyy, mm - 1, dd, hh, min, 0);
+                if (Number.isNaN(dt.getTime())) return null;
+                return dt.toISOString();
+            }
+
+            return null;
+        }
+
+        function parseDdMmYyyyToIso(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+
+            const [dd, mm, yyyy] = parts.map(Number);
+            if (!dd || !mm || !yyyy) return null;
+
+            const dt = new Date(yyyy, mm - 1, dd);
+            if (Number.isNaN(dt.getTime())) return null;
+
+            return dt.toISOString();
+        }
+
+        async function saveReceipt(isDraft = false) 
+        {
+            try {
+                gridApi.stopEditing();
+                const consignee = document.getElementById('consignee')?.value?.trim();
+                const receiptNo = document.getElementById('receiptNumber')?.value?.trim();
+                const receiptDateText = document.getElementById('receiptDate')?.value?.trim();
+                const exportDate = document.getElementById('exportDate')?.value?.trim();
+                const pickingDate = document.getElementById('pickingDate')?.value?.trim();
+                const issueType = document.getElementById('issueType')?.value;
+                const outboundGatewayId = Number(selectedGatewayId || 0);
+                const description = document.getElementById('message')?.value?.trim();
+
+                if (!receiptNo) return Notify.info(L.validReceiptNo);
+                if (!receiptDateText) return Notify.info(L.validReceiptDate);
+                if (!issueType) return Notify.info(L.validReceiptType);
+                if (!selectedWarehouseId) return Notify.info(L.validWarehouse);
+                if(!outboundGatewayId) return Notify.info(L.validOutboundGateway)
+
+                const details = [];
+                gridApi.forEachNode(node => {
+                    const d = node.data;
+                    if (!d?.skuId) return;
+                    if (!d?.qty || d.qty <= 0) return;
+
+                    details.push({
+                        skuId: Number(d.skuId),
+                        quantity: Number(d.qty),
+                        skuUomId: Number(d.skuUomId || 0),
+                        locationId: d.locationId ? Number(d.locationId) : null,
+                        palletCode: d.pallet ? String(d.pallet) : null,
+                        dispatchId: null 
+                    });
+                });
+
+                if (details.length === 0) return Notify.info(L.validAtLeastOneItem);
+
+                const payload = {
+                    receiptNo: receiptNo,
+                    warehouseId: Number(selectedWarehouseId),
+                    outboundGatewayId: Number(selectedGatewayId || 0),
+                    customerId: Number(selectedCustomerId || 0),
+                    type: issueType,
+                    receiptDate: parseDdMmYyyyToIso(receiptDateText),
+                    expectedShipDate: parseTimeOfDMYToIso(exportDate),
+                    startPickingTime: parseTimeOfDMYToIso(pickingDate),
+                    isDraft : isDraft,
+                    description : description,
+                    consignee: consignee,
+                    details: details
+                };
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                const response = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result?.success) {
+                    Notify.info(result?.message || L.saveFailed);
+                    return;
+                }
+
+                Notify.info(`${L.saveSuccess}`);
+                
+                window.location.href = '/Outbound/Receipt/Index';
+            } catch (error) {
+                console.error('saveReceipt error:', error);
+                Notify.info(L.connectionError);
+            }
+        }
+
+        const gatewayModal = document.getElementById('gatewayModal');
+        const newGatewayNameInput = document.getElementById('newGatewayName');
+
+        function openGatewayModal() {
+            if (!selectedWarehouseId) {
+                Notify.info(L.msgSelectWarehouse);
+                return;
+            }
+            newGatewayNameInput.value = '';
+            gatewayModal.classList.remove('hidden');
+            setTimeout(() => newGatewayNameInput.focus(), 100);
+        }
+
+        function closeGatewayModal() {
+            gatewayModal.classList.add('hidden');
+        }
+
+        async function saveNewGateway() {
+            const gatewayName = newGatewayNameInput.value.trim();
+
+            if (!gatewayName) {
+                Notify.info(L.PleaseEnterGatewayName);
+                return;
+            }
+
+            if (!selectedWarehouseId) {
+                Notify.info(L.msgSelectWarehouses);
+                return;
+            }
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                const response = await fetch('?handler=QuickOutboundGateway', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        gatewayName: gatewayName,
+                        warehouseId: Number(selectedWarehouseId)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result?.success) {
+                    Notify.info(result?.message || L.save_failed);
+                    return;
+                }
+
+                selectedGatewayId = Number(result.id);
+                gatewaySearchInput.value = gatewayName; 
+                gatewayDropdown.classList.add('hidden');
+                closeGatewayModal();
+                Notify.info(L.CreateSuccess);
+            } catch (e) {
+                console.error('saveNewGateway error:', e);
+                Notify.info(L.connectionError);
+            }
+        }
+
+    </script>
+}

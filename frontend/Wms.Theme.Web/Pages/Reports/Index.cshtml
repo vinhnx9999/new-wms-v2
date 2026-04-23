@@ -1,0 +1,374 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Reports.IndexModel
+
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Báo cáo & Thống kê</h1>
+        <p class="mt-1 text-gray-600">Tổng hợp các báo cáo vận hành kho WMS</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 mt-6">
+        <div class="bg-white rounded-lg shadow px-4 border-l-4 border-indigo-500 flex items-center justify-between h-32">
+            <div>
+                <p class="text-sm font-medium text-gray-500 truncate">Công suất kho</p>
+                <p class="mt-1 text-3xl font-semibold text-gray-900">85%</p>
+            </div>
+            <div class="p-3 bg-indigo-50 rounded-full">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow px-4 border-l-4 border-yellow-500 flex items-center justify-between h-32">
+            <div>
+                <p class="text-sm font-medium text-gray-500 truncate">Đơn chờ xử lý</p>
+                <p class="mt-1 text-3xl font-semibold text-gray-900">12</p>
+            </div>
+            <div class="p-3 bg-yellow-50 rounded-full">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow px-4 border-l-4 border-green-500 flex items-center justify-between h-32">
+            <div>
+                <p class="text-sm font-medium text-gray-500 truncate">Hoàn thành (24h)</p>
+                <div class="flex items-end gap-2 mt-1">
+                    <span class="text-3xl font-semibold text-gray-900">45</span>
+                    <span class="text-sm text-green-600 mb-1 font-medium">↑ 12%</span>
+                </div>
+            </div>
+            <div class="p-3 bg-green-50 rounded-full">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow px-4 border-l-4 border-red-500 flex items-center justify-between h-32">
+            <div>
+                <p class="text-sm font-medium text-gray-500 truncate">Cảnh báo tồn thấp</p>
+                <p class="mt-1 text-3xl font-semibold text-gray-900">5</p>
+            </div>
+            <div class="p-3 bg-red-50 rounded-full">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div onclick="loadReport('inventory', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-blue-100 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Báo Cáo Tồn Kho</h3>
+            </div>
+            <p class="text-sm text-gray-600">Theo dõi số lượng và vị trí hàng hóa</p>
+        </div>
+
+        <div onclick="loadReport('orders', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Báo Cáo Đơn Hàng</h3>
+            </div>
+            <p class="text-sm text-gray-600">Thống kê đơn nhập và xuất kho</p>
+        </div>
+
+        <div onclick="loadReport('warehouse', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-yellow-100 rounded-lg">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8 4m0-10l-8-4"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Hiệu suất Kho bãi</h3>
+            </div>
+            <p class="text-sm text-gray-600">Mức độ sử dụng và sức chứa kho</p>
+        </div>
+
+        <div onclick="loadReport('performance', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-red-100 rounded-lg">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Hiệu suất Nhân viên</h3>
+            </div>
+            <p class="text-sm text-gray-600">Đánh giá năng suất và chỉ số KPI</p>
+        </div>
+
+        <div onclick="loadReport('discrepancy', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-purple-100 rounded-lg">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Báo cáo Sai lệch</h3>
+            </div>
+            <p class="text-sm text-gray-600">Chênh lệch kiểm kê và lý do</p>
+        </div>
+
+        <div onclick="loadReport('audit', this)" class="report-card bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer border-2 border-transparent">
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-indigo-100 rounded-lg">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="ml-4 text-lg font-semibold text-gray-900">Nhật ký Hệ thống</h3>
+            </div>
+            <p class="text-sm text-gray-600">Lịch sử truy vết và thao tác</p>
+        </div>
+    </div>
+
+    <div id="reportDetailArea" class="hidden min-h-[400px] bg-white rounded-lg shadow border border-gray-100 p-6 animate-fade-in">
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- 1. BIẾN TOÀN CỤC ---
+            let GLOBAL_DATA = null;
+            const fmtMoney = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+            // --- 2. HÀM CORE: Tải dữ liệu JSON ---
+            async function getReportData() {
+                if (GLOBAL_DATA) return GLOBAL_DATA;
+                try {
+                    const response = await fetch('/data/wms_reports.json');
+                    if (!response.ok) throw new Error("Lỗi tải file JSON");
+                    GLOBAL_DATA = await response.json();
+                    return GLOBAL_DATA;
+                } catch (error) {
+                    console.error(error);
+                    return null;
+                }
+            }
+
+            // --- 3. HÀM CHÍNH: Xử lý Click Card ---
+            window.loadReport = async function(type, cardElement) {
+                // A. Xử lý Active UI
+                document.querySelectorAll('.report-card').forEach(el => {
+                    el.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-500', 'bg-indigo-50');
+                    el.classList.add('bg-white');
+                });
+
+                if(cardElement) {
+                    cardElement.classList.remove('bg-white');
+                    cardElement.classList.add('bg-indigo-50', 'ring-2', 'ring-offset-2', 'ring-indigo-500');
+                }
+
+                // B. Hiển thị Loading
+                const container = document.getElementById('reportDetailArea');
+                container.classList.remove('hidden');
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-gray-500">
+                        <svg class="animate-spin h-8 w-8 text-indigo-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Đang tải dữ liệu...</span>
+                    </div>
+                `;
+
+                // C. Lấy dữ liệu
+                const data = await getReportData();
+
+                if (!data) {
+                    container.innerHTML = `<div class="text-center py-10 text-red-500">Không tìm thấy dữ liệu (wms_reports.json)</div>`;
+                    return;
+                }
+
+                // D. Render theo loại báo cáo (ĐÃ BỔ SUNG ĐẦY ĐỦ)
+                let htmlContent = '';
+                switch(type) {
+                    case 'inventory':
+                        htmlContent = renderInventory(data.inventory);
+                        break;
+                    case 'orders':
+                        htmlContent = renderOrders(data.orders);
+                        break;
+                    case 'warehouse':
+                        htmlContent = renderWarehouse(data.warehouse);
+                        break;
+                    case 'performance':
+                        htmlContent = renderPerformance(data.performance);
+                        break;
+                    case 'discrepancy': // Mới thêm
+                        htmlContent = renderDiscrepancy(data.discrepancy);
+                        break;
+                    case 'audit': // Mới thêm
+                        htmlContent = renderAudit(data.audit);
+                        break;
+                    default:
+                        htmlContent = `<div class="text-center py-12 text-gray-400">
+                            <p class="text-lg">Chức năng đang phát triển</p>
+                        </div>`;
+                }
+                container.innerHTML = htmlContent;
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            };
+
+            // --- 4. CÁC HÀM RENDER ---
+
+            // 4.1 Inventory
+            function renderInventory(items) {
+                if(!items) return '<div class="p-4">Chưa có dữ liệu.</div>';
+                const rows = items.map(i => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 font-medium text-gray-900">${i.sku}</td>
+                        <td class="p-4">${i.name}</td>
+                        <td class="p-4 text-gray-500">${i.loc}</td>
+                        <td class="p-4 text-right font-bold">${i.qty}</td>
+                        <td class="p-4 text-right">${fmtMoney.format(i.val)}</td>
+                        <td class="p-4 text-center">
+                             <span class="px-2 py-1 rounded text-xs font-bold ${i.status === 'Low' || i.qty === 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">${i.status}</span>
+                        </td>
+                    </tr>`).join('');
+
+                return buildTableLayout('📦', 'blue', 'Chi tiết Tồn Kho',
+                    ['SKU', 'Sản phẩm', 'Vị trí', 'Số lượng', 'Giá trị', 'Trạng thái'],
+                    rows, 'text-right', 'text-center');
+            }
+
+            // 4.2 Orders
+            function renderOrders(items) {
+                if(!items) return '<div class="p-4">Chưa có dữ liệu.</div>';
+                const rows = items.map(i => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 font-medium text-indigo-600">${i.id}</td>
+                        <td class="p-4">${i.type}</td>
+                        <td class="p-4 font-medium">${i.partner}</td>
+                        <td class="p-4 text-gray-500">${i.date}</td>
+                        <td class="p-4 text-right">${fmtMoney.format(i.total)}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${i.status === 'Done' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${i.status}</span>
+                        </td>
+                    </tr>`).join('');
+
+                return buildTableLayout('📄', 'green', 'Danh sách Đơn Hàng',
+                    ['Mã đơn', 'Loại', 'Đối tác', 'Ngày', 'Tổng tiền', 'Trạng thái'],
+                    rows);
+            }
+
+            // 4.3 Warehouse
+            function renderWarehouse(items) {
+                if(!items) return '<div class="p-4">Chưa có dữ liệu.</div>';
+                const cards = items.map(i => {
+                    const pct = Math.round((i.used / i.cap) * 100);
+                    const color = pct > 85 ? 'bg-red-500' : pct > 50 ? 'bg-blue-500' : 'bg-green-500';
+                    return `
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-gray-700">${i.zone}</span>
+                            <span class="text-xs bg-white border px-2 py-0.5 rounded">Cap: ${i.cap}</span>
+                        </div>
+                        <div class="flex justify-between text-sm mb-1 text-gray-600">
+                            <span>Used: ${i.used}</span>
+                            <span class="font-bold">${pct}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="${color} h-2.5 rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                return `
+                    <div class="animate-fade-in">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <span class="bg-yellow-100 text-yellow-600 p-1.5 rounded-lg">🏭</span> Hiệu suất Kho
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${cards}
+                        </div>
+                    </div>`;
+            }
+
+            // 4.4 Performance
+            function renderPerformance(items) {
+                if(!items) return '<div class="p-4 text-gray-500">Chưa có dữ liệu</div>';
+                const rows = items.map(i => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 font-medium">${i.name}</td>
+                        <td class="p-4">${i.role}</td>
+                        <td class="p-4 text-right">${i.tasks}</td>
+                        <td class="p-4 text-right font-bold text-indigo-600">${i.score}/100</td>
+                    </tr>`).join('');
+
+                return buildTableLayout('⚡', 'red', 'Hiệu suất Nhân viên',
+                    ['Nhân viên', 'Vai trò', 'Task hoàn thành', 'Điểm số'], rows);
+            }
+
+            // 4.5 Discrepancy (MỚI BỔ SUNG)
+            function renderDiscrepancy(items) {
+                if(!items) return '<div class="p-4 text-gray-500">Không có dữ liệu sai lệch</div>';
+                const rows = items.map(i => {
+                    // Logic màu sắc: Âm là đỏ (mất hàng), Dương là xanh (thừa hàng)
+                    const varColor = i.variance < 0 ? 'text-red-600' : 'text-green-600';
+                    const varSign = i.variance > 0 ? '+' : '';
+                    return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 font-medium">${i.sku}</td>
+                        <td class="p-4 text-right text-gray-500">${i.sys_qty}</td>
+                        <td class="p-4 text-right font-bold text-gray-800">${i.phy_qty}</td>
+                        <td class="p-4 text-right font-bold ${varColor}">${varSign}${i.variance}</td>
+                        <td class="p-4 text-sm text-gray-600 italic">${i.reason}</td>
+                    </tr>`;
+                }).join('');
+
+                return buildTableLayout('⚠️', 'purple', 'Báo cáo Sai lệch Kiểm kê',
+                    ['SKU', 'Tồn Hệ thống', 'Tồn Thực tế', 'Chênh lệch', 'Lý do'], rows);
+            }
+
+            // 4.6 Audit Log (MỚI BỔ SUNG)
+            function renderAudit(items) {
+                if(!items) return '<div class="p-4 text-gray-500">Không có nhật ký</div>';
+                const rows = items.map(i => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 text-sm text-gray-500">${i.time}</td>
+                        <td class="p-4 font-medium text-indigo-600">${i.user}</td>
+                        <td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold">${i.action}</span></td>
+                        <td class="p-4 text-sm text-gray-600">${i.details}</td>
+                    </tr>`).join('');
+
+                return buildTableLayout('🛡️', 'indigo', 'Nhật ký Hệ thống (Audit Log)',
+                    ['Thời gian', 'Người dùng', 'Hành động', 'Chi tiết'], rows);
+            }
+
+            // --- Helper: Hàm dựng khung Table chung để code gọn hơn ---
+            function buildTableLayout(icon, color, title, headers, rows) {
+                const headerHtml = headers.map(h => {
+                    // Căn chỉnh đơn giản dựa trên tên cột
+                    const align = (h === 'Số lượng' || h === 'Giá trị' || h === 'Tổng tiền' || h.includes('Tồn') || h === 'Chênh lệch') ? 'text-right' :
+                                  (h === 'Trạng thái') ? 'text-center' : 'text-left';
+                    return `<th class="p-4 ${align}">${h}</th>`;
+                }).join('');
+
+                return `
+                    <div class="animate-fade-in">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                             <span class="bg-${color}-100 text-${color}-600 p-1.5 rounded-lg">${icon}</span> ${title}
+                        </h2>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="w-full text-sm text-left text-gray-500">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                    <tr>${headerHtml}</tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            }
+        });
+    </script>
+}

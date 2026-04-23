@@ -1,0 +1,342 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.StockCount.CreateModel
+@{
+    ViewData["Title"] = "Tạo Đợt kiểm kê mới";
+}
+
+<div class="max-w-6xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Tạo Đợt kiểm kê mới</h1>
+
+    @Html.AntiForgeryToken()
+
+    <form id="create-form" class="space-y-6">
+
+       
+
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+                <h3 class="text-sm font-bold text-gray-700 uppercase">Sản phẩm cần kiểm kê</h3>
+            </div>
+
+            <div class="p-6">
+                <div id="empty-state" class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-200 mb-3">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <h3 class="text-gray-900 font-medium text-base mb-1">Chưa chọn sản phẩm</h3>
+                    <p class="text-gray-500 text-sm mb-4">Vui lòng chọn sản phẩm để bắt đầu.</p>
+
+                    <button type="button" onclick="openStockModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium shadow-sm transition">
+                        Tìm & Chọn sản phẩm
+                    </button>
+                </div>
+
+                <div id="selected-state" class="hidden">
+                    <div class="bg-white border border-blue-200 rounded-lg shadow-sm overflow-hidden">
+                        <div class="p-5 bg-blue-50 border-b border-blue-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-blue-600 uppercase tracking-wide">Sản phẩm đang kiểm kê</label>
+                                <div class="flex items-baseline gap-2 mt-1">
+                                    <span class="text-xl font-bold text-gray-900 font-mono" id="disp-sku-code">--</span>
+                                    <span class="text-gray-400">|</span>
+                                    <span class="text-lg text-gray-800 font-medium" id="disp-sku-name">--</span>
+                                </div>
+                            </div>
+                            <div class="text-left md:text-right">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Tồn hệ thống</label>
+                                <div class="text-3xl font-bold text-blue-700 font-mono mt-1" id="disp-qty">--</div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+                            <div class="border-l-4 border-gray-100 pl-3">
+                                <span class="block text-xs text-gray-400 uppercase font-semibold mb-1">Vị trí (Location)</span>
+                                <span class="block text-sm font-bold text-gray-700" id="disp-location">--</span>
+                            </div>
+
+                            <div class="border-l-4 border-gray-100 pl-3">
+                                <span class="block text-xs text-gray-400 uppercase font-semibold mb-1">Kho (Warehouse)</span>
+                                <span class="block text-sm font-bold text-gray-700 truncate" id="disp-warehouse">--</span>
+                            </div>
+
+                            <div class="border-l-4 border-gray-100 pl-3">
+                                <span class="block text-xs text-gray-400 uppercase font-semibold mb-1">Serial / Lot</span>
+                                <span class="block text-sm font-bold text-gray-700 font-mono truncate" id="disp-serial">--</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 px-5 py-2 border-t border-gray-100 text-right">
+                            <button type="button" onclick="openStockModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline focus:outline-none">
+                                Thay đổi sản phẩm khác &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4">
+            <a href="/Inventory/StockCount/" class="btn btn-primary px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium">Quay lại</a>
+            <button type="button" onclick="submitStocktaking()" class="px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm">
+                Hoàn tất & Tạo phiếu
+            </button>
+        </div>
+    </form>
+</div>
+
+<div id="stock-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-50"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-4xl border border-gray-200">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-base font-bold text-gray-900 uppercase">TÌM KIẾM TỒN KHO</h3>
+                    <button type="button" onclick="closeStockModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div class="px-4 py-4 sm:p-6 bg-white">
+                    <div class="mb-4 relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                        <input type="text" id="modal-search-input" onkeyup="debounceSearch()"
+                               class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Nhập tên hoặc mã SKU..." autocomplete="off">
+                    </div>
+
+                    <div class="overflow-y-auto h-[350px] border border-gray-200 rounded-md">
+                        <table class="w-full text-sm text-left relative">
+                            <thead class="bg-gray-50 text-gray-600 font-bold sticky top-0 border-b border-gray-200 shadow-sm">
+                                <tr>
+                                    <th class="p-3 w-32">Mã SKU</th>
+                                    <th class="p-3">Tên sản phẩm</th>
+                                    <th class="p-3 w-24">Vị trí</th>
+                                    <th class="p-3 w-24 text-right">Tồn kho</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-result-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-xs text-gray-500">
+                        Hiển thị trang <span id="page-info-current" class="font-bold">1</span> / <span id="page-info-total">1</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="btn-prev" onclick="changePage(-1)" disabled class="px-3 py-1.5 border border-gray-300 bg-white text-gray-700 rounded text-sm hover:bg-gray-50 disabled:opacity-50">Trước</button>
+                        <button type="button" id="btn-next" onclick="changePage(1)" disabled class="px-3 py-1.5 border border-gray-300 bg-white text-gray-700 rounded text-sm hover:bg-gray-50 disabled:opacity-50">Sau</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+   
+    <script>
+        let debounceTimer;
+        let currentSearchResult = [];
+        let selectedProduct = null;
+        let currentPage = 1;
+        const pageSize = 10;
+        let totalRecords = 0;
+
+        function getToken() {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            return tokenInput ? tokenInput.value : '';
+        }
+
+        // --- 3. MODAL & SEARCH LOGIC ---
+        function openStockModal() {
+            document.getElementById('stock-modal').classList.remove('hidden');
+            const searchInput = document.getElementById('modal-search-input');
+            if(searchInput) searchInput.focus();
+            currentPage = 1;
+            fetchStockData();
+        }
+
+        function closeStockModal() {
+            document.getElementById('stock-modal').classList.add('hidden');
+        }
+
+        function debounceSearch() {
+            clearTimeout(debounceTimer);
+            currentPage = 1;
+            debounceTimer = setTimeout(fetchStockData, 500);
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            fetchStockData();
+        }
+
+        async function fetchStockData() {
+            const keyword = document.getElementById('modal-search-input').value;
+            const tableBody = document.getElementById('modal-result-body');
+
+            tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-blue-600">
+                <div class="flex justify-center items-center gap-2">
+                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                     <span>Đang tải dữ liệu trang ${currentPage}...</span>
+                </div></td></tr>`;
+
+            const formData = new FormData();
+            formData.append('pageIndex', currentPage);
+            formData.append('keyWord', keyword);
+
+            try {
+                const response = await fetch('?handler=StockData', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': getToken() },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Network error');
+                const result = await response.json();
+
+                if (result.success) {
+                    currentSearchResult = result.data || [];
+                    totalRecords = result.total || 0;
+
+                    if (currentSearchResult.length > 0) {
+                        renderModalTable(currentSearchResult);
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500 italic">Không tìm thấy dữ liệu.</td></tr>';
+                    }
+                    updatePaginationUI();
+                }
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500">Lỗi kết nối server.</td></tr>';
+            }
+        }
+
+        function updatePaginationUI() {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            const elCurrent = document.getElementById('page-info-current');
+            const elTotal = document.getElementById('page-info-total');
+
+            if(elCurrent) elCurrent.innerText = currentPage;
+            if(elTotal) elTotal.innerText = totalPages > 0 ? totalPages : 1;
+
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            if(btnPrev) btnPrev.disabled = (currentPage <= 1);
+            if(btnNext) btnNext.disabled = (currentPage >= totalPages);
+        }
+
+        function renderModalTable(data) {
+            const tbody = document.getElementById('modal-result-body');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const row = `
+                    <tr class="hover:bg-blue-50 border-b border-gray-100 cursor-pointer" onclick="selectItem(${index})">
+                        <td class="p-3 font-medium text-blue-600">${item.sku_code || ''}</td>
+                        <td class="p-3">${item.sku_name || ''}</td>
+                        <td class="p-3 text-gray-500">${item.location_name || item.goods_location_name || '-'}</td>
+                        <td class="p-3 text-right font-mono">${item.qty || 0}</td>
+                    </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        function selectItem(index) {
+            const item = currentSearchResult[index];
+            if (!item) return;
+
+            selectedProduct = {
+                sku_id: item.sku_id || 0,
+                sku_code: item.sku_code || '',
+                sku_name: item.sku_name || '',
+                spu_code: item.spu_code || '',
+                spu_name: item.spu_name || '',
+                goods_location_id: item.goods_location_id || 0,
+                location_name: item.location_name || item.goods_location_name || '',
+                warehouse_name: item.warehouse_name || '',
+                goods_owner_id: item.goods_owner_id || 0,
+                goods_owner_name: item.goods_owner_name || '',
+                book_qty: item.qty || 0,
+                price: item.price || 0,
+                series_number: item.series_number || '',
+                expiry_date: item.expiry_date,
+                putaway_date: item.putaway_date
+            };
+
+            renderSelectedProductUI();
+            closeStockModal();
+        }
+
+        function renderSelectedProductUI() {
+            const emptyState = document.getElementById('empty-state');
+            const selectedState = document.getElementById('selected-state');
+
+            if (selectedProduct) {
+                emptyState.classList.add('hidden');
+                selectedState.classList.remove('hidden');
+                document.getElementById('disp-sku-code').innerText = selectedProduct.sku_code;
+                document.getElementById('disp-sku-name').innerText = selectedProduct.sku_name;
+                document.getElementById('disp-qty').innerText = selectedProduct.book_qty;
+                document.getElementById('disp-location').innerText = selectedProduct.location_name;
+                document.getElementById('disp-warehouse').innerText = selectedProduct.warehouse_name || 'N/A';
+                document.getElementById('disp-serial').innerText = selectedProduct.series_number || 'N/A';
+            } else {
+                emptyState.classList.remove('hidden');
+                selectedState.classList.add('hidden');
+            }
+        }
+
+        async function submitStocktaking() {
+            if (!selectedProduct) {
+                Notify.info("Vui lòng chọn một sản phẩm để kiểm kê!");
+                return;
+            }
+
+            const payload = {
+                spu_code: selectedProduct.spu_code,
+                spu_name: selectedProduct.spu_name,
+                sku_id: parseInt(selectedProduct.sku_id),
+                sku_code: selectedProduct.sku_code,
+                sku_name: selectedProduct.sku_name,
+                goods_owner_id: parseInt(selectedProduct.goods_owner_id),
+                goods_owner_name: selectedProduct.goods_owner_name,
+                goods_location_id: parseInt(selectedProduct.goods_location_id),
+                warehouse_name: selectedProduct.warehouse_name,
+                location_name: selectedProduct.location_name,
+                series_number: selectedProduct.series_number,
+                expiry_date: selectedProduct.expiry_date,
+                price: parseFloat(selectedProduct.price),
+                book_qty: parseInt(selectedProduct.book_qty),
+                putaway_date: selectedProduct.putaway_date,
+               
+            };
+
+            try {
+                const response = await fetch('?handler=CreateStockTakingService', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.success(result.message);
+                    setTimeout(() => { window.location.href = '/Inventory/StockCount'; }, 1500);
+                } else {
+                    Notify.error("Lỗi: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                Notify.error("Đã xảy ra lỗi khi gửi dữ liệu.");
+            }
+        }
+    </script>
+}

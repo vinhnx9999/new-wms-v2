@@ -1,0 +1,281 @@
+﻿@page "/Outbound/Receipt/Detail/{id:int}"
+@using WMSSolution.Shared.Enums
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+@model Wms.Theme.Web.Pages.Outbound.Receipt.DetailModel
+@{
+    ViewData["Title"] = Localizer["Detail"];
+    var currentStatus = Model.Receipt.Status;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/darkmode.css" />
+}
+
+@Html.AntiForgeryToken()
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="flex items-center justify-start mb-2 pb-2">
+        @await Html.PartialAsync("_StatusPartialView", currentStatus)
+    </div>
+    <div class="flex justify-end gap-3 mb-2 pb-2">
+        <a href="/Outbound/Receipt/Index" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors font-medium">
+            @Localizer["Common_Back"]
+        </a>
+
+        @if (Model.Receipt.Status == (int)ReceiptStatus.DRAFT)
+        {
+            <a href="/Outbound/Receipt/Edit/@Model.Receipt.Id" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-md transition-colors font-medium">
+                @Localizer["Common_Edit"]
+            </a>
+        }
+        @if (currentStatus != (int)ReceiptStatus.CANCELED)
+        {
+            <button type="button"
+                    onclick="printInbound()"
+                    class="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 shadow-md transition-all font-medium">
+                <i class="fa-solid fa-print"></i> @Localizer["PrintReceipt"]
+            </button>
+        }
+
+        <button id="btnPrintQr" class="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 shadow-md transition-all font-medium" onclick="handlePrintQrClick()">QR CODE</button>
+    
+        @if (currentStatus == (int)ReceiptStatus.COMPLETE && string.IsNullOrEmpty(Model.Receipt.SharingUrl))
+        {
+            <button onclick="shareOutbound()">
+                <i class="fa-solid fa-share-from-square"></i> @L["Share"]
+            </button>
+        }
+    </div>
+</div>
+<label class="block text-xs font-medium text-gray-700 flex justify-end gap-3 mb-2 pb-2">
+    @Html.Raw(Model.Receipt.SharingUrl)
+</label>
+
+<div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        
+        <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateReceipt_ReceiptNumber"]</label>
+            <input type="text" value="@Model.Receipt.ReceiptNo" readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateReceipt_ReceiptDate"]</label>
+            <input type="text" value="@Model.Receipt.StrReceiptDate" readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none">
+        </div>
+        
+        <div>
+            @{
+                string localizedTypeLabel = Model.Receipt.Type;
+                switch (Model.Receipt.Type)
+                {
+                    case "SALES": localizedTypeLabel = Localizer["CreateOutboundReceipt_IssueTypeSales"]; break;
+                    case "RETURN": localizedTypeLabel = Localizer["CreateOutboundReceipt_IssueTypeReturnSupplier"]; break;
+                    case "SCRAP": localizedTypeLabel = Localizer["CreateOutboundReceipt_IssueTypeScrap"]; break;
+                    case "MISC": localizedTypeLabel = Localizer["CreateOutboundReceipt_IssueTypeMisc"]; break;
+                }
+            }
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateOutboundReceipt_IssueType"]</label>
+            <select disabled class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 appearance-none">
+                <option value="@Model.Receipt.Type" selected>@localizedTypeLabel</option>
+            </select>
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateOutboundReceipt_Customer"]</label>
+            <input type="text" value="@Model.Receipt.CustomerName" readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none">
+        </div>
+
+        <div>
+            <label for="consignee" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["Consignee"]
+            </label>
+            <input type="text"
+                   id="consignee"
+                   name="consignee"
+                   value="@Model.Receipt.Consignee" 
+                   readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+
+        <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateOutboundReceipt_Warehouse"]</label>
+            <input type="text" value="@Model.Receipt.WarehouseName" readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Localizer["CreateOutboundReceipt_Gateway"]</label>
+            <input type="text" value="@Model.Receipt.OutboundGatewayName" readonly
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">@Model.Receipt.WarehouseAddress</label>
+        </div>
+        <div>
+            <label for="exportDate" class="block text-xs font-medium text-gray-700 mb-1">
+                @(Model.Receipt.ExpectedShipDate == null ? "" : $"Thời gian dự kiến xuất hàng {Model.Receipt.ExpectedShipDate?.ToString("dd/MM/yyyy HH:mm")}")
+            </label>
+        </div>
+        <div>
+            <label for="pickingDate" class="block text-xs font-medium text-gray-700 mb-1">
+                @(Model.Receipt.StartPickingTime == null ? "" : $"Thời gian bắt đầu picking {Model.Receipt.StartPickingTime?.ToString("dd/MM/yyyy HH:mm")}")                 
+            </label>
+        </div>
+        <div class="md:col-span-3">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Ghi chú</label>
+            <textarea readonly rows="3"
+                      class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-50 focus:outline-none resize-none">@Model.Receipt.Description</textarea>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="myGrid" class="ag-theme-quartz" style="max-height: calc(90vh - 260px); height: 260px; width: 100%;"></div>
+
+
+@await Html.PartialAsync("Outbound/_OutboundReceiptText", Model)
+
+@section Scripts {
+    <script src="~/js/qrcodegen-v1.8.0-es6.js"></script>
+    <script src="~/js/qr-print.js"></script>
+    <script src="~/js/printReceipt.js"></script>
+    <script>
+        const rowData = @Html.Raw(Json.Serialize(Model.Receipt.Details));
+
+        const gridOptions = {
+         columnDefs: [
+            {
+                field: "skuCode",
+                headerName: '@Html.Raw(Localizer["SkuCode"])',
+                flex: 1,
+                pinned : "left",
+                minWidth: 120
+            },
+            {
+                field: "skuName",
+                headerName: '@Html.Raw(Localizer["SkuName"])',
+                flex: 3,          
+                minWidth: 250
+            },
+            {
+                field: "unitName",
+                headerName: '@Html.Raw(Localizer["Unit"])',
+                flex: 1,     
+                minWidth: 80
+            },
+            {
+                field: "quantity",
+                headerName: '@Html.Raw(Localizer["Quantity"])',
+                flex: 1,
+                minWidth: 50,
+            },
+            {
+                field: "locationName",
+                headerName: '@Html.Raw(Localizer["Location"])',
+                flex: 1,
+                minWidth: 120
+            },
+            {
+                field: "palletCode",
+                headerName: '@Html.Raw(Localizer["PalletCode"])',
+                flex: 1,        
+                minWidth: 180
+            }
+        ],
+            rowData: rowData,
+            defaultColDef: {
+                sortable: false,
+                filter: false,
+                editable: false
+            },
+            getRowStyle: params => {
+                if (params.data && params.data.isException === true) {
+                    return {
+                        backgroundColor: '#fef2f2',
+                        color: '#991b1b',           
+                        fontWeight: '500'         
+                    };
+                }
+                return null; 
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+             const gridDiv = document.querySelector('#myGrid'); 
+             const gridApi = agGrid.createGrid(gridDiv, gridOptions);         
+        });
+
+        
+        function handlePrintQrClick() {
+           
+            const rowsWithPallet = rowData.filter(item => item.pallet && item.pallet.trim() !== '');
+
+            if (rowsWithPallet.length === 0) {
+                Notify.error('Không có mã Pallet nào để in!');
+                return;
+            }
+
+            const uniquePalletsMap = new Map();
+            rowsWithPallet.forEach(item => {
+                if (!uniquePalletsMap.has(item.pallet)) {
+                    uniquePalletsMap.set(item.pallet, item);
+                }
+            });
+            const uniqueRows = Array.from(uniquePalletsMap.values());
+           
+            const qrDataToPrint = uniqueRows.map(item => ({
+                content: item.pallet,
+                title: item.pallet,
+                desc1: "",
+                desc2: ""
+            }));
+
+          
+            const headerInfo = {
+                title: "",
+                subtitle: ""
+            };
+
+           
+            if (typeof printQrCode === 'function') {
+                printQrCode(qrDataToPrint, headerInfo);
+            } else {
+                console.error('Hàm printQrCode chưa được load!');
+            }
+        }
+
+        async function shareOutbound() {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+             
+            fetch(`?handler=ShareOutbound`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if(result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 800);
+                } else {
+                    Notify.info(result.message || 'Failed to Share Inbound');
+                }
+            })
+            .catch(error => {
+                console.error('Error activating warehouse:', error);
+                Notify.info('Connection error');
+            });
+        }
+
+    </script>
+}

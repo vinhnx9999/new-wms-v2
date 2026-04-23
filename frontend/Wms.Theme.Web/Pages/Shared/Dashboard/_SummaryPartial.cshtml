@@ -1,0 +1,64 @@
+﻿@model Wms.Theme.Web.Pages.Dashboard.DashboardInfo
+<!-- Tổng kho | Tổng SKU -->
+<section class="grid gap-2 md:grid-cols-4">
+<!-- Tổng kho -->
+<div class="bg-dashboard-card rounded-xl border border-slate-700/70 ring-1 ring-white/10 bg-slate-900/70 p-4 shadow-2xl backdrop-blur">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-[13px] font-medium text-slate-300">Tổng kho</p>
+            <p class="mt-2 text-4xl font-bold tracking-tight text-sky-300">@Model.TotalWarehouses</p>
+            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Kho đang hoạt động</p>
+        </div>
+        <div class="rounded-lg bg-sky-500/10 p-3 text-sky-400">
+            <a href="/Warehouse/List">
+                <i class="fa-solid fa-warehouse text-xl"></i>
+            </a>
+        </div>
+    </div>
+</div>
+<!-- Tổng SKU -->
+<div class="bg-dashboard-card rounded-xl border border-slate-700/70 ring-1 ring-white/10 bg-slate-900/70 p-4 shadow-2xl backdrop-blur">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-[13px] font-medium text-slate-300">Tổng SKU</p>
+            <p class="mt-2 text-4xl font-bold tracking-tight text-emerald-300">@Model.TotalItems</p>
+            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Danh mục sản phẩm</p>
+        </div>
+        <div class="rounded-lg bg-emerald-500/10 p-3 text-emerald-400">
+            <a href="/Setting/Sku">
+                <i class="fa-solid fa-barcode text-xl"></i>
+            </a>
+        </div>
+    </div>
+</div>
+<!-- Tồn kho -->
+<div class="bg-dashboard-card rounded-xl border border-slate-700/70 ring-1 ring-white/10 bg-slate-900/70 p-4 shadow-2xl backdrop-blur">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-[13px] font-medium text-slate-300">Tồn kho</p>
+            <p class="mt-2 text-4xl font-bold tracking-tight text-amber-300">@Model.TotalPallets / @Model.TotalInventory</p>
+            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Số lượng pallet </p>
+        </div>
+        <div class="rounded-lg bg-amber-500/10 p-3 text-amber-300">
+                <a href="/Inventory/Search">
+                    <i class="fa-solid fa-boxes-stacked text-xl"></i>                    
+                </a>
+        </div>
+    </div>
+</div>
+<!-- Đơn chưa xử lý -->
+    <div class="bg-dashboard-card rounded-xl border border-slate-700/70 ring-1 ring-white/10 bg-slate-900/70 p-4 shadow-2xl backdrop-blur">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-[13px] font-medium text-slate-300">Đơn chưa xử lý</p>
+                <p class="mt-2 text-4xl font-bold tracking-tight text-rose-300">@Model.ProcessingOrders</p>
+            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Đơn bán cần xử lý</p>
+        </div>
+        <div class="rounded-lg bg-rose-500/10 p-3 text-rose-300">                 
+            <a href="/Inbound/Receipt">                
+                <i class="fa-solid fa-clock text-xl"></i>
+            </a>
+        </div>
+    </div>
+</div>
+</section>

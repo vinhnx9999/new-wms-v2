@@ -1,0 +1,286 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Auth.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["Login"];
+    Layout = "_AuthLayout";
+}
+
+<style>
+    /* Chống đụng độ CSS với Layout bằng cách bọc wrapper */
+    .wms-auth-wrapper {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    /* Background ảnh robot + blur */
+    .wms-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('/img/kho-bai.jpg') no-repeat center/cover;
+        filter: blur(6px) brightness(0.7);
+        z-index: 0;
+    }
+
+    /* Container */
+    .wms-login-container {
+        width: 720px;
+        min-height: 420px;
+        display: flex;
+        border-radius: 12px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        z-index: 1;
+    }
+
+    /* Left panel */
+    .wms-left-panel {
+        flex: 1;
+        background: linear-gradient(135deg, #0d6efd, #00c6ff);
+        color: white;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .wms-left-panel h2 {
+        font-size: 26px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        margin-left : 12px;
+    }
+
+    .wms-left-panel p {
+        opacity: 0.8;
+    }
+
+    /* Right panel */
+    .wms-right-panel {
+        flex: 1;
+        background: rgba(255,255,255,0.95);
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .wms-right-panel h3 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .wms-input-group {
+        margin-bottom: 4px;
+    }
+
+    .wms-right-panel input[type="text"],
+    .wms-right-panel input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+        .wms-right-panel input[type="text"]:focus,
+        .wms-right-panel input[type="password"]:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+        }
+
+    .wms-right-panel button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 10px;
+        transition: background 0.3s ease;
+    }
+
+    .wms-right-panel button[type="submit"]:hover {
+        background: #0b5ed7;
+    }
+
+    .wms-remember {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #555;
+        margin-bottom: 12px;
+        margin-top: 6px;
+    }
+
+    .wms-remember input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .wms-extra {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        font-size: 13px;
+    }
+
+    .wms-extra a {
+        text-decoration: none;
+        color: #0d6efd;
+    }
+
+    .wms-extra a:hover {
+        text-decoration: underline;
+    }
+
+    /* Đảm bảo class báo lỗi của Tailwind/JS có tác dụng */
+    .border-red-500 {
+        border-color: #ef4444 !important;
+    }
+</style>
+
+<div class="wms-bg"></div>
+
+<div class="wms-auth-wrapper">
+    <div class="wms-login-container">
+        
+        <div class="wms-left-panel">
+            <h2>DUY PHAT WMS</h2>
+            <p>Warehouse Management System</p>
+        </div>
+
+        <div class="wms-right-panel">
+            <h3>@L["WelcomeBack"]</h3>
+
+            <form method="post" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="wms-input-group">
+                    <input asp-for="UserName" type="text" placeholder="@L["Username"]" id="UserName" autocomplete="off" />
+                    <span asp-validation-for="UserName" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="wms-input-group mt-2">
+                    <input asp-for="Password" type="password" placeholder="@L["Password"]" id="Password" />
+                    <span asp-validation-for="Password" class="text-red-500 text-xs mt-1 block"></span>
+                </div>
+
+                <div class="wms-remember" style="display : none">  
+                    <input asp-for="RememberMe" type="checkbox" id="RememberMe" />
+                    <label for="RememberMe">@L["RememberMe"]</label>
+                </div>
+
+                <input asp-for="BrowserInfo" type="hidden" id="txtBrowserInfo" />
+                <input asp-for="OSName" type="hidden" id="txtOSName" />
+                <input asp-for="BrowserVersion" type="hidden" id="txtBrowserVersion" />
+                <input asp-for="ScreenWidth" type="hidden" id="txtScreenWidth" />
+                <input asp-for="ScreenHeight" type="hidden" id="txtScreenHeight" />
+
+                <button type="submit">@L["SignIn"]</button>
+
+                <div class="wms-extra" >
+                   
+                    <a href="/Auth/Register">@L["Register"]</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const usernameInput = document.querySelector('#UserName');
+            const passwordInput = document.querySelector('#Password');
+            
+            // Giả định các hàm này bạn đã có ở layout hoặc global script
+            const browserName = typeof getBrowserName === "function" ? getBrowserName(navigator.userAgent) : "Unknown";
+            const browserVersion = typeof getBrowserVersion === "function" ? getBrowserVersion(navigator.userAgent) : "Unknown";
+            const osInfo = typeof getOS === "function" ? getOS() : "Unknown";
+            
+            const width = window.screen.width;
+            const height = window.screen.height;
+
+            document.getElementById("txtBrowserInfo").value = browserName;
+            document.getElementById("txtOSName").value = osInfo;
+            document.getElementById("txtBrowserVersion").value = browserVersion;
+            document.getElementById("txtScreenWidth").value = width;
+            document.getElementById("txtScreenHeight").value = height;
+            
+            // Real-time validation
+            function validateField(input, fieldName) {
+                const value = input.value.trim();
+                const errorSpan = input.parentNode.querySelector('span[data-valmsg-for]');
+                
+                if (!value) {
+                    input.classList.add('border-red-500');
+                    if (errorSpan && !errorSpan.textContent) {
+                        errorSpan.textContent = fieldName + ' is required';
+                    }
+                    return false;
+                } else {
+                    input.classList.remove('border-red-500');
+                    if (errorSpan) {
+                        errorSpan.textContent = '';
+                    }
+                    return true;
+                }
+            }
+
+            usernameInput.addEventListener('blur', function() {
+                validateField(this, '@L["Username"]');
+            });
+
+            passwordInput.addEventListener('blur', function() {
+                validateField(this, '@L["Password"]');
+            });
+
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                if (!validateField(usernameInput, '@L["Username"]')) {
+                    isValid = false;
+                }
+                
+                if (!validateField(passwordInput, '@L["Password"]')) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+            [usernameInput, passwordInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.classList.remove('border-red-500');
+                        const errorSpan = this.parentNode.querySelector('span[data-valmsg-for]');
+                        if (errorSpan) {
+                            errorSpan.textContent = '';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

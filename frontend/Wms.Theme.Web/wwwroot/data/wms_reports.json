@@ -1,0 +1,789 @@
+{
+  "inventory": [
+    {
+      "sku": "IP15-PRO-MAX",
+      "name": "iPhone 15 Pro Max 256GB",
+      "loc": "A-01-01",
+      "qty": 120,
+      "val": 3600000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "IP15-PLUS",
+      "name": "iPhone 15 Plus 128GB",
+      "loc": "A-01-02",
+      "qty": 45,
+      "val": 1125000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "IP14-STD",
+      "name": "iPhone 14 Standard",
+      "loc": "A-01-03",
+      "qty": 8,
+      "val": 160000000,
+      "status": "Low"
+    },
+    {
+      "sku": "SS-S24-ULTRA",
+      "name": "Samsung S24 Ultra 512GB",
+      "loc": "A-02-01",
+      "qty": 5,
+      "val": 150000000,
+      "status": "Low"
+    },
+    {
+      "sku": "SS-Z-FOLD5",
+      "name": "Samsung Galaxy Z Fold 5",
+      "loc": "A-02-02",
+      "qty": 20,
+      "val": 800000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "SS-Z-FLIP5",
+      "name": "Samsung Galaxy Z Flip 5",
+      "loc": "A-02-03",
+      "qty": 0,
+      "val": 0,
+      "status": "Out of Stock"
+    },
+    {
+      "sku": "MAC-M3-PRO",
+      "name": "MacBook Pro M3 14 inch",
+      "loc": "B-01-01",
+      "qty": 30,
+      "val": 1200000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "MAC-AIR-M2",
+      "name": "MacBook Air M2 13 inch",
+      "loc": "B-01-02",
+      "qty": 55,
+      "val": 1375000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "DELL-XPS-15",
+      "name": "Dell XPS 15 9530",
+      "loc": "B-02-01",
+      "qty": 0,
+      "val": 0,
+      "status": "Out of Stock"
+    },
+    {
+      "sku": "ASUS-ROG-G14",
+      "name": "Asus ROG Zephyrus G14",
+      "loc": "B-02-02",
+      "qty": 12,
+      "val": 480000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "LENOVO-X1",
+      "name": "ThinkPad X1 Carbon Gen 11",
+      "loc": "B-03-01",
+      "qty": 3,
+      "val": 90000000,
+      "status": "Low"
+    },
+    {
+      "sku": "IPAD-AIR-5",
+      "name": "iPad Air 5 M1 Wifi",
+      "loc": "C-01-01",
+      "qty": 150,
+      "val": 2250000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "IPAD-PRO-11",
+      "name": "iPad Pro 11 inch M2",
+      "loc": "C-01-02",
+      "qty": 40,
+      "val": 800000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "WATCH-S9",
+      "name": "Apple Watch Series 9",
+      "loc": "C-02-01",
+      "qty": 200,
+      "val": 2000000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "AIRPODS-PRO2",
+      "name": "AirPods Pro 2 USB-C",
+      "loc": "C-02-02",
+      "qty": 300,
+      "val": 1800000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "SONY-WH1000",
+      "name": "Sony WH-1000XM5",
+      "loc": "D-01-01",
+      "qty": 25,
+      "val": 175000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "JBL-FLIP6",
+      "name": "Loa Bluetooth JBL Flip 6",
+      "loc": "D-01-02",
+      "qty": 60,
+      "val": 120000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "LOGI-MX-MST",
+      "name": "Chuột Logitech MX Master 3S",
+      "loc": "D-02-01",
+      "qty": 80,
+      "val": 160000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "KEY-K2-PRO",
+      "name": "Bàn phím Keychron K2 Pro",
+      "loc": "D-02-02",
+      "qty": 2,
+      "val": 4000000,
+      "status": "Low"
+    },
+    {
+      "sku": "LG-27UP850",
+      "name": "Màn hình LG 27UP850 4K",
+      "loc": "E-01-01",
+      "qty": 10,
+      "val": 100000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "DELL-U2723QE",
+      "name": "Màn hình Dell UltraSharp U2723QE",
+      "loc": "E-01-02",
+      "qty": 0,
+      "val": 0,
+      "status": "Out of Stock"
+    },
+    {
+      "sku": "CABLE-C-L",
+      "name": "Cáp Type C to Lightning Anker",
+      "loc": "F-01-01",
+      "qty": 500,
+      "val": 150000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "CHARGER-65W",
+      "name": "Sạc Ugreen Nexode 65W",
+      "loc": "F-01-02",
+      "qty": 120,
+      "val": 96000000,
+      "status": "Normal"
+    },
+    {
+      "sku": "CASE-IP15",
+      "name": "Ốp lưng iPhone 15 Silicone",
+      "loc": "F-02-01",
+      "qty": 1000,
+      "val": 500000000,
+      "status": "Normal"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-001",
+      "type": "Inbound",
+      "partner": "Apple Inc",
+      "date": "2025-12-01",
+      "status": "Done",
+      "total": 5000000000
+    },
+    {
+      "id": "ORD-002",
+      "type": "Outbound",
+      "partner": "The Gioi Di Dong",
+      "date": "2025-12-01",
+      "status": "Done",
+      "total": 1200000000
+    },
+    {
+      "id": "ORD-003",
+      "type": "Outbound",
+      "partner": "FPT Shop",
+      "date": "2025-12-02",
+      "status": "Done",
+      "total": 850000000
+    },
+    {
+      "id": "ORD-004",
+      "type": "Inbound",
+      "partner": "Samsung Vietnam",
+      "date": "2025-12-02",
+      "status": "Done",
+      "total": 2000000000
+    },
+    {
+      "id": "ORD-005",
+      "type": "Outbound",
+      "partner": "CellphoneS",
+      "date": "2025-12-02",
+      "status": "Processing",
+      "total": 450000000
+    },
+    {
+      "id": "ORD-006",
+      "type": "Outbound",
+      "partner": "Hoang Ha Mobile",
+      "date": "2025-12-03",
+      "status": "Processing",
+      "total": 300000000
+    },
+    {
+      "id": "ORD-007",
+      "type": "Inbound",
+      "partner": "Dell Distributor",
+      "date": "2025-12-03",
+      "status": "Pending",
+      "total": 1500000000
+    },
+    {
+      "id": "ORD-008",
+      "type": "Outbound",
+      "partner": "Phong Vu",
+      "date": "2025-12-03",
+      "status": "Pending",
+      "total": 600000000
+    },
+    {
+      "id": "ORD-009",
+      "type": "Inbound",
+      "partner": "Logitech VN",
+      "date": "2025-12-04",
+      "status": "Done",
+      "total": 200000000
+    },
+    {
+      "id": "ORD-010",
+      "type": "Outbound",
+      "partner": "Nguyen Kim",
+      "date": "2025-12-04",
+      "status": "Pending",
+      "total": 900000000
+    },
+    {
+      "id": "ORD-011",
+      "type": "Inbound",
+      "partner": "LG Electronics",
+      "date": "2025-12-04",
+      "status": "Processing",
+      "total": 800000000
+    },
+    {
+      "id": "ORD-012",
+      "type": "Outbound",
+      "partner": "MediaMart",
+      "date": "2025-12-05",
+      "status": "Pending",
+      "total": 150000000
+    },
+    {
+      "id": "ORD-013",
+      "type": "Outbound",
+      "partner": "Viettel Store",
+      "date": "2025-12-05",
+      "status": "Pending",
+      "total": 550000000
+    },
+    {
+      "id": "ORD-014",
+      "type": "Inbound",
+      "partner": "Asus VN",
+      "date": "2025-12-05",
+      "status": "Pending",
+      "total": 1200000000
+    }
+  ],
+  "warehouse": [
+    {
+      "zone": "Zone A (High Value)",
+      "cap": 1000,
+      "used": 950
+    },
+    {
+      "zone": "Zone B (Laptops)",
+      "cap": 2000,
+      "used": 1200
+    },
+    {
+      "zone": "Zone C (Tablets/Watch)",
+      "cap": 3000,
+      "used": 2800
+    },
+    {
+      "zone": "Zone D (Audio)",
+      "cap": 1500,
+      "used": 400
+    },
+    {
+      "zone": "Zone E (Displays)",
+      "cap": 800,
+      "used": 750
+    },
+    {
+      "zone": "Zone F (Accessories)",
+      "cap": 10000,
+      "used": 6500
+    },
+    {
+      "zone": "Zone G (Packaging)",
+      "cap": 5000,
+      "used": 1000
+    },
+    {
+      "zone": "Zone H (Returns)",
+      "cap": 500,
+      "used": 45
+    }
+  ],
+  "performance": [
+    {
+      "name": "Nguyen Van A",
+      "role": "Picker",
+      "score": 98,
+      "tasks": 150
+    },
+    {
+      "name": "Tran Thi B",
+      "role": "Packer",
+      "score": 95,
+      "tasks": 120
+    },
+    {
+      "name": "Le Van C",
+      "role": "Forklift",
+      "score": 88,
+      "tasks": 80
+    },
+    {
+      "name": "Pham Thi D",
+      "role": "Inventory",
+      "score": 92,
+      "tasks": 200
+    },
+    {
+      "name": "Hoang Van E",
+      "role": "Picker",
+      "score": 75,
+      "tasks": 90
+    },
+    {
+      "name": "Vo Thi F",
+      "role": "Packer",
+      "score": 100,
+      "tasks": 145
+    },
+    {
+      "name": "Dang Van G",
+      "role": "Manager",
+      "score": 99,
+      "tasks": 50
+    },
+    {
+      "name": "Bui Thi H",
+      "role": "Picker",
+      "score": 85,
+      "tasks": 110
+    }
+  ],
+  "discrepancy": [
+    {
+      "sku": "KEY-K2-PRO",
+      "sys_qty": 50,
+      "phy_qty": 48,
+      "variance": -2,
+      "reason": "Hàng hỏng hủy bỏ"
+    },
+    {
+      "sku": "LOGI-MX-MST",
+      "sys_qty": 100,
+      "phy_qty": 101,
+      "variance": 1,
+      "reason": "Nhập sót đơn cũ"
+    },
+    {
+      "sku": "IP15-PRO-MAX",
+      "sys_qty": 120,
+      "phy_qty": 120,
+      "variance": 0,
+      "reason": "Khớp"
+    },
+    {
+      "sku": "DELL-XPS-15",
+      "sys_qty": 1,
+      "phy_qty": 0,
+      "variance": -1,
+      "reason": "Thất lạc"
+    },
+    {
+      "sku": "CABLE-C-L",
+      "sys_qty": 500,
+      "phy_qty": 505,
+      "variance": 5,
+      "reason": "NCC giao thừa"
+    },
+    {
+      "sku": "AIRPODS-PRO2",
+      "sys_qty": 300,
+      "phy_qty": 298,
+      "variance": -2,
+      "reason": "Hộp móp, chuyển kho lỗi"
+    },
+    {
+      "sku": "SS-Z-FLIP5",
+      "sys_qty": 0,
+      "phy_qty": 0,
+      "variance": 0,
+      "reason": "Khớp"
+    }
+  ],
+  "audit": [
+    {
+      "time": "2025-12-05 16:45",
+      "user": "admin",
+      "action": "LOGOUT",
+      "details": "Đăng xuất hệ thống"
+    },
+    {
+      "time": "2025-12-05 16:30",
+      "user": "manager",
+      "action": "APPROVE",
+      "details": "Duyệt đơn nhập ORD-014"
+    },
+    {
+      "time": "2025-12-05 15:15",
+      "user": "staff_01",
+      "action": "PICK",
+      "details": "Nhặt 20 SKU IP15-PRO cho đơn ORD-012"
+    },
+    {
+      "time": "2025-12-05 14:00",
+      "user": "staff_02",
+      "action": "PACK",
+      "details": "Đóng gói đơn ORD-006"
+    },
+    {
+      "time": "2025-12-05 11:30",
+      "user": "admin",
+      "action": "UPDATE",
+      "details": "Điều chỉnh kho Zone E"
+    },
+    {
+      "time": "2025-12-05 10:00",
+      "user": "staff_01",
+      "action": "RECEIVE",
+      "details": "Nhập kho 500 Cable Anker"
+    },
+    {
+      "time": "2025-12-05 09:15",
+      "user": "manager",
+      "action": "DELETE",
+      "details": "Xóa đơn nháp ORD-000"
+    },
+    {
+      "time": "2025-12-05 08:30",
+      "user": "staff_03",
+      "action": "LOGIN",
+      "details": "Đăng nhập ca sáng"
+    },
+    {
+      "time": "2025-12-04 17:00",
+      "user": "system",
+      "action": "BACKUP",
+      "details": "Sao lưu dữ liệu tự động"
+    },
+    {
+      "time": "2025-12-04 14:20",
+      "user": "staff_02",
+      "action": "ERROR",
+      "details": "Lỗi in tem vận đơn"
+    },
+    {
+      "time": "2025-12-04 10:10",
+      "user": "admin",
+      "action": "CREATE",
+      "details": "Tạo user mới: staff_04"
+    },
+    {
+      "time": "2025-12-04 08:05",
+      "user": "manager",
+      "action": "LOGIN",
+      "details": "Đăng nhập thành công"
+    }
+  ],
+
+  "traceability": [
+    {
+      "lotInfo": {
+        "lotNumber": "LOT-2023-001",
+        "status": "Sẵn sàng",
+        "statusClass": "bg-green-100 text-green-800 border-green-400",
+        "sku": "IP15-PRO",
+        "productName": "iPhone 15 Pro Max 256GB",
+        "supplier": "Apple Inc. (PO-999)",
+        "mfgDate": "01/11/2023",
+        "expDate": "N/A",
+        "totalIn": 500,
+        "currentQty": 120
+      },
+      "timeline": [
+        {
+          "type": "in",
+          "title": "Nhập kho",
+          "date": "01/12 08:30",
+          "desc": "Nhập 500 cái vào ZONE-A",
+          "user": "Admin",
+          "code": "AD"
+        },
+        {
+          "type": "move",
+          "title": "Chuyển kho",
+          "date": "02/12 10:15",
+          "desc": "Chuyển 50 cái sang ZONE-B",
+          "user": "Staff 01",
+          "code": "S1"
+        },
+        {
+          "type": "audit",
+          "title": "Kiểm kê",
+          "date": "03/12 09:00",
+          "desc": "Xác nhận số lượng",
+          "user": "QC Team",
+          "code": "QC"
+        },
+        {
+          "type": "out",
+          "title": "Xuất bán",
+          "date": "05/12 14:00",
+          "desc": "Xuất 20 cái cho SO-001",
+          "user": "Staff 02",
+          "code": "S2"
+        },
+        {
+          "type": "warn",
+          "title": "Phát hiện lỗi",
+          "date": "06/12 11:30",
+          "desc": "Chuyển 1 cái vỏ móp",
+          "user": "Staff 01",
+          "code": "S1"
+        },
+        {
+          "type": "error",
+          "title": "Nhận hàng trả",
+          "date": "07/12 16:45",
+          "desc": "Khách trả 1 cái lỗi màn hình",
+          "user": "CS Team",
+          "code": "CS"
+        },
+        {
+          "type": "info",
+          "title": "Lấy mẫu",
+          "date": "08/12 09:15",
+          "desc": "QA lấy 2 cái kiểm tra",
+          "user": "QA Team",
+          "code": "QA"
+        },
+        {
+          "type": "move",
+          "title": "Đóng gói lại",
+          "date": "09/12 14:20",
+          "desc": "Thay bao bì 10 cái",
+          "user": "Staff 03",
+          "code": "S3"
+        },
+        {
+          "type": "dark",
+          "title": "Xuất hủy",
+          "date": "10/12 17:00",
+          "desc": "Hủy 1 cái lỗi",
+          "user": "Manager",
+          "code": "MG"
+        }
+      ],
+      "distribution": [
+        {
+          "customer": "TGDD Corp",
+          "qty": -20,
+          "date": "05/12",
+          "ref": "SO-001"
+        },
+        {
+          "customer": "FPT Retail",
+          "qty": -300,
+          "date": "06/12",
+          "ref": "SO-005"
+        },
+        {
+          "customer": "Khách lẻ (A. Nam)",
+          "qty": -1,
+          "date": "07/12",
+          "ref": "POS-99"
+        },
+        {
+          "customer": "CellphoneS",
+          "qty": -50,
+          "date": "08/12",
+          "ref": "SO-008"
+        },
+        {
+          "customer": "Viettel Store",
+          "qty": -100,
+          "date": "09/12",
+          "ref": "SO-012"
+        },
+        {
+          "customer": "Hoàng Hà Mobile",
+          "qty": -25,
+          "date": "10/12",
+          "ref": "SO-015"
+        },
+        {
+          "customer": "Di Động Việt",
+          "qty": -15,
+          "date": "11/12",
+          "ref": "SO-020"
+        },
+        {
+          "customer": "Clickbuy",
+          "qty": -10,
+          "date": "11/12",
+          "ref": "SO-022"
+        },
+        {
+          "customer": "TechOne",
+          "qty": -5,
+          "date": "12/12",
+          "ref": "SO-025"
+        }
+      ]
+    },
+    {
+      "lotInfo": {
+        "lotNumber": "LOT-2023-001-B",
+        "status": "Sẵn sàng",
+        "statusClass": "bg-green-100 text-green-800 border-green-400",
+        "sku": "IP15-PRO",
+        "productName": "iPhone 15 Pro Max 256GB (Batch 2)",
+        "supplier": "Apple Inc. (PO-999)",
+        "mfgDate": "01/11/2023",
+        "expDate": "N/A",
+        "totalIn": 500,
+        "currentQty": 120
+      },
+      "timeline": [
+        {
+          "type": "in",
+          "title": "Nhập kho",
+          "date": "01/12 08:30",
+          "desc": "Nhập 500 cái vào ZONE-A",
+          "user": "Admin",
+          "code": "AD"
+        },
+        {
+          "type": "out",
+          "title": "Xuất bán",
+          "date": "05/12 14:00",
+          "desc": "Xuất 20 cái cho SO-001",
+          "user": "Staff 02",
+          "code": "S2"
+        }
+      ],
+      "distribution": [
+        {
+          "customer": "TGDD Corp",
+          "qty": -20,
+          "date": "05/12",
+          "ref": "SO-001"
+        }
+      ]
+    },
+    {
+      "lotInfo": {
+        "lotNumber": "LOT-2023-002",
+        "status": "Đang kiểm tra",
+        "statusClass": "bg-yellow-100 text-yellow-800 border-yellow-400",
+        "sku": "SS-S24-ULTRA",
+        "productName": "Samsung S24 Ultra 512GB",
+        "supplier": "Samsung VN (PO-1024)",
+        "mfgDate": "15/11/2023",
+        "expDate": "N/A",
+        "totalIn": 200,
+        "currentQty": 200
+      },
+      "timeline": [
+        {
+          "type": "in",
+          "title": "Nhập kho",
+          "date": "10/12 09:00",
+          "desc": "Nhập 200 cái vào ZONE-INBOUND",
+          "user": "Staff 01",
+          "code": "S1"
+        },
+        {
+          "type": "audit",
+          "title": "QC Hold",
+          "date": "10/12 10:30",
+          "desc": "Giữ hàng để kiểm tra ngẫu nhiên",
+          "user": "QC Team",
+          "code": "QC"
+        }
+      ],
+      "distribution": []
+    },
+    {
+      "lotInfo": {
+        "lotNumber": "LOT-2023-003",
+        "status": "Hết hàng",
+        "statusClass": "bg-gray-100 text-gray-600 border-gray-300",
+        "sku": "MAC-M3",
+        "productName": "MacBook Pro M3 14 inch",
+        "supplier": "Synnex FPT (PO-888)",
+        "mfgDate": "20/10/2023",
+        "expDate": "N/A",
+        "totalIn": 50,
+        "currentQty": 0
+      },
+      "timeline": [
+        {
+          "type": "in",
+          "title": "Nhập kho",
+          "date": "01/11 08:00",
+          "desc": "Nhập 50 cái",
+          "user": "Admin",
+          "code": "AD"
+        },
+        {
+          "type": "out",
+          "title": "Xuất hết",
+          "date": "15/11 16:00",
+          "desc": "Xuất 50 cái cho đại lý cấp 1",
+          "user": "Manager",
+          "code": "MG"
+        }
+      ],
+      "distribution": [
+        {
+          "customer": "FPT Shop",
+          "qty": -50,
+          "date": "15/11",
+          "ref": "SO-099"
+        }
+      ]
+    }
+  ]
+
+
+}

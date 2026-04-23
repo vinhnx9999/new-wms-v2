@@ -1,0 +1,523 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inbound.Receipt.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["InboundReceipt"];
+    var role = TempData.Peek("UserRole")?.ToString();
+}
+
+@if (role != "Admin" && role != "Operator")
+{
+    <div class= "flex items-end gap-2" ></div>
+}
+else
+{
+    @Html.AntiForgeryToken()
+
+    <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
+        <div class="flex items-end gap-2">
+            <div class="flex-1 flex flex-col gap-1">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="@Html.Raw(L["SearchPlaceholder"])"
+                           class="w-full pl-10 px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white">
+                </div>
+            </div>
+
+            <a href="/Inbound/Receipt/Create" title="@Html.Raw(L["CreateNew"])"
+                   class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors shadow-sm flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </a>
+            <div class="flex gap-3">
+                <form id="excelFormReceipt" asp-action="Inbound/Receipt/ImportExcel" enctype="multipart/form-data" method="post">
+                    <input type="file" name="excelFile" accept=".xlsx,.xls" class="hidden" id="excelUploadReceipt" />
+                    <label for="excelUploadReceipt" class="btn btn-secondary cursor-pointer">
+                        @L["Common_ImportExcel"]
+                    </label>
+                </form>
+                <button id="downloadBtnReceipt" class="btn btn-primary" title="@Html.Raw(L["GetTemplate"])"> <span class="hidden sm:inline">@Html.Raw(L["GetTemplate"])</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+        background-color:rgba(0,0,0,0.4); z-index:9998;">
+    </div>
+
+    <div id="loadingSpinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang xử lý...</span>
+        </div>
+    </div>
+
+
+    <div id="receiptGrid" class="ag-theme-quartz" style="height: calc(100vh - 220px); width: 100%;"></div>
+
+}
+
+@section Scripts {
+    <script>
+       
+        document.getElementById("excelUploadReceipt").addEventListener("change", function () {
+            // Hiện loading
+            document.getElementById("loadingSpinner").style.display = "block";
+            document.getElementById("loadingOverlay").style.display = "block";
+
+            const form = document.getElementById("excelFormReceipt");
+            const formData = new FormData(form);
+
+            fetch('?handler=ImportExcel', {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+
+                document.getElementById("loadingOverlay").style.display = "none";
+                document.getElementById("loadingSpinner").style.display = "none";
+
+                if (response.ok) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    Notify.info('@Html.Raw(L["Retry"])');
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingSpinner").style.display = "none";
+                document.getElementById("loadingOverlay").style.display = "none";
+                console.error("Lỗi:", error);
+                Notify.error('Connection error');
+            });
+
+        });
+
+        document.getElementById("downloadBtnReceipt").addEventListener("click", async () => {
+            try {
+                const response = await fetch('?handler=DownloadTemplate');
+                if (!response.ok) {
+                    throw new Error("Không thể tải file");
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "TemplateInbound.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                Notify.error(err.message);
+            }
+        });
+            
+     
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        const columnDefs = [
+            {
+                headerName: '@Html.Raw(L["CreateReceipt_ReceiptNumber"])',
+                field: "receiptNo",
+                minWidth: 95,
+                pinned: 'left',
+                sortable : true,
+                cellRenderer: params => {
+                    if (!params.data) return '';
+
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    let isCompleted = +(params.data.status ?? 0) === 3;
+                    let cssRow = isCancelled ? "line-through text-orange-600 dark:text-orange-400 text-red-700" : 
+                        isCompleted ? " text-green-700" : "text-gray-700 dark:text-gray-500";
+
+                    if (!params.data) {
+                        return `<span class="italic text-sm ${cssRow}"><i class="fas fa-spinner fa-spin mr-1"></i></span>`;
+                    }
+                    let linkHtml = `<a href="/Inbound/Receipt/Detail/${params.data.id}" class="hover:underline font-bold">${params.value || ''}</a>`;
+                             
+                    let exceptionIcon = '';
+                    if (params.data.isException) {
+                        exceptionIcon = `
+                            <span title="@L["Error"]"
+                                  class="ml-2 inline-flex items-center justify-center text-red-500 bg-red-100 rounded-full h-5 w-5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </span>`;
+                    }
+
+                    return `<div class="flex items-center h-full ${cssRow}">${linkHtml} ${exceptionIcon}</div>`;
+                }
+            },
+            {
+                headerName: '@Html.Raw(L["CreateReceipt_ReceiptType"])',
+                field: "receiptType",
+                width: 120,
+                valueFormatter: (params) => getReceiptTypeLabel(params.value)
+            },
+            {
+                headerName: '@Html.Raw(L["Supplier"])',
+                sortable : true,
+                field: "supplierName",
+                flex: 1,
+                minWidth: 200
+            },
+            {
+                headerName: '@Html.Raw(L["Warehouse"])',
+                sortable : true,
+                field: "warehouseName",
+                flex: 1,
+                minWidth: 200
+            },
+            {
+                headerName: '@Html.Raw(L["TotalQuantity"])',
+                sortable : true,
+                field: "totalQty",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+                valueFormatter: params => {
+                    if (!params.data) return '';
+                   
+                    return params.value ? params.value : '0';                
+                }
+            },
+            {
+               headerName: '@Html.Raw(L["CreatedDate"])',
+               sortable : true,
+               field: "createDate", 
+               width: 130,
+               valueFormatter: params => {
+                   if (!params.value) return ''; 
+                   
+                   const date = new Date(params.value);             
+                 
+                   if (isNaN(date.getTime())) return params.value;
+
+                   const d = String(date.getDate()).padStart(2, '0');
+                   const m = String(date.getMonth() + 1).padStart(2, '0');
+                   const y = date.getFullYear();
+
+                   return `${d}/${m}/${y}`;
+               }
+           },
+           {
+                headerName: '@Html.Raw(L["CreateReceipt_IsStored"])',
+                sortable : true,
+                field: "isStored",
+                width: 80,                    
+                cellRenderer: params => {
+                    if (!params.data) return '';
+                    if (params.value) {
+                       
+                        return `
+                            <div class="flex items-center justify-center w-full h-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>`;
+                    } else {
+                      
+                        return `
+                            <div class="flex items-center justify-center w-full h-full text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
+                                </svg>
+                            </div>`;
+                    }
+                }
+           },
+            {
+                headerName: '@Html.Raw(L["Description"])',
+                sortable : true,
+                field: "description",
+                flex: 1,
+                minWidth: 200,              
+            },
+            {
+                headerName: '@Html.Raw(L["Status"])',
+                sortable : true,
+                field: "status",
+                width: 150,
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    
+                    const statusMap = {
+                        0: { text: '@Html.Raw(L["Status_Draft"])', class: 'bg-gray-100 text-gray-700 border-gray-200' },
+                        1: { text: '@Html.Raw(L["Status_Confirmed"])', class: 'bg-blue-100 text-blue-700 border-blue-200' },
+                        2: { text: '@Html.Raw(L["Status_Picking"])', class: 'bg-amber-100 text-amber-700 border-amber-200' },
+                        3: { text: '@Html.Raw(L["Status_Completed"])', class: 'bg-green-100 text-green-700 border-green-200' },
+                        4: { text: '@Html.Raw(L["Status_Cancelled"])', class: 'bg-red-100 text-red-700 border-red-200' }
+                    };
+                    const s = statusMap[params.value] || { text: '@Html.Raw(L["Status_Other"])', class: 'bg-gray-100 text-gray-700' };
+                    return `<span class="px-2.5 py-1 rounded-md text-xs font-bold border ${s.class}">${s.text}</span>`;
+                }
+            },
+            {
+                headerName: '',
+                width: 45,
+                sortable: false,
+                filter: false,
+                pinned: 'right',
+                cellRenderer: params => {
+                    if (!params.data) return '';
+                    
+                    let isCancelled = +(params.data.status ?? 0) === 4;
+                    if(isCancelled) {
+                        return `<div class="flex items-center justify-center h-full text-orange-600 dark:text-orange-400 " title="Phục hồi">
+                            <a href="javascript:void(0)" onclick="revertReceipt(${params.data.id})">
+                                <i class="fa fa-reply"></i>
+                            </a>
+                        </div>`
+                    }
+
+                    if (params.data.status > 0 ) {
+                        return `<div class="flex items-center justify-center h-full" title="Clone">
+                            <a href="javascript:void(0)" onclick="cloneReceipt(${params.data.id})">
+                                <i class="fa fa-clone"></i>
+                            </a>
+                        </div>`;
+                    }
+
+                    return `
+                        <div class="flex items-center justify-center h-full">
+                            <a href="javascript:void(0)" onclick="deleteReceipt(${params.data.id})" class="text-gray-500 hover:text-red-600 transition-colors" title="Xóa phiếu">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </a>
+                        </div>`;
+                }
+            },
+            {
+                headerName: '',
+                width: 45,
+                sortable: false,
+                filter: false,
+                pinned: 'right',
+                cellRenderer: params => {
+                    if (!params.data) return '';
+
+                    if (params.data.status > 0) return '';
+                                            
+                    return `
+                        <div class="flex items-center justify-center h-full">
+                            <a href="/Inbound/Receipt/Edit/${params.data.id}" class="text-gray-500 hover:text-red-600 transition-colors" title="Edit">
+                                <i class="fa fa-pencil-alt"></i>
+                            </a>
+                        </div>`;
+                }
+            }
+        ];
+
+        let gridApi;
+
+        const dataSource = {
+             getRows: async (params) => {
+                 const searchInput = document.getElementById('searchInput');
+                 const searchText = searchInput ? searchInput.value.trim() : '';
+                
+                 const pageSize = gridApi.paginationGetPageSize() || 20;
+                 const pageIndex = Math.floor(params.startRow / pageSize) + 1;
+
+                 const sortModel = params.sortModel;
+                 let sortCol = "";
+                 let sortDir = "";
+                 if (sortModel && sortModel.length > 0) {
+                    sortCol = sortModel[0].colId; 
+                    sortDir = sortModel[0].sort; 
+                 } 
+
+                 try {
+                     const url = `?handler=DataTable&pageIndex=${pageIndex}&pageSize=${pageSize}&text=${encodeURIComponent(searchText)}&sortCol=${sortCol}&sortDir=${sortDir}`;
+                     const response = await fetch(url);
+                    
+                     if (!response.ok) throw new Error('@L["Error_Connection"]');
+                    
+                     const result = await response.json();
+
+                     const rows = result.rows || [];
+                     const totals = result.totals || 0;
+
+                     params.successCallback(rows, totals);
+                 } catch (error) {
+                     console.error('@L["Error"]', error);
+                     params.failCallback();
+                 }
+             }
+         };
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowModelType: 'infinite',
+            pagination: true,
+            paginationPageSize: 20,
+            cacheBlockSize: 20,
+            overlayLoadingTemplate: `<span class="ag-overlay-loading-center">@L["LoadingData"]</span>`,
+            overlayNoRowsTemplate: `<span class="ag-overlay-no-rows-center text-gray-500">@L["NoReceiptsFound"]</span>`,
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#receiptGrid');
+            if (document.documentElement.classList.contains('dark')) {
+                gridDiv.classList.remove('ag-theme-quartz');
+                gridDiv.classList.add('ag-theme-quartz-dark');
+            }
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+            
+            gridApi.setGridOption('datasource', dataSource);
+
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(function () {
+                    gridApi.setGridOption('datasource', dataSource);
+                }, 500));
+
+                searchInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        gridApi.setGridOption('datasource', dataSource);
+                    }
+                });
+            }
+        });
+
+        async function cloneReceipt(id) {
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("__RequestVerificationToken", tokenInput.value);
+                const response = await fetch(`?handler=CloneData`,
+                    {
+                       method: 'POST',
+                       body: formData
+                    }
+                );
+
+                if (!response.ok) throw new Error('@L["Error_Connection"]');
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    if (gridApi) {
+                        gridApi.setGridOption('datasource', dataSource);
+                    }
+
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('@L["Error"]', error);
+                Notify.error('@L["Error"]');
+            }
+        }
+
+        async function revertReceipt(id) { 
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const formData = new FormData();
+                formData.append("id", id);
+                formData.append("__RequestVerificationToken", tokenInput.value);
+                const response = await fetch(`?handler=RevertData`,
+                    {
+                       method: 'POST',
+                       body: formData
+                    }
+                );
+
+                if (!response.ok) throw new Error('@L["Error_Connection"]');
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    if (gridApi) {
+                        gridApi.setGridOption('datasource', dataSource);
+                    }
+
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('@L["Error"]', error);
+                Notify.error('@L["Error"]');
+            }
+        }
+             
+        async function deleteReceipt(id) {
+            const isConfirmed = await Notify.confirm(
+                "@Html.Raw(@L["Confirm_DeleteReceipt"])",
+                "@Html.Raw(@L["Confirm_DeleteReceiptMessage"])",
+                "@Html.Raw(@L["Confirm_DeleteReceiptButton"])"
+            );
+
+            if (!isConfirmed) return;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+
+            const formData = new FormData();
+            formData.append("id", id);
+            formData.append("__RequestVerificationToken", tokenInput.value);
+
+            try {
+             
+                const response = await fetch(`?handler=Delete`,
+                    { 
+                       method: 'POST',
+                       body: formData 
+                    }
+                );
+        
+                if (!response.ok) throw new Error('@L["Error_Connection"]');
+        
+                const result = await response.json();
+                if (result.success) {
+                    Notify.success(result.message); 
+                    if (gridApi) {
+                        gridApi.setGridOption('datasource', dataSource);
+                    }
+
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('@L["Error"]', error);
+                Notify.error('@L["Error"]');
+            }
+        }
+
+        const receiptTypeLabels = {
+            PURCHASE: '@Html.Raw(L["CreateReceipt_TypePurchase"])',
+            RETURN:   '@Html.Raw(L["CreateReceipt_TypeReturn"])',
+            TRANSFER: '@Html.Raw(L["CreateReceipt_TypeTransfer"])',
+            MISC:     '@Html.Raw(L["CreateReceipt_TypeMisc"])',
+        };
+
+        function getReceiptTypeLabel(rawType) {
+            const key = (rawType ?? '').toString().trim().toUpperCase();
+            return receiptTypeLabels[key] || rawType || '';
+        }
+    </script>
+}

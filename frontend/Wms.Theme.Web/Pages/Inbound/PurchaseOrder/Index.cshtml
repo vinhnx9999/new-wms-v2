@@ -1,0 +1,366 @@
+@page "/PurchaseOrder"
+@model Wms.Theme.Web.Pages.PurchaseOrder.IndexModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["PurchaseOrder"];
+}
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+}
+
+<div class="px-4" style="height : 80vh; overflow : hidden">
+    <!-- Search Bar -->
+    <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
+        <div class="flex items-end gap-2">
+            <div class="flex-1 flex flex-col gap-1">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                        </svg>
+                    </div>
+                    <input id="txtSearch" type="text"
+                           placeholder="@Html.Raw(L["Search"])"
+                           class="w-full pl-10 px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white">
+                </div>
+            </div>
+
+            <button id="btnToggleAdvanced"
+                    class="px-3 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-slate-600 dark:text-slate-300 bg-white dark:bg-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+            </button>
+
+            <a href="/PurchaseOrder/Create" title="@Html.Raw(L["CreateNew"])"
+               class="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors shadow-sm flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Advanced -->
+        <div id="advancedFilters" class="hidden mt-4 pt-4 border-t border-slate-200 dark:border-gray-700 grid grid-cols-12 gap-4 items-end">
+            <div class="col-span-12 md:col-span-6 lg:col-span-5 flex flex-col gap-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">@Html.Raw(L["OrderDate"])</label>
+                <div class="relative">
+                    <input id="orderDateRange" type="text"
+                           class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
+                           placeholder="@Html.Raw(L["OrderDate"])">
+                </div>
+            </div>
+
+            <div class="col-span-12 md:col-span-6 lg:col-span-5 flex flex-col gap-1">
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">@Html.Raw(L["ExpectedDelivery"])</label>
+                <div class="relative">
+                    <input id="expectedDeliveryDateRange" type="text"
+                           class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white"
+                           placeholder="@Html.Raw(L["ExpectedDelivery"])">
+                </div>
+            </div>
+
+            <div class="col-span-12 md:col-span-12 lg:col-span-2 flex justify-end gap-2">
+                <button id="btnApplyFilter" title="@Html.Raw(L["Apply"])"
+                        class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-colors shadow-sm flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+                <button id="btnClearFilter" title="@Html.Raw(L["Clear"])"
+                        class="p-2 bg-white dark:bg-gray-800 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-gray-600 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="poGrid" class="ag-theme-alpine w-full" style="height: 400px;"></div>
+
+    <!-- Pager -->
+    <div class="mt-3 flex items-center justify-end gap-3 text-sm">
+        <button id="btnPrevPage" class="px-3 py-1 rounded border border-slate-300 dark:border-gray-600">@Html.Raw(L["Previous"])</button>
+        <span id="pageInfo" class="text-slate-600 dark:text-slate-300">1 / 1</span>
+        <button id="btnNextPage" class="px-3 py-1 rounded border border-slate-300 dark:border-gray-600">@Html.Raw(L["Next"])</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        let gridApi;
+        let currentPageIndex = 1;
+        let pageSize = 10;
+        let totalPages = 1;
+
+        const filterState = {
+            text: '',
+            orderDateFrom: '',
+            orderDateTo: '',
+            expectedDeliveryDateFrom: '',
+            expectedDeliveryDateTo: ''
+        };
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                0: { text: '@Html.Raw(L["Created"])', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+                1: { text: '@Html.Raw(L["Processing"])', class: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' },
+                2: { text: '@Html.Raw(L["Completed"])', class: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+                3: { text: '@Html.Raw(L["Canceled"])', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+                99: { text: '@Html.Raw(L["Unknown"])', class: 'bg-gray-100 text-gray-800' }
+            };
+            const s = statusMap[status] || statusMap[99];
+            return `<span class="px-2 py-1 rounded text-xs font-semibold ${s.class}">${s.text}</span>`;
+        }
+
+        function renderActions(params) {
+            const row = params.data;
+            let html = `<div class="flex justify-end gap-2">`;
+
+            if (row.poStatus === 0) {
+                html += `<button onclick="deletePo(${row.id})" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors" title="@Html.Raw(L["Delete"])">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                         </button>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        const gridOptions = {
+            rowData: [],
+            columnDefs: [
+                {
+                    headerName: '@Html.Raw(L["PONumber"])',
+                    field: 'poNo',
+                    cellRenderer: (params) => `<a href="/PurchaseOrder/Detail/${params.data.id}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">${params.value ?? ''}</a>`
+                },
+                {
+                    headerName: '@Html.Raw(L["OrderDate"])',
+                    field: 'orderDate',
+                    valueFormatter: (p) => p.value ? GlobalFormatDate(p.value) : ''
+                },
+                {
+                    headerName: '@Html.Raw(L["ExpectedDeliveryDate"])',
+                    field: 'expectedDeliveryDate',
+                    valueFormatter: (p) => p.value ? GlobalFormatDate(p.value) : ''
+                },
+                {
+                    headerName: '@Html.Raw(L["Creator"])',
+                    field: 'creator'
+                },
+                {
+                    headerName: '@Html.Raw(L["TotalAmount"])',
+                    field: 'totalAmount',
+                    valueFormatter: (p) => Number(p.value ?? 0).toLocaleString()
+                },
+                {
+                    headerName: '@Html.Raw(L["Status"])',
+                    field: 'poStatus',
+                    cellRenderer: (p) => renderStatusBadge(p.value)
+                },
+                {
+                    headerName: '@Html.Raw(L["Action"])',
+                    field: 'actions',
+                    sortable: false,
+                    filter: false,
+                    maxWidth: 90,
+                    cellRenderer: renderActions
+                }
+            ],
+            defaultColDef: {
+                flex: 1,
+                minWidth: 140,
+                sortable: true,
+                resizable: true
+            },
+            rowHeight: 50,
+            animateRows: true
+        };
+
+        function getCsrfToken() {
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            return tokenElement ? tokenElement.value : '';
+        }
+
+        function updatePager() {
+            document.getElementById('pageInfo').textContent = `${currentPageIndex} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPageIndex <= 1;
+            document.getElementById('btnNextPage').disabled = currentPageIndex >= totalPages;
+        }
+
+        async function loadData(pageIndex = 1) {
+            const query = new URLSearchParams({
+                pageIndex: pageIndex,
+                pageSize: pageSize,
+                text: filterState.text || '',
+                orderDateFrom: filterState.orderDateFrom || '',
+                orderDateTo: filterState.orderDateTo || '',
+                expectedDeliveryDateFrom: filterState.expectedDeliveryDateFrom || '',
+                expectedDeliveryDateTo: filterState.expectedDeliveryDateTo || ''
+            });
+
+            try {
+                const response = await fetch(`?handler=DataTable&${query.toString()}`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const result = await response.json();
+                const rows = result?.data ?? [];
+                const total = result?.total ?? 0;
+
+                currentPageIndex = pageIndex;
+                totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+                gridApi.setGridOption('rowData', rows);
+                updatePager();
+            } catch (error) {
+                console.error(error);
+                Notify.error("@Html.Raw(L["ConnectionError"])");
+            }
+        }
+
+        function bindFilters() {
+            const txtSearch = document.getElementById('txtSearch');
+            const btnToggleAdvanced = document.getElementById('btnToggleAdvanced');
+            const advancedFilters = document.getElementById('advancedFilters');
+            const btnApplyFilter = document.getElementById('btnApplyFilter');
+            const btnClearFilter = document.getElementById('btnClearFilter');
+
+            const debounce = (fn, delay = 500) => {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fn(...args), delay);
+                };
+            };
+
+            txtSearch.addEventListener('input', debounce(() => {
+                filterState.text = txtSearch.value?.trim() ?? '';
+                loadData(1);
+            }, 500));
+
+            txtSearch.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    filterState.text = txtSearch.value?.trim() ?? '';
+                    loadData(1);
+                }
+            });
+
+            btnToggleAdvanced.addEventListener('click', () => {
+                advancedFilters.classList.toggle('hidden');
+            });
+
+            btnApplyFilter.addEventListener('click', () => loadData(1));
+
+            btnClearFilter.addEventListener('click', () => {
+                filterState.text = '';
+                filterState.orderDateFrom = '';
+                filterState.orderDateTo = '';
+                filterState.expectedDeliveryDateFrom = '';
+                filterState.expectedDeliveryDateTo = '';
+                txtSearch.value = '';
+                orderPicker.clear();
+                expectedPicker.clear();
+                loadData(1);
+            });
+        }
+
+        let orderPicker;
+        let expectedPicker;
+
+        function initDatePickers() {
+            orderPicker = flatpickr('#orderDateRange', {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        filterState.orderDateFrom = instance.formatDate(selectedDates[0], 'Y-m-d');
+                        filterState.orderDateTo = instance.formatDate(selectedDates[1], 'Y-m-d');
+                    } else {
+                        filterState.orderDateFrom = '';
+                        filterState.orderDateTo = '';
+                    }
+                }
+            });
+
+            expectedPicker = flatpickr('#expectedDeliveryDateRange', {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        filterState.expectedDeliveryDateFrom = instance.formatDate(selectedDates[0], 'Y-m-d');
+                        filterState.expectedDeliveryDateTo = instance.formatDate(selectedDates[1], 'Y-m-d');
+                    } else {
+                        filterState.expectedDeliveryDateFrom = '';
+                        filterState.expectedDeliveryDateTo = '';
+                    }
+                }
+            });
+        }
+
+        async function deletePo(id) {
+            const confirmed = await Notify.confirm("@Html.Raw(L["ConfirmDeleteMessage"])", "@Html.Raw(L["ConfirmDelete"])", "@Html.Raw(L["DeleteNow"])", true);
+            if (!confirmed) return;
+
+            try {
+                const response = await fetch('?handler=Delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    Notify.success('@Html.Raw(L["OperationSuccessful"])');
+                    loadData(currentPageIndex);
+                } else {
+                    Notify.error('@Html.Raw(L["OperationFailed"])');
+                }
+            } catch (error) {
+                console.error(error);
+                Notify.error("@Html.Raw(L["ConnectionError"])");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridDiv = document.querySelector('#poGrid');
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+
+            initDatePickers();
+            bindFilters();
+
+            document.getElementById('btnPrevPage').addEventListener('click', () => {
+                if (currentPageIndex > 1) loadData(currentPageIndex - 1);
+            });
+
+            document.getElementById('btnNextPage').addEventListener('click', () => {
+                if (currentPageIndex < totalPages) loadData(currentPageIndex + 1);
+            });
+
+            window.addEventListener('datatable-reload', () => loadData(currentPageIndex));
+            loadData(1);
+        });
+    </script>
+}

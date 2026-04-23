@@ -1,0 +1,257 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.SalesOrders.IndexModel
+@{
+    ViewData["Title"] = Html.Raw(L["SalesOrdersList"]);
+}
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js" asp-append-version="true"></script>
+    <script>
+        function salesOrderConfig() {
+            return {
+                apiUrl: '?handler=DataTable',
+                columns: [
+                    {
+                        title: '@Html.Raw(L["DispatchNo"])',
+                        field: 'dispatchNo',
+                        render: (row) => `<a href="/Outbound/SalesOrders/Detail/${row.dispatchNo}" class="text-blue-600 hover:text-blue-800" title="@Html.Raw(L["Details"])">${row.dispatchNo}</a>`
+                    },
+                    { title: '@Html.Raw(L["customer_name"])', field: 'customer' },
+                    {
+                        title: '@Html.Raw(L["Status"])',
+                        field: 'status',
+                        align: 'center',
+                        render: (row) => {
+                            const statusMap = {
+                                0: { text: '@Html.Raw(L["StatusNew"])', class: 'bg-gray-100 text-gray-800' },
+                                1: { text: '@Html.Raw(L["StatusWaitPickup"])', class: 'bg-blue-100 text-blue-800' },
+                                2: { text: '@Html.Raw(L["StatusPicked"])', class: 'bg-cyan-100 text-cyan-800' },
+                                3: { text: '@Html.Raw(L["StatusPacking"])', class: 'bg-teal-100 text-teal-800' },
+                                4: { text: '@Html.Raw(L["StatusPacked"])', class: 'bg-green-100 text-green-800' },
+                                5: { text: '@Html.Raw(L["StatusWeighed"])', class: 'bg-emerald-100 text-emerald-800' },
+                                6: { text: '@Html.Raw(L["StatusExported"])', class: 'bg-red-100 text-red-800' },
+                                7: { text: '@Html.Raw(L["StatusCompleted"])', class: 'bg-gray-100 text-gray-800' }
+                            };
+                            const st = statusMap[row.status] || { text: row.status, class: 'bg-gray-100' };
+                            return `<span class="px-2 py-1 rounded text-xs font-semibold ${st.class} whitespace-nowrap">${st.text}</span>`;
+                        }
+                    },
+                    {
+                        title: '@Html.Raw(L["Qty"])',
+                        field: 'qty',
+                        align: 'right',
+                        render: (row) => `<span class="font-bold text-gray-700 dark:text-gray-300">${row.qty}</span>`
+                    },
+                    {
+                        title: '@Html.Raw(L["Weight"])',
+                        field: 'weight',
+                        align: 'right',
+                        render: (row) => `<span class="text-gray-600 dark:text-gray-400">${GlobalFormatNumber(row.weight)}</span>`
+                    },
+                    {
+                        title: '@Html.Raw(L["Volume"])',
+                        field: 'volume',
+                        align: 'right',
+                        render: (row) => `<span class="text-gray-600 dark:text-gray-400">${GlobalFormatNumber(row.volume)}</span>`
+                    },
+                    { title: '@Html.Raw(L["Creator"])', field: 'creator' },
+                    {
+                        title: '@Html.Raw(L["Actions"])',
+                        align: 'center',
+                        render: (row) => {
+                            let deleteBtn = '';
+                            if (row.status <= 1) {
+                                deleteBtn = `<button onclick="deleteDispatch('${row.dispatchNo}')" class="text-red-600 hover:text-red-800" title="@Html.Raw(L["Delete"])">
+                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                            </button>`;
+                            }
+                            return `<div class="flex justify-center gap-4">
+                                                                    ${deleteBtn}
+                                    </div>`;
+                        }
+                    }
+                ],
+                filters: {
+                    dispatchNo: ''
+                }
+            };
+        }
+
+
+        function exportSelected(selectedItems) {
+            if (!selectedItems || selectedItems.length === 0) {
+                Notify.warning('@Html.Raw(L["WarningNoSelection"])');
+                return;
+            }
+
+            try {
+                // Ensure XLSX is loaded
+                if (typeof XLSX === 'undefined') {
+                    Notify.error('XLSX library not loaded');
+                    return;
+                }
+
+                // Map status codes to text
+                const statusMap = {
+                    0: '@Html.Raw(L["StatusNew"])',
+                    1: '@Html.Raw(L["StatusWaitPickup"])',
+                    2: '@Html.Raw(L["StatusPicked"])',
+                    3: '@Html.Raw(L["StatusPacking"])',
+                    4: '@Html.Raw(L["StatusPacked"])',
+                    5: '@Html.Raw(L["StatusWeighed"])',
+                    6: '@Html.Raw(L["StatusExported"])',
+                    7: '@Html.Raw(L["StatusCompleted"])'
+                };
+
+                // Prepare data for Excel
+                const exportData = selectedItems.map((item, index) => ({
+                    '@Html.Raw(L["STT"])': index + 1,
+                    '@Html.Raw(L["DispatchNo"])': item.dispatchNo || '',
+                    '@Html.Raw(L["customer_name"])': item.customer || '',
+                    '@Html.Raw(L["Status"])': statusMap[item.status] || (item.status !== undefined ? item.status : ''),
+                    '@Html.Raw(L["Qty"])': parseFloat(item.qty || 0),
+                    '@Html.Raw(L["Weight"])': parseFloat(item.weight || 0),
+                    '@Html.Raw(L["Volume"])': parseFloat(item.volume || 0),
+                    '@Html.Raw(L["Creator"])': item.creator || ''
+                }));
+
+                // Create worksheet
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+                // Set column widths
+                worksheet['!cols'] = [
+                    { wch: 8 },  // STT
+                    { wch: 20 }, // DispatchNo
+                    { wch: 30 }, // Customer
+                    { wch: 20 }, // Status
+                    { wch: 12 }, // Qty
+                    { wch: 15 }, // Weight
+                    { wch: 15 }, // Volume
+                    { wch: 20 }  // Creator
+                ];
+
+                // Create workbook
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+                // Generate filename
+                const timestamp = new Date().getTime();
+                const filename = `SalesOrders_${timestamp}.xlsx`;
+
+                // Use the built-in writeFile which is most reliable in modern browsers
+                XLSX.writeFile(workbook, filename, { bookType: 'xlsx', compression: true });
+
+                Notify.success('@Html.Raw(L["ExportSuccess"])');
+
+            } catch (error) {
+                console.error('Export error:', error);
+                Notify.error('@Html.Raw(L["ExportFailed"])');
+            }
+        }
+
+        async function deleteDispatch(id) {
+            const isConfirmed = await Notify.confirm(
+                '@Html.Raw(L["ConfirmDelete"])',
+                '@Html.Raw(L["ConfirmDeleteMessage"])' + ` ${id}?`,
+                '@Html.Raw(L["DeleteNow"])'
+            );
+
+            if (!isConfirmed) return;
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const formData = new FormData();
+                formData.append('dispatch_no', id);
+
+                const response = await fetch('?handler=DeleteDispatch', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Server Error');
+                const data = await response.json();
+
+                if (data.success) {
+                    Notify.success(data.message);
+                    // Reload table via Alpine event
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                Notify.error('@Html.Raw(L["SystemError"])');
+            }
+        }
+    </script>
+
+    <style>
+        /* Prevent negative numbers inputs globally on this page */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+}
+
+@Html.AntiForgeryToken()
+
+<div class="p-6" x-data="AlpineDataTable(salesOrderConfig())" @@datatable-reload.window="reload()">
+
+    <!-- Filter Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="flex items-center justify-between gap-4">
+            <!-- Search Input -->
+            <div class="relative max-w-md flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" x-model="filters.dispatchNo" @@input.debounce.600ms="reload()"
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-sm"
+                    placeholder="@Html.Raw(L["SearchDispatchNo"]) ...">
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+                <button type="button" x-on:click="exportSelected(selectedRows)"
+                    class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 p-2.5 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    title="@Html.Raw(L["Export"])">
+                    <i class="fas fa-file-export"></i>
+                </button>
+                <a href="/Outbound/SalesOrders/Create"
+                    class="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-lg shadow-md transition-colors flex items-center justify-center"
+                    title="@Html.Raw(L["CreateNew"])">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    @await Html.PartialAsync("~/Pages/Shared/Components/_AlpineDataTable.cshtml")
+</div>
+
+<!-- Validation Script Block (Global protection for inputs on this page) -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Prevent 'e', '-', '+' in number inputs
+        document.body.addEventListener('keypress', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                if (['e', 'E', '-', '+'].includes(e.key)) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // Prevent paste of invalid text
+        document.body.addEventListener('paste', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                const text = (e.clipboardData || window.clipboardData).getData('text');
+                if (/[eE\-\+]/.test(text)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+</script>

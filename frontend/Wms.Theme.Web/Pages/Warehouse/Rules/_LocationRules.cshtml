@@ -1,0 +1,315 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model WarehouseRuleInfo
+
+@Html.AntiForgeryToken()
+
+<div class="grid grid-cols-4 p-1 md:grid-cols-4 gap-2">
+     
+    <div class="space-y-3">
+        <div>
+            <select asp-for="@Model.RuleCode" id="rulesSelect" onchange="onRulesChange(this)"
+                    required
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:">
+                <option value="">@L["SelectRules"]</option>
+                <option value="FEFO">FEFO / First-Expired, First-Out</option>
+                <option value="FIFO">FIFO / First-In, First-Out</option>
+                <option value="LIFO">LIFO / Last-In, First-Out</option>
+            </select>
+        </div>
+    </div>
+    <div class="space-y-3 col-span-2">
+        <div class="relative flex-1">
+            <input type="text"
+                   id="supplierSearch"
+                   autocomplete="off"
+                   spellcheck="false"
+                   placeholder="@L["SelectSupplier"]"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 border-r-0 
+                    rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 
+                    rounded-r-md focus:border-blue-500 transition-colors">
+            <input type="hidden" id="selectedSupplierId" name="selectedSupplierId" />
+            <ul id="supplierDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+            </ul>
+        </div>
+    </div>
+    <div class="justify-end mr-[5px] ml-[5px]">
+        <button onclick="getCurrentRuleSettings()"
+                class="ml-[25px] px-6 py-2.5 text-sm bg-gray-400 text-white
+            text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 
+            focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <span>
+                <i class="fa-solid fa-arrows-rotate"></i>
+                @L["LoadRuleSettings"]
+            </span>
+        </button>
+    </div>
+
+    <div class="space-y-3">
+        <div>
+            <select asp-for="@Model.FloorId" id="floorSelect" onchange="onFloorChange(this)"
+                    asp-items="@Model.OptionFloors"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:">
+                <option value="">@L["SelectFloor"]</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="space-y-3 col-span-2">
+        <div class="relative flex-1">
+            <input type="text"
+                   id="skuSearch"
+                   autocomplete="off"
+                   spellcheck="false"
+                   placeholder="@L["SearchData"]"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 border-r-0 rounded-l-md rounded-r-md
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <input type="hidden" id="selectedSkuId" name="selectedSkuId" />
+            <ul id="skuDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+            </ul>
+        </div>
+    </div>   
+
+    <div class="justify-end mr-[5px] ml-[5px]">
+        <div>
+            <button type="submit" onclick="saveConfigLocations()"
+                    class="ml-[25px] px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/30 w-full md:w-auto transition transform hover:-translate-y-0.5 flex items-center justify-end gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                @L["Save"]
+            </button>            
+        </div>
+        
+    </div>
+</div>
+
+<div id="gridConfigLocations" style="height: 420px; width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+
+    // util state function        
+    function debounce (fn , delay) {     
+        let timer;
+        return function (...args) {
+           clearTimeout(timer);
+           timer = setTimeout(() => fn.apply(this, args), delay);
+        };        
+    }
+
+    function getMasterDataFromLocal() {          
+        const storedData = localStorage.getItem("masterData");          
+        return storedData ? JSON.parse(storedData) : null;        
+    }
+
+    const searchSkuInput = document.getElementById('skuSearch');
+    const skuDropdown = document.getElementById('skuDropdown');
+    const selectedSkuIdInput = document.getElementById('selectedSkuId');
+
+    const debouncedSkuSearch = debounce(async function () {
+        renderSkuOptions();
+    }, 300);
+            
+    searchSkuInput.addEventListener('input', debouncedSkuSearch);
+
+    document.addEventListener('click', function(e) {
+       if (!searchSkuInput.contains(e.target) && !skuDropdown.contains(e.target)) {
+         skuDropdown.classList.add('hidden');
+       }        
+    });
+
+    function renderSkuOptions() {
+        const storedData = getMasterDataFromLocal();
+        let keyword = searchSkuInput.value?.trim();
+        let data = (storedData.skus ?? [])
+            .filter(sku => (`${sku.skuCode}-${sku.skuName}`).toLowerCase().includes((keyword ?? "").toLowerCase()));
+        skuDropdown.innerHTML = '';
+        if(data.length < 1) 
+        {
+            skuDropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">@L["NotFound"]</li>`;
+            skuDropdown.classList.remove('hidden');
+            return;
+        }
+
+        data.forEach(sku => {        
+            const li = document.createElement('li');                
+            li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";                
+            li.textContent = `${sku.skuCode}-${sku.skuName}`
+            li.onclick = () => {            
+                searchSkuInput.value = `${sku.skuCode}-${sku.skuName}`;
+                selectedSkuIdInput.value = sku.skuId;
+                skuDropdown.classList.add('hidden');
+            };
+            skuDropdown.appendChild(li);
+        });
+
+        skuDropdown.classList.remove('hidden');
+    }
+
+    const searchSupplierInput = document.getElementById('supplierSearch');
+    const supplierDropdown = document.getElementById('supplierDropdown');
+    const selectedSupplierId = document.getElementById('selectedSupplierId');
+
+    const debouncedSupplierSearch = debounce(async function () {
+        renderSupplierOptions();
+    }, 300);
+            
+    searchSupplierInput.addEventListener('input', debouncedSupplierSearch);
+
+    document.addEventListener('click', function(e) {
+       if (!searchSupplierInput.contains(e.target) && !supplierDropdown.contains(e.target)) {
+         supplierDropdown.classList.add('hidden');
+       }
+    });
+
+    function renderSupplierOptions() {
+        const storedData = getMasterDataFromLocal();
+        let keyword = searchSupplierInput.value?.trim();
+        
+        let data = (storedData.suppliers ?? [])
+            .filter(sup => `${sup.code}-${sup.name}`.includes(keyword));
+
+        supplierDropdown.innerHTML = '';
+        if(data.length < 1)
+        {
+            supplierDropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">@L["NotFound"]</li>`;
+            supplierDropdown.classList.remove('hidden');
+            return;
+        }
+
+        data.forEach(sup => {
+            const li = document.createElement('li');
+            li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+            li.textContent = `${sup.code}-${sup.name}`
+            li.onclick = () => {
+                searchSupplierInput.value = `${sup.code}-${sup.name}`;
+                selectedSupplierId.value = sup.id;
+                supplierDropdown.classList.add('hidden');
+            };
+            supplierDropdown.appendChild(li);
+        });
+
+        supplierDropdown.classList.remove('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+         renderSkuOptions();
+         renderSupplierOptions();
+    });
+
+    // Serialize Razor model into JSON
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RuleSettings, 
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+    const columnDefs = [
+        { headerName: "Rule", field: "ruleSettings", width: 80, sortable: true, filter: true },
+        { headerName: "Supplier", field: "supplierName", sortable: true, filter: true },
+        { headerName: "SKU", field: "skuName", sortable: true, filter: true },
+        { headerName: "Floor", field: "floorName", sortable: true, filter: true },
+        {
+            headerName: "",
+            field: "id",
+            cellRenderer: (params) => {
+                const button = document.createElement("button");
+                button.innerHTML = "🗑️"; // delete icon
+                button.addEventListener("click", () => {
+                   params.api.applyTransaction({ remove: [params.node.data] });
+                   deleteRuleSetting(params.data.Id)
+                });
+
+                return button;
+            },
+       }
+    ];
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridRulesApi;
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridConfigLocations');
+         gridRulesApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    function deleteRuleSetting(id) {
+        postData('?handler=DeleteSettings', { settingRuleId: id })
+        .then((result) => {
+            Notify.success(result.message || 'Deleted successfully.');
+        });
+    }
+
+    function onFloorChange(selectElement) {
+        const selectedFloorId = selectElement.value;
+        if (selectedFloorId) {
+            console.log("Selected floor:", selectedFloorId);
+        } else {
+            console.log("No floor selected");
+        }
+      }
+
+      function onSkuChange(selectElement) {
+        const selectedSkuId = selectElement.value;
+        if (selectedSkuId) {
+            console.log("Selected SKU:", selectedSkuId);
+        } else {
+            console.log("No sku selected");
+        }
+    }
+
+    function onSupplierChange(selectElement) {
+        const selectedSupplierId = selectElement.value;
+        if (selectedSupplierId) {
+            console.log("Selected Supplier:", selectedSupplierId);
+        } else {
+            console.log("No Supplier selected");
+        }
+    }
+
+    function onRulesChange(selectElement) {
+        const selectedRule = selectElement.value;
+        if (selectedRule) {
+            console.log("Selected Rule:", selectedRule);
+        } else {
+            console.log("No Rule selected");
+        }
+    }
+
+    function saveConfigLocations() {
+        let supId = document.getElementById("selectedSupplierId").value ?? "";
+        let payload = {
+            ruleSettings: document.getElementById("rulesSelect").value,
+            skuId: parseInt(document.getElementById("selectedSkuId").value ?? "0"),
+            floorId: parseInt(document.getElementById("floorSelect").value ?? "0"),
+            locationIds: []
+        };
+
+        if(supId.length > 0) {
+            payload = {
+                supplierId: parseInt(supId),
+                ruleSettings: document.getElementById("rulesSelect").value,
+                skuId: parseInt(document.getElementById("selectedSkuId").value ?? "0"),
+                floorId: parseInt(document.getElementById("floorSelect").value ?? "0"),
+                locationIds: []
+            };
+        }
+
+        postData('?handler=CreateSettings', payload)
+            .then((result) => {
+                if(!result.success) {
+                    Notify.error(result.message || "Lỗi trong quá trình lưu");
+                }
+                else{
+                    Notify.success('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                       location.reload();
+                    }, 500);
+                }
+            });
+    }
+</script>

@@ -1,0 +1,159 @@
+@page "/PurchaseOrder/Detail/{id:int}"
+@using Wms.Theme.Web.Util
+@model Wms.Theme.Web.Pages.PurchaseOrder.DetailModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["PODetail"];
+    var details = Model.Model.Details ?? [];
+}
+@Html.AntiForgeryToken()
+
+<div class="overflow-y-auto flex flex-col mx-auto p-2 space-y-2" style="height: 80vh;">
+    <div class="flex-none bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-2 border">
+        <div class="p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["PONumber"]</label>
+                <input type="text" value="@Model.Model.PoNo" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["CreateReceipt_ReceiptDate"]</label>
+                <input type="text" value="@Model.Model.OrderDate.ToLocalTime().ToString("dd/MM/yyyy")" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["ExpectedDate"]</label>
+                <input type="text" value="@(Model.Model.ExpectedDeliveryDate.HasValue? Model.Model.ExpectedDeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "")" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["Shipping Amount"]</label>
+                <input type="text" value="@(Model.Model.ShippingAmount.HasValue? Model.Model.ShippingAmount.Value.FormatPrice() : "")" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div class="hidden">
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["Supplier"]</label>
+                <input type="text" value="@Model.Model.SupplierName" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    @L["PaymentTerm"]
+                </label>
+
+                <select id="paymentTerm"
+                        disabled
+                        class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white border-none ring-1 ring-inset ring-gray-300">
+                    <option value="Advance Payment" selected="@(Model.Model.PaymentTerm == "Advance Payment")">
+                        Advance Payment (Thanh toán trước)
+                    </option>
+                    <option value="Due on Receipt" selected="@(Model.Model.PaymentTerm == "Due on Receipt")">
+                        Due on Receipt (Thanh toán ngay khi nhận hóa đơn)
+                    </option>
+                    <option value="COD" selected="@(Model.Model.PaymentTerm == "COD")">
+                        COD (Thanh toán khi nhận hàng)
+                    </option>
+                    <option value="Net 15" selected="@(Model.Model.PaymentTerm == "Net 15")">
+                        Net 15 (Thanh toán trong vòng 15 ngày)
+                    </option>
+                    <option value="Net 30" selected="@(Model.Model.PaymentTerm == "Net 30")">
+                        Net 30 (Thanh toán trong vòng 30 ngày)
+                    </option>
+                    <option value="Net 45" selected="@(Model.Model.PaymentTerm == "Net 45")">
+                        Net 45 (Thanh toán trong vòng 45 ngày)
+                    </option>
+                    <option value="Net 60" selected="@(Model.Model.PaymentTerm == "Net 60")">
+                        Net 60 (Thanh toán trong vòng 60 ngày)
+                    </option>
+                    <option value="EOM" selected="@(Model.Model.PaymentTerm == "EOM")">
+                        EOM (Thanh toán vào cuối tháng)
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["BuyerName"]</label>
+                <input type="text" value="@Model.Model.BuyerName" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["BuyerAddress"]</label>
+                <input type="text" value="@Model.Model.BuyerAddress" readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["Status"]</label>
+                <input type="text"
+                       value="@(Model.Model.PoStatus == 0 ? L["Created"] : (Model.Model.PoStatus == 1 ? L["Processing"] : (Model.Model.PoStatus == 2 ? L["Completed"] : L["Canceled"])))"
+                       readonly
+                       class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white" />
+            </div>
+
+           
+
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">@L["Description"]</label>
+                <textarea rows="2" readonly
+                          class="bg-gray-100 text-gray-900 text-sm rounded-md block w-full px-2 py-1.5 dark:bg-gray-700 dark:text-white">@Model.Model.Description</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-none flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-900/50 rounded-t-lg">
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-300">@L["PODetailItems"]</span>
+        <a href="/PurchaseOrder"
+               class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white rounded-md hover:bg-gray-50">
+            @L["Back"]
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 dark:bg-gray-700/30 text-gray-500 dark:text-gray-400 text-xs uppercase font-semibold tracking-wide border-b border-gray-200 dark:border-gray-700">
+                        <th class="px-6 py-3 w-16">#</th>
+                        <th class="px-6 py-3">@L["SkuCode"]</th>
+                        <th class="px-6 py-3">@L["Product"]</th>
+                        <th class="px-6 py-3">@L["Supplier"]</th>
+                        <th class="px-6 py-3">@L["ExpiryDate"]</th>
+                        <th class="px-6 py-3 text-right">@L["Quantity"]</th>
+                        <th class="px-6 py-3 text-right">@L["UnitPrice"]</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    @for (int i = 0; i < details.Count; i++)
+                    {
+                        var item = details[i];
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
+                            <td class="px-6 py-4 font-mono text-xs text-gray-400">@(i + 1)</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">@item.SkuCode</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">@item.SkuName</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">@item.SupplierName</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">@item.UnitName</td>
+                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                @(item.ExpiryDate.HasValue? item.ExpiryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "")
+                            </td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-900 dark:text-white">@item.QtyOrdered</td>
+                            <td class="px-6 py-4 text-right text-sm text-gray-900 dark:text-white">
+                                @(item.UnitPrice.HasValue? item.UnitPrice.Value.FormatPrice() : "")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (details.Count == 0)
+            {
+                <div class="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
+                    @L["NoItemsAdded"]
+                </div>
+            }
+        </div>
+    </div>
+</div>

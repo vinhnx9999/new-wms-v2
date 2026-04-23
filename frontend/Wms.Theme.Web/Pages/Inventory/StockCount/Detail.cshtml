@@ -1,0 +1,239 @@
+﻿@page "{id:int}"
+@model Wms.Theme.Web.Pages.Inventory.StockCount.DetailModel
+@{
+    ViewData["Title"] = Html.Raw(L["StockTakingDetail"]);
+    var item = Model.Stocktaking;
+
+    // Logic trạng thái
+    var statusClass = item.job_status ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+    var statusText = item.job_status ? L["StockTaken"] : L["StockTaking"];
+
+    var adjustClass = item.adjust_status ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" :
+    "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
+    var adjustText = item.adjust_status ? L["Adjusted"] : L["NotAdjusted"];
+
+    // Logic chênh lệch
+    var diffClass = item.difference_qty != 0 ? "text-red-600 dark:text-red-400 font-bold" : "text-gray-500 dark:text-gray-400";
+    var diffBg = item.difference_qty != 0 ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800" : "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700";
+}
+
+<div class="w-full p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+    <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                    @item.job_code
+                </h1>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide @statusClass">
+                    @Html.Raw(statusText)
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide @adjustClass">
+                    @Html.Raw(adjustText)
+                </span>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-6">
+                <span><i class="far fa-clock mr-1"></i> @Html.Raw(L["LastUpdated"]):
+                    @item.last_update_time.ToString("dd/MM/yyyy HH:mm")</span>
+            </p>
+        </div>
+
+        <div>
+            <a href="/Inventory/StockCount"
+                class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-200 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                @Html.Raw(L["BackToList"])
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div
+            class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    @Html.Raw(L["CountedQuantity"])</p>
+                <p class="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">@item.counted_qty.ToString("N0")
+                </p>
+            </div>
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="p-6 rounded-lg border shadow-sm flex items-center justify-between @diffBg">
+            <div>
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">@Html.Raw(L["Variances"])</p>
+                <div class="mt-1 flex items-baseline">
+                    <p class="text-3xl font-semibold @diffClass">
+                        @(item.difference_qty > 0 ? "+" : "")@item.difference_qty.ToString("N0")
+                    </p>
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">@Html.Raw(L["Unit"])</span>
+                </div>
+            </div>
+            <div
+                class="p-3 bg-white dark:bg-gray-700 rounded-full border border-gray-100 dark:border-gray-600 text-gray-400 dark:text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            </div>
+        </div>
+
+        <div
+            class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-center">
+            <div class="flex items-center gap-3 mb-2">
+                <div
+                    class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-user-edit text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">@Html.Raw(L["Creator"])</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">@item.creator</p>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 ml-11">@item.create_time.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <div
+            class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col justify-center">
+            <div class="flex items-center gap-3 mb-2">
+                <div
+                    class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-user-check text-xs"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">@Html.Raw(L["Handler"])</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">@(string.IsNullOrEmpty(item.handler) ?
+                                                "-" : item.handler)</p>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 ml-11">
+                @(item.handle_time == DateTime.MinValue ? "-" : item.handle_time.ToString("dd/MM/yyyy HH:mm"))
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+            <h3 class="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                @Html.Raw(L["Details"])</h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <div>
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-4">@Html.Raw(L["JobStatus"])
+                    </h4>
+                    <div
+                        class="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-100 dark:border-gray-600">
+                        <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                            <div class="sm:col-span-1">
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    @Html.Raw(L["JobStatus"])</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span
+                                            class="h-1.5 w-1.5 rounded-full @(item.job_status ? "bg-green-500" : "bg-blue-500")"></span>
+                                        @Html.Raw(statusText)
+                                    </span>
+                                </dd>
+                            </div>
+                            <div class="sm:col-span-1">
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    @Html.Raw(L["AdjustmentStatus"])</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span
+                                            class="h-1.5 w-1.5 rounded-full @(item.adjust_status ? "bg-purple-500" : "bg-gray-400")"></span>
+                                        @Html.Raw(adjustText)
+                                    </span>
+                                </dd>
+                            </div>
+                            <div class="sm:col-span-2 border-t border-gray-200 dark:border-gray-600 pt-3">
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    @Html.Raw(L["LastUpdate"])</dt>
+                                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                                    @item.last_update_time.ToString("F")</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-4">
+                        @Html.Raw(L["OperationHistory"])</h4>
+                    <ul role="list" class="space-y-4">
+                        <li class="relative flex gap-x-4">
+                            <div class="absolute left-0 top-0 flex w-6 justify-center -bottom-6">
+                                <div class="w-px bg-gray-200 dark:bg-gray-600"></div>
+                            </div>
+                            <div
+                                class="relative flex h-6 w-6 flex-none items-center justify-center bg-white dark:bg-gray-800">
+                                <div
+                                    class="h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-gray-500 ring-1 ring-gray-300 dark:ring-gray-500">
+                                </div>
+                            </div>
+                            <div class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                <span
+                                    class="font-medium text-gray-900 dark:text-white">@Html.Raw(L["ActionCreated"])</span>
+                                @Html.Raw(L["By"]) @item.creator
+                                <time datetime="@item.create_time"
+                                    class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400 block">
+                                    @item.create_time.ToString("dd/MM/yyyy HH:mm")
+                                </time>
+                            </div>
+                        </li>
+
+                        @if (item.handle_time != DateTime.MinValue)
+                        {
+                            <li class="relative flex gap-x-4">
+                                <div class="absolute left-0 top-0 flex w-6 justify-center -bottom-6">
+                                    <div class="w-px bg-gray-200 dark:bg-gray-600"></div>
+                                </div>
+                                <div
+                                    class="relative flex h-6 w-6 flex-none items-center justify-center bg-white dark:bg-gray-800">
+                                    <div class="h-1.5 w-1.5 rounded-full bg-blue-500 ring-1 ring-blue-500"></div>
+                                </div>
+                                <div class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                    <span
+                                        class="font-medium text-gray-900 dark:text-white">@Html.Raw(L["StockCountHandled"])</span>
+                                    @Html.Raw(L["By"]) @(string.IsNullOrEmpty(item.handler) ? "System" : item.handler)
+                                    <time datetime="@item.handle_time"
+                                        class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400 block">
+                                        @item.handle_time.ToString("dd/MM/yyyy HH:mm")
+                                    </time>
+                                </div>
+                            </li>
+                        }
+
+                        <li class="relative flex gap-x-4">
+                            <div
+                                class="relative flex h-6 w-6 flex-none items-center justify-center bg-white dark:bg-gray-800">
+                                <div class="h-1.5 w-1.5 rounded-full bg-green-500 ring-1 ring-green-500"></div>
+                            </div>
+                            <div class="flex-auto py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                <span
+                                    class="font-medium text-gray-900 dark:text-white">@Html.Raw(L["LastAction"])</span>
+                                <time datetime="@item.last_update_time"
+                                    class="flex-none py-0.5 text-xs leading-5 text-gray-500 dark:text-gray-400 block">
+                                    @item.last_update_time.ToString("dd/MM/yyyy HH:mm")
+                                </time>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

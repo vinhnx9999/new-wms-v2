@@ -1,0 +1,297 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Reports.StockOnShelf.IndexModel
+@{
+    ViewData["Title"] = L["StockOnShelf"];
+}
+
+@Html.AntiForgeryToken()
+<div class="grid grid-cols-6 md:grid-cols-6 mb-3 gap-3">
+    <div class="md:col-span-2">
+        <div class="relative">
+            <input type="hidden" id="selectedWarehouseId" name="selectedWarehouseId" />
+            <input type="text"
+                   id="warehouseSearch"
+                   autocomplete="off"
+                   placeholder="@L["Warehouse"]"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <ul id="warehouseDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+            </ul>
+        </div>
+    </div>
+    <div>
+        <input type="text"
+               id="fromDate"
+               name="fromDate"
+               placeholder="dd/mm/yyyy"
+               class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+    </div>
+    <div>
+        <input type="text"
+               id="toDate"
+               name="toDate"
+               placeholder="dd/mm/yyyy"
+               class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+    </div>
+
+    <div class="flex justify-between items-center">
+        <button type="button" onclick="refreshData()" class="bg-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors flex items-center gap-1">
+            <i class="fa fa-refresh" aria-hidden="true"></i>
+        </button>
+        <button type="button" onclick="searchData()" class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors flex items-center gap-1">
+            <i class="fa fa-search" aria-hidden="true"></i>
+            @L["Search"]
+        </button>
+    </div>
+</div>
+
+<div id="gridStockOnShelf" style="height: calc(100vh - 240px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+
+    let lastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+    document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#fromDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: lastMonth,
+                allowInput: true,
+            });
+
+            flatpickr("#toDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                allowInput: true,
+            });
+        });
+
+    function debounce (fn , delay){
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+    }
+
+    const searchInput = document.getElementById('warehouseSearch');
+    const dropdown = document.getElementById('warehouseDropdown');
+    const selectedWarehouseId = document.getElementById('selectedWarehouseId');
+    let currentAbortController = null;
+
+    function refreshData() {
+        searchInputSku.value = "";
+        searchInput.value = "";
+        selectedWarehouseId.value = "";
+        selectedSkuId.value = "";
+        flatpickr("#fromDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: lastMonth,
+                allowInput: true,
+            });
+
+            flatpickr("#toDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                allowInput: true,
+            });
+    }
+
+    const debouncedSearch = debounce(async function () {
+            const data = await fetchWarehouses(searchInput.value);
+            renderDropdown(data);
+        }, 300);
+
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('focus', async function () {
+            if (!dropdown.classList.contains('hidden')) return;
+            const data = await fetchWarehouses(this.value);
+            renderDropdown(data);
+        });
+
+     function renderDropdown(data) {
+            if(data === null){
+                return;
+            }
+            if(!Array.isArray(data)){
+                return
+            }
+
+            dropdown.innerHTML = '';
+            if (data.length === 0) {
+                dropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm"></li>`;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(wh => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${wh.warehouseName} (${wh.address ?? "Address"})`
+                li.onclick = () => {
+                    searchInput.value = `${wh.warehouseName} (${wh.address ?? "Address"})`;
+                    selectedWarehouseId.value = wh.id;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(li);
+            });
+             dropdown.classList.remove('hidden');
+        }
+
+    async function fetchWarehouses(keyword = '' , pageIndex = 1)
+        {
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            currentAbortController = new AbortController();
+            try
+            {
+               const keyWordParam = keyword?.trim()
+                     ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                     : '';
+
+               const url = `?handler=SearchWareHouse${keyWordParam}&pageIndex=${pageIndex}`;
+               const response = await fetch(url , {
+                        signal : currentAbortController.signal
+               });
+               if (!response.ok) {
+                   return [];
+               }
+               return await response.json();
+            } catch (e) {
+               if (e.name === 'AbortError') {
+                   return null;
+               }
+                console.error('Error fetching warehouses:', e);
+                return [];
+            }
+        }
+
+    const columnDefs = [
+        {
+            headerName: '@Html.Raw(L["Warehouse"])',
+            field: "warehouseName",
+            pinned : "left",
+            width: 120,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["Location"])',
+            field: "locationName",
+            pinned : "left",
+            width: 120,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["Pallet"])',
+            field: "palletName",
+            pinned : "left",
+            width: 120,
+            sortable: true,
+            filter: true
+        },
+        { 
+            headerName: '@Html.Raw(L["SKU"])',
+            field: "itemCode",
+            sortable: true,
+            pinned : "left",
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["SkuName"])',
+            flex: 2,
+            field: "itemName",
+            sortable: true,
+            filter: true
+        },
+        {
+               headerName: '@Html.Raw(L["ExpiryDate"])',
+               sortable : true,
+               field: "expiryDateStr",
+               width: 130
+        },
+        {
+            headerName: '@Html.Raw(L["Unit"])', field: "unit", sortable: true, filter: true 
+        },
+        {
+                headerName: '@Html.Raw(L["Quantity"])',
+                field: "quantity",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null || +params.value === 0) return '';
+                    return `<span class="text-right font-semibold text-blue-700">${params.value}</span>`
+                }
+        },
+        {
+                headerName: '@Html.Raw(L["AvailableQty"])',
+                field: "availableQty",
+                width: 120,
+                pinned : "right",
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    return `<span class="text-right font-semibold text-blue-700">${params.value}</span>`
+                }
+        }
+    ];
+
+    // Serialize Razor model into JSON
+    let rowData = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(Model.StockOnShelf,
+            new System.Text.Json.JsonSerializerOptions { 
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase 
+            }));
+        
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridApi;
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridStockOnShelf');
+         gridApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    async function searchData() {
+        const fromDateText = document.getElementById('fromDate')?.value?.trim();
+        const toDateText = document.getElementById('toDate')?.value?.trim();
+        const warehouseIdText = document.getElementById('selectedWarehouseId')?.value?.trim();
+        const payload = {
+                    WarehouseId: Number(warehouseIdText),
+                    ToDate: FormatDMY(toDateText),
+                    FromDate: FormatDMY(fromDateText)
+                };
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch(`?handler=SearchStockOnShelf`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Replace all rows with new data
+                    gridApi.setGridOption("rowData", data.items);
+                })
+                .catch(err => console.error('Error loading inventory:', err));
+    }
+
+</script>

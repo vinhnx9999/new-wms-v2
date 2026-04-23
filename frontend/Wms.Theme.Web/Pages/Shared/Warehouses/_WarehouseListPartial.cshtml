@@ -1,0 +1,102 @@
+﻿@using Wms.Theme.Web.Pages.Warehouse
+@model IEnumerable<WarehouseInfoDTO>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+
+@if (Model.Count() == 0)
+{
+    <div class="w-full bg-white rounded-lg shadow p-12 text-center">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10l8 4m0-10l-8-4"></path>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">@L["NoWarehouses"]</h3>
+        <p class="text-gray-600 mb-6">@L["CreateFirstWarehouse"]</p>        
+    </div>
+}
+else
+{
+    <div class="w-full overflow-y-auto border rounded p-4" style="height: 72vh;">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @foreach (var warehouse in Model)
+            {
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+                    <div class="flex justify-between items-start mb-4">
+                        @if (warehouse.Invalid)
+                        {
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                                    <!-- Invalid icon -->
+                                    <svg class="w-5 h-5 text-red-500 mr-2" xmlns="http://www.w3.org/2000/svg"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    @warehouse.Name
+                                </h3>
+                                <p class="text-sm text-gray-600 line-through">@warehouse.Code @warehouse.City</p>
+                                <p class="hidden sm:inline text-gray-700 text-sm mb-4 line-through">@warehouse.Address</p>
+                            </div>
+                            <button type="button" onclick="activeWarehouse(@warehouse.Id)"
+                                    class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/30 w-full md:w-auto transition transform hover:-translate-y-0.5 flex items-center justify-end gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                @L["Active"]
+                            </button>
+                        }
+                        else
+                        {
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">@warehouse.Name</h3>
+                                <p class="text-sm text-gray-600">@warehouse.Code @warehouse.City</p>
+                                <p class="hidden sm:inline text-gray-700 text-sm mb-4">@warehouse.Address</p>
+                            </div>
+                            <div class="grid grid-cols-2 justify-end gap-2">
+                                <!-- De-Active (Warning icon + yellow) -->
+                                <button type="button"
+                                        title="@L["De-Active"]"
+                                        onclick="deActiveWarehouse(@warehouse.Id)"
+                                        class="flex items-center gap-1 bg-gray-400 font-medium text-white rounded-lg hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800 shadow-lg shadow-yellow-500/30 transition transform hover:-translate-y-0.5">
+                                    <!-- Warning triangle icon -->
+                                    <svg class="w-4 h-4 bg-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64a1 1 0 00.86-1.5L13.71 3.86a1 1 0 00-1.72 0z" />
+                                    </svg>
+                                    <span class="hidden sm:inline">@L["De-Active"]</span>
+                                </button>
+
+                                <a href="/Warehouse/Detail/@warehouse.Id"
+                                   title="@L["ViewDetails"]"
+                                   class="text-blue-600 hover:text-blue-900 text-sm font-medium flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    <span class="hidden sm:inline">@L["ViewDetails"]</span>
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-blue-50 dark:bg-blue-900/30 rounded p-3">
+                            <div class="text-2xl font-bold text-blue-600">@warehouse.LocationCount</div>
+                            <div class="text-xs text-gray-600 uppercase tracking-wide">@L["Locations"]</div>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/30 rounded p-3">
+                            <div class="text-2xl font-bold text-green-600">@warehouse.TotalPallet</div>
+                            <div class="text-xs text-gray-600 uppercase tracking-wide">@L["Pallets"]</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/30 rounded p-3">
+                            <div class="text-2xl font-bold text-purple-600">@warehouse.TotalInventory</div>
+                            <div class="text-xs text-gray-600 uppercase tracking-wide">@L["TotalInventory"]</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+ 

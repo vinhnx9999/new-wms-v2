@@ -1,0 +1,237 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model InventoryInfo
+
+<div class="space-y-2">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="hidden text-2xl font-bold text-gray-900"
+                id="titleInboundInfoWH">
+                @L["Inbound"]
+            </h1>
+            <h1 class="hidden text-2xl font-bold text-gray-900"
+                id="titleOutboundInfoWH">
+                @L["Outbound"]
+            </h1>
+            <h1 class=" text-2xl font-bold text-gray-900"
+                id="titleInventoryInfoWH">
+                @L["Inventory"]
+            </h1>
+            <p class="mt-1 text-gray-600">@L["ManageWarehousesTagline"]</p>
+        </div>
+        <div class="flex justify-end">
+            <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-50 rounded-l-md border border-gray-300"
+                    onclick="toggleElement()" title="@L["ToggleSummary"]">
+                <i class="fa-solid fa-chart-pie" id="chartIcon"></i>
+                <i class="fa-solid fa-table-cells" style="display: none" id="gridIcon"></i>
+            </button>
+
+            <!-- Grid icon -->
+            <button type="button" onclick="openInboundCard()"
+                    class="inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300">
+                <i class="fa-solid fa-dolly"></i>
+                </button>
+
+                <!-- Card icon -->
+                <button type="button" onclick="openOutboundCard()"
+                    class="inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+                </button>
+
+                <button type="button"
+                    title="@L["Inventory"]"
+                    onclick="openOverviewCard()"
+                        class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-r-md text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                </button>
+            
+        </div>
+    </div>    
+
+    <div id="divInboundInfoWH" class="hidden">
+        @await Html.PartialAsync("Inventory/_InboundInfo", Model.InboundInfo)
+    </div>
+    <div id="divOutboundInfoWH" class="hidden">
+        @await Html.PartialAsync("Inventory/_OutboundInfo", Model.OutboundInfo)
+    </div>
+    <div id="divOverviewWH" >
+        @await Html.PartialAsync("Inventory/_OverviewInfo", Model.Overview)
+    </div>
+</div>
+
+<script>
+
+    function toggleElement() {
+      const div = document.getElementById("divWHGeneralInfo");
+      const chartIcon = document.getElementById("chartIcon");
+      const gridIcon = document.getElementById("gridIcon");
+
+      if (div.style.display === "none") {
+        div.style.display = "block";
+        gridIcon.style.display = "block";
+        chartIcon.style.display = "none";
+      } else {
+        div.style.display = "none";
+        chartIcon.style.display = "block";
+        gridIcon.style.display = "none";
+      }
+    }
+
+    function getCurrentInventory() {
+        fetch(`?handler=ReloadInventory`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('divInboundInfoWH').innerHTML = html;
+        })
+        .catch(error => console.error('Error loading map:', error));
+    }
+
+    function openOverviewCard() {
+        const divInbound = document.getElementById("divInboundInfoWH");
+        const divOutbound = document.getElementById("divOutboundInfoWH");
+        const divOverview = document.getElementById("divOverviewWH");
+        const titleOutbound = document.getElementById("titleOutboundInfoWH");
+        const titleInbound = document.getElementById("titleInboundInfoWH");
+        const titleInventory = document.getElementById("titleInventoryInfoWH");
+        
+        titleInbound.classList.add("hidden");
+        titleInbound.classList.remove("grid");
+        titleInbound.classList.remove("flex");
+                
+        titleOutbound.classList.add("hidden");
+        titleOutbound.classList.remove("grid");
+        titleOutbound.classList.remove("flex");
+
+        divInbound.classList.add("hidden");
+        divInbound.classList.remove("grid");
+        divInbound.classList.remove("flex"); 
+
+        divOutbound.classList.add("hidden");
+        divOutbound.classList.remove("grid"); 
+        divOutbound.classList.remove("flex"); 
+
+        divOverview.classList.remove("hidden");
+        divOverview.classList.add("flex"); 
+
+        titleInventory.classList.remove("hidden");
+        titleInventory.classList.add("flex");
+    }
+
+    function openInboundCard() {
+        const divInbound = document.getElementById("divInboundInfoWH");
+        const divOutbound = document.getElementById("divOutboundInfoWH");        
+        const divOverview = document.getElementById("divOverviewWH");
+        const titleInbound = document.getElementById("titleInboundInfoWH");
+        const titleOutbound = document.getElementById("titleOutboundInfoWH");
+        const titleInventory = document.getElementById("titleInventoryInfoWH");
+
+        titleInbound.classList.remove("hidden");
+        titleInbound.classList.add("flex");
+
+        divInbound.classList.remove("hidden");
+        divInbound.classList.add("flex");   // use flex for card stack
+                        
+        titleOutbound.classList.add("hidden");
+        titleOutbound.classList.remove("grid"); 
+        titleOutbound.classList.remove("flex");
+
+        divOutbound.classList.add("hidden");
+        divOutbound.classList.remove("grid"); 
+        divOutbound.classList.remove("flex"); 
+
+        divOverview.classList.add("hidden");
+        divOverview.classList.remove("grid");
+        divOverview.classList.remove("flex");
+
+         
+        titleInventory.classList.add("hidden");
+        titleInventory.classList.remove("grid");
+        titleInventory.classList.remove("flex");
+    }
+
+    function openOutboundCard() {
+        const divInbound = document.getElementById("divInboundInfoWH");
+        const divOutbound = document.getElementById("divOutboundInfoWH");
+        const divOverview = document.getElementById("divOverviewWH");
+        const titleInbound = document.getElementById("titleInboundInfoWH");
+        const titleOutbound = document.getElementById("titleOutboundInfoWH");
+        const titleInventory = document.getElementById("titleInventoryInfoWH");
+         
+        titleInbound.classList.add("hidden");
+        titleInbound.classList.remove("grid");
+        titleInbound.classList.remove("flex");
+
+        titleOutbound.classList.remove("hidden");
+        titleOutbound.classList.add("flex");
+
+        divOutbound.classList.remove("hidden");
+        divOutbound.classList.add("flex");
+
+        divInbound.classList.add("hidden");
+        divInbound.classList.remove("grid");
+        divInbound.classList.remove("flex"); 
+
+        divOverview.classList.add("hidden");
+        divOverview.classList.remove("grid");
+        divOverview.classList.remove("flex");
+
+        titleInventory.classList.add("hidden");
+        titleInventory.classList.remove("grid");
+        titleInventory.classList.remove("flex");
+    }
+
+</script>
+
+@* 
+<!-- Sidebar -->
+<div id="sidebarInventory" class="w-62 bg-gray-100 border-r border-gray-300 p-4 transition-transform transform -translate-x-full">
+    <button onclick="getCurrentInventory()"
+            class="mb-2 w-full inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300 text-base font-medium rounded-md shadow-sm hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <span>@L["Inventory"]</span>
+    </button>
+    <button onclick="getCurrentInventory()"
+            class="mb-2 w-full inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300 text-base font-medium rounded-md shadow-sm hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <span>@L["Inbound"]</span>
+    </button>
+    <button onclick="getCurrentInventory()"
+            class="w-full inline-flex items-center px-3 py-2 bg-gray-50 border border-gray-300 text-base font-medium rounded-md shadow-sm hover:bg-blue-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-300">
+        <span>@L["Outbound"]</span>
+    </button>
+</div>
+
+<!-- Content -->
+<div id="contentInventory" class="ml-64 transition-all duration-300">
+        <button onclick="toggleSidebar()" class="bg-blue-600 text-white px-4 py-2 rounded">
+            Toggle Sidebar
+        </button>
+        <h1 class="text-2xl font-bold mt-4">Main Content Area</h1>
+
+        <div class="grid grid-cols-12 gap-4 h-screen">
+            <div id="inboundInfoContainer" class="col-span-12 md:col-span-12 w-full ">
+                @await Html.PartialAsync("Inventory/_InboundInfo", Model.InboundInfo)
+            </div>
+            <div id="inventoryInfoContainer">
+                @await Html.PartialAsync("Inventory/_OutboundInfo", Model.OutboundInfo)
+            </div>
+
+        </div>
+    </div>
+ *@
+@* <div class="bg-dashboard-card">
+                            <h4>Outbound</h4>
+                            @await Html.PartialAsync("Inventory/_OutboundInfo")
+                        </div> *@
+ 
+<!-- Script -->
+@* <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebarInventory");
+      const content = document.getElementById("contentInventory");
+
+      sidebar.classList.toggle("-translate-x-full");
+      if (sidebar.classList.contains("-translate-x-full")) {
+        content.classList.remove("ml-64");
+      } else {
+        content.classList.add("ml-64");
+      }
+    }
+</script> *@

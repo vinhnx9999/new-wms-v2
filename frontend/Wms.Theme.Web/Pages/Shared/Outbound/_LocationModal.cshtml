@@ -1,0 +1,31 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+<div id="locationSearchModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 transition-opacity">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 transform transition-all flex flex-col" style="max-height: 90vh;">
+
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">@Localizer["CreateReceipt_LocationMapTitle"]</h3>
+            </div>
+            <button type="button" onclick="closeLocationModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 flex flex-col flex-1 overflow-hidden bg-gray-50">
+            <div class="flex-1 overflow-y-auto border border-gray-200 rounded-md bg-white p-4">
+
+                <div class="flex gap-4 mb-4 text-sm border-b pb-3">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span> @Localizer["CreateReceipt_LocationHasPallet"]</div>
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span> @Localizer["VirtualLocation"]</div>
+                </div>
+
+                <div id="locationGridContainer" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

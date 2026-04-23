@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\Asn\AsnDraftSubmitTests.cs" />
+    <Compile Remove="Services\Receipt\OutboundReceiptServiceTests.cs" />
+    <Compile Remove="Services\Receipt\ReceiptServiceTests.cs" />
+    <Compile Remove="Services\Sku\SkuServiceTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.0.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="MockQueryable.Moq" Version="7.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WMSSolution.WMS\WMSSolution.WMS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\Asn\" />
+    <Folder Include="Services\Receipt\" />
+    <Folder Include="Services\Sku\" />
+  </ItemGroup>
+
+</Project>

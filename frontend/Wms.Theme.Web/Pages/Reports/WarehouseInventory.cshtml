@@ -1,0 +1,272 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Reports.WarehouseInventoryModel
+@{
+    ViewData["Title"] = L["InOutStock"];
+}
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+}
+
+@Html.AntiForgeryToken()
+
+<div class="grid grid-cols-6 md:grid-cols-6 mb-3 gap-3">
+    <div class="md:col-span-2">
+        <div class="relative">
+            <input type="hidden" id="selectedWarehouseId" name="selectedWarehouseId" />            
+            <input type="text"
+                   id="warehouseSearch"
+                   autocomplete="off"
+                   placeholder="@L["Warehouse"]"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <ul id="warehouseDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+            </ul>
+        </div>
+    </div>
+    <div>
+        <input type="text"
+               id="fromDate"
+               name="fromDate"
+               placeholder="dd/mm/yyyy"
+               class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+    </div>
+    <div>
+        <input type="text"
+               id="toDate"
+               name="toDate"
+               placeholder="dd/mm/yyyy"
+               class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+    </div>
+
+    <div class="flex justify-between items-center">
+        <button type="button" onclick="searchData()" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 shadow-sm transition-colors flex items-center gap-1">
+            <i class="fa fa-search" aria-hidden="true"></i>
+            @L["Search"]
+        </button>
+    </div>
+</div>
+
+<div id="gridWarehouseInventory" style="height: calc(100vh - 240px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    
+    let lastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+    document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#fromDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: lastMonth,
+                allowInput: true,
+            });
+
+            flatpickr("#toDate", {
+                dateFormat: "d/m/Y",
+                altInput: true,
+                altFormat: "d/m/Y",
+                defaultDate: "today",
+                allowInput: true,
+            });
+        });
+
+    function debounce (fn , delay){
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+    }
+
+    const searchInput = document.getElementById('warehouseSearch');
+    const dropdown = document.getElementById('warehouseDropdown');
+    const selectedWarehouseId = document.getElementById('selectedWarehouseId');
+    let currentAbortController = null;
+
+    const debouncedSearch = debounce(async function () {
+            const data = await fetchWarehouses(searchInput.value);
+            renderDropdown(data);
+        }, 300);
+
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('focus', async function () {
+            if (!dropdown.classList.contains('hidden')) return; 
+            const data = await fetchWarehouses(this.value);
+            renderDropdown(data);
+        });
+
+     function renderDropdown(data) {
+            if(data === null){
+                return;
+            }
+            if(!Array.isArray(data)){
+                return
+            }
+
+            dropdown.innerHTML = '';            
+            if (data.length === 0) {
+                dropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm"></li>`;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(wh => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${wh.warehouseName} (${wh.address})`
+                li.onclick = () => {
+                    searchInput.value = `${wh.warehouseName} (${wh.address})`;
+                    selectedWarehouseId.value = wh.id;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(li);
+            });
+             dropdown.classList.remove('hidden');
+        }
+
+    async function fetchWarehouses(keyword = '' , pageIndex = 1)
+        {
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            currentAbortController = new AbortController();
+            try
+            {
+               const keyWordParam = keyword?.trim()
+                     ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                     : '';
+
+               const url = `?handler=SearchWareHouse${keyWordParam}&pageIndex=${pageIndex}`;
+               const response = await fetch(url , {
+                        signal : currentAbortController.signal
+               });
+               if (!response.ok) {
+                   return [];
+               }
+               return await response.json();
+            } catch (e) {
+               if (e.name === 'AbortError') {
+                   return null;
+               }
+                console.error('Error fetching warehouses:', e);
+                return [];
+            }
+        }
+
+    const columnDefs = [   
+        { headerName: '@Html.Raw(L["WarehouseName"])',
+            pinned : "left",
+            field: "warehouseName",
+            sortable: true,
+            filter: true
+        },
+        { headerName: '@Html.Raw(L["SKU"])', 
+            pinned : "left",
+            field: "itemCode", 
+            sortable: true, 
+            filter: true 
+        },
+        { 
+            headerName: '@Html.Raw(L["SkuName"])', 
+            flex: 2,
+            field: "itemName", 
+            sortable: true, 
+            filter: true 
+        },        
+        { 
+            headerName: '@Html.Raw(L["Unit"])', field: "unit", sortable: true, filter: true },
+        {
+                headerName: '@Html.Raw(L["OpeningBalance"])',
+                field: "openingBalance",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    let openingBalance = +(params.data.OpeningBalance ?? 0);
+                    if(openingBalance  === 0) return '';
+
+                    let cssRow = openingBalance < 0 ? "text-orange-600 dark:text-orange-400 text-red-700" 
+                    : "text-gray-700 dark:text-gray-500";
+
+                    return `<span class="text-right font-semibold ${cssRow}">${openingBalance}</span>`
+                }
+        },
+        {
+                headerName: '@Html.Raw(L["InwardQuantity"])',
+                field: "inwardQuantity",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+        },
+        {
+                headerName: '@Html.Raw(L["OutwardQuantity"])',
+                field: "outwardQuantity",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+        },
+        {
+                headerName: '@Html.Raw(L["ClosedBalance"])',
+                field: "closedBalance",
+                width: 120,
+                pinned : "right",
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    let closedBalance = +(params.data.closedBalance ?? 0);
+                    if (closedBalance === 0) return '';
+
+                    let cssRow = closedBalance < 0 ? "text-orange-600 dark:text-orange-400 text-red-700"
+                    : "text-gray-700 dark:text-gray-500";
+
+                    return `<span class="text-right font-semibold ${cssRow}">${closedBalance}</span>`
+                }
+        }
+    ];
+
+    // Serialize Razor model into JSON
+    let rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ReportItems, 
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+    
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridApi;
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridWarehouseInventory');
+         gridApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    async function searchData() {
+        const fromDateText = document.getElementById('fromDate')?.value?.trim();
+        const toDateText = document.getElementById('toDate')?.value?.trim();
+        const warehouseIdText = document.getElementById('selectedWarehouseId')?.value?.trim();
+
+        const payload = {
+                    WarehouseId: Number(warehouseIdText),
+                    ToDate: FormatDMY(toDateText),
+                    FromDate: FormatDMY(fromDateText)
+                };
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch(`?handler=SearchInventory`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Replace all rows with new data
+                    gridApi.setGridOption("rowData", data.items);
+                })
+                .catch(err => console.error('Error loading inventory:', err));
+    }
+
+</script>

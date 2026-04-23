@@ -1,0 +1,28 @@
+<div style="display:flex; align-items:center; gap:.5rem;">
+    <a asp-page="/SetLanguage" asp-route-culture="vi-VN"
+       asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
+       class="btn btn-ghost" title="@L["LanguageVietnamese"]"
+       style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">@L["LanguageShortVI"]</a>
+    <a asp-page="/SetLanguage" asp-route-culture="en-US"
+       asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
+       class="btn btn-ghost" title="@L["LanguageEnglish"]"
+       style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">@L["LanguageShortEN"]</a>
+    <button id="theme-toggle" class="btn btn-ghost dark:text-gray-200 dark:hover:bg-gray-800"
+            aria-label="@L["ThemeToggleAriaLabel"]" title="@L["ThemeToggleAriaLabel"]"
+            style="padding: 0.375rem 0.5rem; font-size: 0.875rem;">
+        <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
+    </button>
+    <span style="margin-left: .5rem; margin-right: 1rem;" title="@TempData.Peek("DisplayName")">@TempData.Peek("UserName")</span>
+    
+    <a href="/Auth/ChangePassword" class="btn btn-secondary"
+       style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+        <i class="fa-solid fa-key"></i> @L["ChangePassword"]
+    </a>
+
+    <a href="/Auth/Logout" class="btn btn-primary"
+       style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+        <i class="fa-solid fa-right-from-bracket"></i> @L["Logout"]
+    </a>
+
+</div>
+

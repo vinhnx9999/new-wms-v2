@@ -1,0 +1,223 @@
+﻿@page "{id?}"
+@using System.Linq
+@using Wms.Theme.Web.Model.Dispatch
+@model Wms.Theme.Web.Pages.Outbound.SalesOrders.DetailModel
+@{
+    ViewData["Title"] = Html.Raw(L["FullDispatchDetails"]);
+    var details = Model.Detail;
+    var hasData = details != null && details.Any();
+    var master = hasData ? details?.First() : new Wms.Theme.Web.Model.Dispatch.DispatchDetailDTO();
+
+    string GetStatusText(int status) => status switch
+    {
+        0 => L["StatusNew"],
+        1 => L["StatusWaitPickup"],
+        2 => L["StatusPicked"],
+        3 => L["StatusPacking"],
+        4 => L["StatusPacked"],
+        5 => L["StatusWeighed"],
+        6 => L["StatusExported"],
+        7 => L["StatusCompleted"],
+        _ => $"Unknown ({status})"
+    };
+
+    string GetStatusColor(int status) => status switch
+    {
+        0 => "bg-gray-100 text-gray-700 border-gray-300",
+        1 => "bg-yellow-100 text-yellow-700 border-yellow-300",
+        2 => "bg-blue-100 text-blue-700 border-blue-300",
+        3 => "bg-indigo-100 text-indigo-700 border-indigo-300",
+        4 => "bg-purple-100 text-purple-700 border-purple-300",
+        5 => "bg-teal-100 text-teal-700 border-teal-300",
+        6 => "bg-orange-100 text-orange-700 border-orange-300",
+        7 => "bg-green-100 text-green-700 border-green-300",
+        _ => "bg-gray-100 text-gray-700 border-gray-300"
+    };
+}
+
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 1. Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    @master.DispatchNo</h1>
+                <span
+                    class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border @GetStatusColor(master.DispatchStatus)">
+                    @GetStatusText(master.DispatchStatus)
+                </span>
+            </div>
+        </div>
+        <a asp-page="Index"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition">
+            <i class="fa-solid fa-arrow-left mr-2"></i> @Html.Raw(L["BackToList"])
+        </a>
+    </div>
+
+    <!-- 2. General Information Card -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">@Html.Raw(L["GeneralInformation"])</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-5">
+
+                <!-- Customer Name -->
+                <div>
+                    <span
+                        class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["customer_name"])</span>
+                    <span class="block text-sm font-semibold text-gray-900 dark:text-white truncate"
+                        title="@master.CustomerName">@master.CustomerName</span>
+                </div>
+
+
+                <!-- Total Qty -->
+                <div>
+                    <span class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["TotalQty"])</span>
+                    <span class="block text-sm font-bold text-blue-600 dark:text-blue-400">@details.Sum(x =>
+                                                x.Qty).ToString("N0")</span>
+                </div>
+
+                <!-- Total Weight -->
+                <div>
+                    <span
+                        class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["TotalWeight"])</span>
+                    <span class="block text-sm font-bold text-blue-600 dark:text-blue-400">@details.Sum(x =>
+                                                x.Weight).ToString("N2") kg</span>
+                </div>
+
+                <!-- Created By -->
+                <div>
+                    <span
+                        class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["CreatedBy"])</span>
+                    <span class="block text-sm font-semibold text-gray-900 dark:text-white">@master.Creator</span>
+                </div>
+
+                <!-- Created Time -->
+                <div>
+                    <span
+                        class="block text-xs font-medium text-gray-500 uppercase mb-1">@Html.Raw(L["CreatedDate"])</span>
+                    <span
+                        class="block text-sm font-semibold text-gray-900 dark:text-white">@master.CreateTime.ToString("dd/MM/yyyy                        HH:mm")</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Detail Items Table -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div
+            class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                @Html.Raw(L["DetailItems"])
+                <span
+                    class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium rounded">@details.Count()</span>
+            </h3>
+        </div>
+
+        @if (!hasData)
+        {
+            <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+                <i class="fa-solid fa-box-open text-5xl mb-4"></i>
+                <span>@Html.Raw(L["NoDetailItemsFound"])</span>
+            </div>
+        }
+        else
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["SkuCode"])</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["SkuName"])</th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Unit"])</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Ordered"])</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Picked"])</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Packed"])</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Actual"])</th>
+                            <th scope="col" class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                                @Html.Raw(L["Weight"])</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        @foreach (var item in details)
+                        {
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <!-- SKU Code -->
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="text-sm font-bold text-gray-900 dark:text-white">@item.SkuCode</span>
+                                </td>
+
+                                <!-- SKU Name -->
+                                <td class="px-4 py-3">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2"
+                                        title="@item.SkuName">@item.SkuName</span>
+                                </td>
+
+                                <!-- Unit -->
+                                <td class="px-4 py-3 text-center whitespace-nowrap">
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">@item.Unit</span>
+                                </td>
+
+                                <!-- Ordered Qty -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-sm font-bold text-gray-900 dark:text-white">@item.Qty</span>
+                                    @if (item.LockQty > 0)
+                                    {
+                                        <div class="text-xs text-gray-400">@Html.Raw(L["Lock"]): @item.LockQty</div>
+                                    }
+                                </td>
+
+                                <!-- Picked Qty -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-sm font-bold text-gray-900 dark:text-white">@item.PickedQty</span>
+                                </td>
+
+                                <!-- Packed Qty -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-sm font-bold text-gray-900 dark:text-white">@item.PackageQty</span>
+                                    @if (item.UnpackageQty > 0)
+                                    {
+                                        <div class="text-xs text-gray-400">@Html.Raw(L["Unpack"]): @item.UnpackageQty</div>
+                                    }
+                                </td>
+
+                                <!-- Actual Qty -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-sm font-bold text-gray-900 dark:text-white">@item.ActualQty</span>
+                                </td>
+
+                                <!-- Weight -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">@item.Weight.ToString("N2")
+                                        @item.WeightUnit</span>
+                                </td>
+                            </tr>
+
+                            @if (item.DamageQty > 0)
+                            {
+                                <tr class="bg-red-50 dark:bg-red-900/20">
+                                    <td colspan="8" class="px-4 py-2 text-sm text-red-700 dark:text-red-400">
+                                        <i class="fa-solid fa-triangle-exclamation mr-2"></i> @Html.Raw(L["DamageAlert"]):
+                                        @item.DamageQty @Html.Raw(L["ItemsDamaged"])
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

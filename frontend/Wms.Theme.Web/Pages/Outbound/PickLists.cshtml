@@ -1,0 +1,377 @@
+@page
+@model Wms.Theme.Web.Pages.Outbound.PickListsModel
+@{
+    ViewData["Title"] = L["PickLists"];
+}
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js"></script>
+    <script>
+        function getPickListConfig() {
+            return {
+                apiUrl: '?handler=DataTable',
+                columns: [
+                    { title: '@Html.Raw(L["dispatch_no"])', field: 'dispatchNo', sortable: true, class: 'font-medium text-gray-900 dark:text-white' },
+                    { title: '@Html.Raw(L["customer_name"])', field: 'customerName', sortable: true },
+                    { title: '@Html.Raw(L["Status"])', field: 'dispatchStatus', render: (row) => renderStatusBadge(row.dispatchStatus) },
+                    { title: '@Html.Raw(L["Qty"])', field: 'qty', class: 'text-right', render: (row) => formatNumber(row.qty) },
+                    { title: '@Html.Raw(L["Weight"])', field: 'weight', class: 'text-right', render: (row) => formatNumber(row.weight, 2) },
+                    { title: '@Html.Raw(L["Volume"])', field: 'volume', class: 'text-right', render: (row) => formatNumber(row.volume, 2) },
+                    { title: '@Html.Raw(L["Creator"])', field: 'creator' },
+                    { title: '@Html.Raw(L["Action"])', field: null, sortable: false, class: 'text-center', render: (row) => renderActions(row) }
+                ],
+                filters: {
+                    dispatchNo: ''
+                }
+            };
+        }
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                0: { text: '@Html.Raw(L["StatusNew"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+                1: { text: '@Html.Raw(L["StatusWaitPickup"])', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+                2: { text: '@Html.Raw(L["StatusPicked"])', class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300' },
+                3: { text: '@Html.Raw(L["StatusPacking"])', class: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300' },
+                4: { text: '@Html.Raw(L["StatusPacked"])', class: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+                5: { text: '@Html.Raw(L["StatusWeighed"])', class: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' },
+                6: { text: '@Html.Raw(L["StatusExported"])', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+                7: { text: '@Html.Raw(L["StatusCompleted"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }
+            };
+            const s = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+            return `<span class="px-2 py-1 rounded text-xs font-semibold ${s.class}">${s.text}</span>`;
+        }
+
+        function formatNumber(value, decimals = 0) {
+            if (value === null || value === undefined || value === '') return '0';
+            return new Intl.NumberFormat('vi-VN', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        function renderActions(row) {
+            return `
+                    <div class="flex justify-center gap-2">
+                        <button onclick="openPickModal('${row.dispatchNo}')" 
+                                title="@Html.Raw(L["PickItems"])"
+                                class="w-8 h-8 flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-300 transition-all shadow-sm">
+                            <i class="fas fa-hand-pointer text-sm"></i>
+                        </button>
+                    </div>
+                `;
+        }
+
+        // --- Custom Pick Modal Logic ---
+        let selectedIndex = 0;
+        let currentDispatchData = [];
+
+        async function openPickModal(dispatchNo) {
+            try {
+                const response = await fetch(`?handler=DispatchForPickLocation&dispatchNo=${dispatchNo}`);
+                const json = await response.json();
+
+                if (json.success && json.data && json.data.length > 0) {
+                    currentDispatchData = json.data;
+                    document.getElementById('m_dispatchNoHeader').innerText = json.data[0].dispatch_no;
+                    document.getElementById('m_customerName').innerText = json.data[0].customer_name;
+                    renderLeftPanel();
+                    selectDispatchItem(0);
+                    document.getElementById('pickModal').classList.remove('hidden');
+                } else {
+                    Notify.warning("@Html.Raw(L["NoDataFound"])");
+                }
+            } catch (error) {
+                console.error("Error fetching dispatch:", error);
+                Notify.error("@Html.Raw(L["ErrorLoadingData"])");
+            }
+        }
+
+        function closePickModal() {
+            document.getElementById('pickModal').classList.add('hidden');
+        }
+
+        function renderLeftPanel() {
+            const container = document.getElementById('dispatchItemList');
+            container.innerHTML = '';
+
+            currentDispatchData.forEach((item, index) => {
+                let currentPicked = 0;
+                if (item.pick_list) {
+                    currentPicked = item.pick_list.reduce((sum, p) => sum + (parseInt(p.pick_qty) || 0), 0);
+                }
+
+                const isSelected = index === selectedIndex;
+                const isComplete = currentPicked === item.qty;
+                const isOver = currentPicked > item.qty;
+                const isChecked = item.isChecked || false;
+
+                let borderClass = isSelected
+                    ? "border-blue-500 ring-1 ring-blue-300 bg-blue-50"
+                    : "border-gray-200 hover:bg-gray-50 bg-white";
+
+                let progressColor = isComplete ? "text-green-600" : (isOver ? "text-red-600" : "text-blue-600");
+
+                const card = document.createElement('div');
+                card.className = `cursor-pointer rounded-lg border p-3 mb-2 transition-all duration-200 ${borderClass}`;
+                card.onclick = () => selectDispatchItem(index);
+
+                card.innerHTML = `
+                                                <div class="flex items-start gap-3">
+                                                    <div class="pt-1">
+                                                        <input type="checkbox" class="w-5 h-5 cursor-pointer text-blue-600 rounded focus:ring-blue-500" ${isChecked ? 'checked' : ''} onclick="toggleSelectForSave(event, ${index})">
+                                                    </div>
+                                                    <div class="flex-grow overflow-hidden">
+                                                        <div class="flex justify-between items-start">
+                                                            <div class="w-3/4">
+                                                                <p class="text-sm font-bold text-gray-800 truncate" title="${item.sku_name}">${item.sku_name}</p>
+                                                                <p class="text-[10px] text-gray-500 font-mono mt-0.5">${item.sku_code}</p>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <span class="text-xs font-bold ${progressColor}">${currentPicked} / ${item.qty}</span>
+                                                            </div>
+                                                        </div>  
+                                                            <input type="checkbox" ${item.confirm ? 'checked' : ''} class=" hidden w-3 h-3 text-gray-400 rounded" disabled>
+                                                    </div>
+                                                </div>
+                                            `;
+                container.appendChild(card);
+            });
+            validateSelectedSave();
+        }
+
+        function toggleSelectForSave(event, index) {
+            event.stopPropagation();
+            currentDispatchData[index].isChecked = event.target.checked;
+            validateSelectedSave();
+        }
+
+        function validateSelectedSave() {
+            const selectedItems = currentDispatchData.filter(item => item.isChecked);
+            const btn = document.getElementById('btnSaveAll');
+
+            if (selectedItems.length === 0) {
+                btn.disabled = true;
+                btn.innerHTML = "@Html.Raw(L["SelectItemsToSave"])";
+                btn.className = "w-full py-2 text-sm text-white bg-gray-400 rounded font-semibold cursor-not-allowed";
+                return;
+            }
+
+            const allValid = selectedItems.every(item => {
+                const picked = item.pick_list.reduce((sum, p) => sum + (parseInt(p.pick_qty) || 0), 0);
+                return picked === item.qty;
+            });
+
+            if (allValid) {
+                btn.disabled = false;
+                btn.innerHTML = `@Html.Raw(L["Save"]) (${selectedItems.length}) @Html.Raw(L["ItemsSelected"])`;
+                btn.className = "w-full py-2 text-sm text-white bg-blue-600 rounded font-semibold hover:bg-blue-700 cursor-pointer shadow-md transition-all";
+            } else {
+                btn.disabled = true;
+                btn.innerHTML = "@Html.Raw(L["NotEnoughQuantity"])";
+                btn.className = "w-full py-2 text-sm text-white bg-red-400 rounded font-semibold cursor-not-allowed";
+            }
+        }
+
+        function selectDispatchItem(index) {
+            selectedIndex = index;
+            const data = currentDispatchData[index];
+            renderLeftPanel();
+
+            document.getElementById('d_spuName').innerText = data.sku_name;
+            document.getElementById('d_spuCode').innerText = data.sku_code;
+            document.getElementById('d_qtyReq').innerText = data.qty;
+
+            const tbody = document.getElementById('pickTableBody');
+            tbody.innerHTML = '';
+
+            data.pick_list.forEach((item, pIndex) => {
+                if (item.qty_available <= 0) return;
+                const expiry = new Date(item.expiry_date).toLocaleDateString('vi-VN');
+                const pickVal = item.pick_qty > 0 ? item.pick_qty : "";
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                                                                            <td class="px-4 py-2 border-b">
+                                                                                <div class="font-bold text-gray-700 text-sm">${item.location_name}</div>
+                                                                                <div class="text-xs text-gray-500">${item.warehouse_area_name}</div>
+                                                                            </td>
+                                                                            <td class="px-4 py-2 border-b">
+                                                                                <div class="text-sm text-gray-600">${expiry}</div>
+                                                                                <div class="text-xs text-gray-400 italic">${item.series_number}</div>
+                                                                            </td>
+                                                                            <td class="px-4 py-2 border-b text-center">
+                                                                                <span class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-bold">${item.qty_available}</span>
+                                                                            </td>
+                                                                            <td class="px-4 py-2 border-b text-center relative">
+                                                                                <input type="number" class="pick-input w-20 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 p-1 font-bold text-sm"
+                                                                                       placeholder="0" min="0" max="${item.qty_available}" data-max="${item.qty_available}" 
+                                                                                       data-p-index="${pIndex}" value="${pickVal}" oninput="handlePickInputMulti(this)" 
+                                                                                       onkeypress="return isNumberKey(event)">
+                                                                                <div class="error-msg text-[10px] text-red-600 font-bold hidden absolute -bottom-1 left-0 w-full">Max: ${item.qty_available}</div>
+                                                                            </td>
+                                                                        `;
+                tbody.appendChild(tr);
+            });
+            updateDetailStatus(data);
+        }
+
+        function handlePickInputMulti(input) {
+            const pIndex = input.getAttribute('data-p-index');
+            const max = parseInt(input.getAttribute('data-max'));
+            let val = parseInt(input.value) || 0;
+
+            const errorMsg = input.parentElement.querySelector('.error-msg');
+            if (val > max) {
+                input.classList.add('border-red-500', 'bg-red-50');
+                errorMsg.classList.remove('hidden');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                errorMsg.classList.add('hidden');
+            }
+
+            currentDispatchData[selectedIndex].pick_list[pIndex].pick_qty = val;
+            updateDetailStatus(currentDispatchData[selectedIndex]);
+            renderLeftPanel();
+        }
+
+        function updateDetailStatus(data) {
+            const currentPicked = data.pick_list.reduce((sum, p) => sum + (parseInt(p.pick_qty) || 0), 0);
+            const req = data.qty;
+            const msgEl = document.getElementById('d_statusMsg');
+
+            if (currentPicked < req) {
+                msgEl.innerHTML = `<span class="text-orange-500">@Html.Raw(L["Picking"]): ${currentPicked}/${req} (@Html.Raw(L["Missing"]))</span>`;
+            } else if (currentPicked === req) {
+                msgEl.innerHTML = `<span class="text-green-600 font-bold">@Html.Raw(L["Enough"]): ${currentPicked}/${req}</span>`;
+            } else {
+                msgEl.innerHTML = `<span class="text-red-600 font-bold">@Html.Raw(L["Exceeded"]): ${currentPicked}/${req}</span>`;
+            }
+        }
+
+        function isNumberKey(evt) {
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
+            return true;
+        }
+
+        async function saveAllDispatch() {
+            const itemsToSave = currentDispatchData.filter(item => item.isChecked);
+            if (itemsToSave.length === 0) {
+                Notify.warning("@Html.Raw(L["SelectAtLeastOneToSave"])");
+                return;
+            }
+
+            const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const btnSave = document.getElementById('btnSaveAll');
+            const originalText = btnSave.innerHTML;
+            btnSave.disabled = true;
+            btnSave.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> @Html.Raw(L["Processing"])`;
+
+            try {
+                const response = await fetch('?handler=ConfirmPickDispatch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify(itemsToSave)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        Notify.success(result.message);
+                        closePickModal();
+                        window.dispatchEvent(new CustomEvent('datatable-reload'));
+                    } else {
+                        Notify.error(result.message);
+                    }
+                } else {
+                    Notify.error("@Html.Raw(L["ServerConnectionError"]) (" + response.status + ")");
+                }
+            } catch (error) {
+                console.error("Network Error:", error);
+                Notify.error("@Html.Raw(L["ConnectionError"])");
+            } finally {
+                btnSave.disabled = false;
+                btnSave.innerHTML = originalText;
+            }
+        }
+    </script>
+}
+
+<div class="p-6" x-data="AlpineDataTable(getPickListConfig())" @@datatable-reload.window="reload()">
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="relative max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" x-model="filters.dispatchNo" @@input.debounce.600ms="reload()"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-sm"
+                placeholder="@Html.Raw(L["SearchDispatchNo"]) ...">
+        </div>
+    </div>
+
+    <partial name="Shared/Components/_AlpineDataTable" />
+</div>
+
+<div id="pickModal"
+    class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-3/4 lg:w-2/3 flex flex-col md:flex-row overflow-hidden"
+        style="max-height: 90vh;">
+        <div class="w-full md:w-1/3 bg-gray-50 flex flex-col border-r border-gray-200">
+            <div class="p-4 border-b border-gray-200 bg-white">
+                <h3 class="text-lg font-bold text-blue-700" id="m_dispatchNoHeader">...</h3>
+                <p class="text-xs text-gray-500" id="m_customerName">...</p>
+            </div>
+            <div id="dispatchItemList" class="flex-grow overflow-y-auto p-3 space-y-3"></div>
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <button id="btnSaveAll" onclick="saveAllDispatch()"
+                    class="w-full py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 font-semibold"
+                    disabled>
+                    @Html.Raw(L["SaveAllDispatch"])
+                </button>
+            </div>
+        </div>
+        <div class="w-full md:w-2/3 p-0 flex flex-col bg-white">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-start bg-gray-50">
+                <div>
+                    <h4 class="font-bold text-gray-800 text-lg" id="d_spuName">@Html.Raw(L["SelectProduct"])</h4>
+                    <p class="text-xs text-gray-500" id="d_spuCode">...</p>
+                </div>
+                <div class="text-right">
+                    <span class="block text-xs text-gray-500 uppercase">@Html.Raw(L["NeedToPick"])</span>
+                    <span class="text-xl font-bold text-red-600" id="d_qtyReq">0</span>
+                </div>
+                <button onclick="closePickModal()" class="text-gray-400 hover:text-gray-600 ml-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-0">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase">
+                                @Html.Raw(L["Location"]) / @Html.Raw(L["Warehouse"])</th>
+                            <th class="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase">
+                                @Html.Raw(L["ExpiryDate"]) / Serial</th>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase">
+                                @Html.Raw(L["CurrentStock"])</th>
+                            <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase w-28">
+                                @Html.Raw(L["Picked"])</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pickTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-gray-50 border-t border-gray-200 text-right">
+                <span id="d_statusMsg" class="text-sm font-semibold text-gray-500">...</span>
+            </div>
+        </div>
+    </div>
+</div>

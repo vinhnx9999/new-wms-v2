@@ -1,0 +1,93 @@
+@page
+@model Wms.Theme.Web.Pages.System.IndexModel
+
+@{
+    ViewData["Title"] = "System";
+}
+
+<div class="space-y-6">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">System Settings</h1>
+        <p class="mt-1 text-gray-600">System information and configuration</p>
+    </div>
+
+    <!-- System Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Version Information</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                    <span class="text-gray-600">Application Version</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.ApplicationVersion</span>
+                </div>
+                <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                    <span class="text-gray-600">.NET Version</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.NetVersion</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Database Version</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.DatabaseVersion</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                    <span class="text-gray-600">Warehouses</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.TotalWarehouses</span>
+                </div>
+                <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                    <span class="text-gray-600">Locations</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.TotalLocations</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Items</span>
+                    <span class="font-medium text-gray-900">@Model.SystemInfo.TotalItems</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Settings</h3>
+        </div>
+
+        <div class="divide-y divide-gray-200">
+            <a href="#" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                <span class="text-gray-900 font-medium">Users & Permissions</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            <a href="#" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                <span class="text-gray-900 font-medium">Company Settings</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            <a href="#" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                <span class="text-gray-900 font-medium">Database Backup</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            <a href="#" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition">
+                <span class="text-gray-900 font-medium">Audit Log</span>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Last Updated -->
+    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <p class="text-sm text-blue-900">
+            <strong>Last Updated:</strong> @Model.SystemInfo.LastUpdated.ToString("dd/MM/yyyy HH:mm:ss")
+        </p>
+    </div>
+</div>

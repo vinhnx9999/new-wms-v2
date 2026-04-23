@@ -1,0 +1,740 @@
+@using Microsoft.Extensions.Localization
+@using Wms.Theme.Web
+@inject IStringLocalizer<SharedResource> L
+
+<div x-data="putawayTab()" x-init="init()" class="space-y-4">
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-2 mb-4">
+        <button @@click="exportExcel()" title="@L["ExportExcel"]"
+            class="w-20 py-3 bg-white border border-gray-300 text-green-600 text-base rounded-lg shadow-sm hover:bg-gray-50 hover:text-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 flex justify-center items-center">
+            <i class="fa-solid fa-file-excel"></i>
+        </button>
+    </div>
+
+    <!-- Data Table -->
+    <div x-data="AlpineDataTable(tableConfig)" x-init="init()">
+        <partial name="Shared/Components/_AlpineDataTable" />
+    </div>
+
+    <!-- Location Selection Modal -->
+    <template x-teleport="body">
+        <div x-show="showLocationModal" style="display: none;"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[10000] flex items-center justify-center">
+            <div class="relative p-6 border w-[800px] shadow-xl rounded-xl bg-white dark:bg-gray-800 dark:border-gray-700 max-h-[90vh] flex flex-col"
+                @@click.away="showLocationModal = false">
+                <div
+                    class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3 dark:border-gray-700 flex-shrink-0">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">@L["SelectLocation"]</h3>
+                    <button @@click="showLocationModal = false"
+                        class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4 flex-shrink-0">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        @Html.Raw(string.Format(L["AssignLocationForItems"].Value, "<span class=\"font-bold\"                        x-text=\"selectedCount\">0</span>"))
+                    </p>
+                </div>
+
+                <!-- Location Table -->
+                <div class="flex-grow overflow-auto border rounded-lg dark:border-gray-700 mb-4 min-h-[300px]">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead
+                            class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 dark:bg-gray-700 dark:text-gray-300 z-10">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">@Html.Raw(L["LocationName"])</th>
+                                <th scope="col" class="px-4 py-3">@Html.Raw(L["Warehouse"])</th>
+                                <th scope="col" class="px-4 py-3">@Html.Raw(L["Area"])</th>
+                                <th scope="col" class="px-4 py-3 text-right">@Html.Raw(L["Volume"])</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <template x-for="(loc, index) in availableLocations" :key="index">
+                                <tr @@click="selectedLocation = (selectedLocation == loc.locationName ? '' : loc.locationName)"
+                                    :class="{'bg-purple-50 dark:bg-purple-900/20': selectedLocation == loc.locationName}"
+                                    class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                                    <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">
+                                        <div class="flex items-center gap-2">
+                                            <div x-show="selectedLocation == loc.locationName" class="text-purple-600">
+                                                <i class="fa-solid fa-check-circle"></i>
+                                            </div>
+                                            <span x-text="loc.locationName"></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2" x-text="loc.warehouseName"></td>
+                                    <td class="px-4 py-2" x-text="loc.warehouseAreaName"></td>
+                                    <td class="px-4 py-2 text-right">
+                                        <span x-text="GlobalFormatNumber(loc.locationVolume || 0)"></span> m³
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="availableLocations.length === 0">
+                                <td colspan="4" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                    @L["NoLocationsFound"]
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end gap-3 flex-shrink-0">
+                    <button @@click="showLocationModal = false"
+                        class="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        @L["Cancel"]
+                    </button>
+                    <button @@click="submitLocationAssignment()" :disabled="isSubmitting || !selectedLocation"
+                        class="px-5 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                        <span x-show="!isSubmitting">@L["Assign"]</span>
+                        <span x-show="isSubmitting">@L["Processing"]...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template x-teleport="body">
+        <div x-show="showPutawayModal" style="display: none;"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-[9999] flex items-center justify-center"
+            @@click.self="showPutawayModal = false">
+            <div
+                class="relative p-0 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700 max-h-[80vh] flex flex-col">
+
+                <div class="flex justify-between items-center px-6 py-4 border-b dark:border-gray-700">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">@L["ProcessPutawayTitle"]</h3>
+                    <button @@click="showPutawayModal = false"
+                        class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6 overflow-y-auto flex-grow">
+                    <!-- Info Block -->
+                    <div
+                        class="bg-purple-50 rounded-lg p-4 mb-5 border border-purple-100 dark:bg-gray-700 dark:border-gray-600">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span
+                                    class="block text-xs font-semibold text-purple-600 uppercase tracking-wider dark:text-purple-300">@L["ASNNumber"]</span>
+                                <span class="font-bold text-gray-900 dark:text-white text-base"
+                                    x-text="selectedItems[0]?.asn_no || selectedItems[0]?.AsnNo || '---'"></span>
+                            </div>
+                            <div>
+                                <span
+                                    class="block text-xs font-semibold text-purple-600 uppercase tracking-wider dark:text-purple-300">@L["SkuName"]</span>
+                                <span class="font-bold text-gray-900 dark:text-white text-base"
+                                    x-text="selectedItems[0]?.sku_name || selectedItems[0]?.SkuName || '---'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between mb-4">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            @L["PutawayInstruction"]
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border rounded-lg max-h-[300px] overflow-y-auto dark:border-gray-700">
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead
+                                class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10 dark:bg-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <th class="px-4 py-3 w-10">
+                                        <input type="checkbox"
+                                            @@change="selectedItems.forEach(i => i.selected = $el.checked)"
+                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    </th>
+                                    <th class="px-4 py-3">@L["Series"]</th>
+
+                                    <th class="px-4 py-3 text-center">@L["ExpiryDate"]</th>
+                                    <th class="px-4 py-3 w-32">@L["Quantity"]</th>
+                                    <th class="px-4 py-3">@L["LocationCode"]</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                <template x-for="(item, index) in selectedItems" :key="index">
+                                    <tr>
+                                        <td class="px-4 py-2">
+                                            <input type="checkbox" x-model="item.selected"
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        </td>
+                                        <td class="px-4 py-2 font-mono text-blue-600"
+                                            x-text="item.series_number || item.SeriesNumber || '---'"></td>
+
+                                        <td class="px-4 py-2 text-center"
+                                            x-text="GlobalFormatDate(item.expiry_date || item.ExpiryDate)"></td>
+                                        <td class="px-4 py-2 font-bold text-gray-900 dark:text-white"
+                                            x-text="item.sorted_qty || item.SortedQuantity || 0"></td>
+                                        <td class="px-4 py-2">
+                                            <select x-model="item.goods_location_id"
+                                                @@change="item.tempLocationName = availableLocations.find(l => l.id == item.goods_location_id)?.locationName || ''"
+                                                class="w-full min-w-[150px] border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                                <option value="">@L["SelectLocation"]</option>
+                                                <template x-for="loc in getAvailableLocationsForItem(item, index)"
+                                                    :key="loc.id">
+                                                    <option :value="loc.id" x-text="loc.locationName"></option>
+                                                </template>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+
+                        <div x-show="selectedItems.length === 0"
+                            class="flex flex-col items-center justify-center py-10">
+                            <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mb-2" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                </path>
+                            </svg>
+                            <span class="text-gray-500 dark:text-gray-400">@L["NoData"]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-2 rounded-b-lg dark:bg-gray-700 dark:border-gray-600">
+                    <button @@click="showPutawayModal = false"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                        @L["Close"]
+                    </button>
+                    <button @@click="submitPutaway()" :disabled="isSubmitting || selectedItems.length === 0"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!isSubmitting">@L["Save"]</span>
+                        <span x-show="isSubmitting">@L["Processing"]...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+
+<script src="https://unpkg.com/qrcodegen@1.8.0/js/qrcodegen.js"></script>
+<script src="~/js/qr-print.js"></script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('putawayTab', () => ({
+            // State
+            showLocationModal: false,
+            showPutawayModal: false,
+            showQrModal: false,
+            showQrOption: true,
+            selectedCount: 0,
+            selectedItems: [],
+            isSubmitting: false,
+            generateQrCode: false,
+            selectedLocation: '',
+            availableLocations: [],
+
+            // Configuration for AlpineDataTable
+            tableConfig: {
+                apiUrl: '?handler=DataTable&handlerName=PutAwayTable',
+                columns: [
+                    { title: '@Html.Raw(L["ASNNumber"])', data: 'AsnNo' ,
+                        render: (row) => `<a href="/Inbound/ASN/Detail/${row.Id}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors" title="@Html.Raw(L["Detail"])">
+                              ${row.AsnNo}
+                         </a>`},
+                    { title: '@Html.Raw(L["Supplier"])', data: 'SupplierName' },
+                    { title: '@Html.Raw(L["Status"])', data: 'StatusBadge', render: (item) => item.StatusBadge },
+                    { title: '@Html.Raw(L["GoodsOwnerName"])', data: 'GoodsOwnerName' },
+                    { title: '@Html.Raw(L["SkuCode"])', data: 'SkuCode' },
+                    { title: '@Html.Raw(L["SkuName"])', data: 'SkuName' },
+                    { title: '@Html.Raw(L["AsnQty"])', data: 'AsnQty', align: 'right', render: (item) => GlobalFormatNumber(item.AsnQty) },
+                    // Actions
+                    {
+                        title: '@Html.Raw(L["Actions"])', sticky: 'right',
+                        data: null,
+                        align: 'center',
+                        render: (item) => {
+                            return `
+                                <div class="flex items-center gap-4 justify-start">
+                                    ${item.AsnStatus != 4 ? `
+                                     <button onclick='window.dispatchEvent(new CustomEvent("putaway-action", { detail: { action: "putaway", item: ${JSON.stringify(item)} } }))'
+                                            class="text-green-600 hover:text-green-800" title="@Html.Raw(L["Putaway"])">
+                                        <i class="fa-solid fa-dolly"></i>
+                                    </button>` : ''}
+                                    ${item.AsnStatus == 4 ? `
+                                    <button onclick='window.dispatchEvent(new CustomEvent("putaway-action", { detail: { action: "robot-confirm", item: ${JSON.stringify(item)} } }))'
+                                            class="text-orange-600 hover:text-orange-800" title="@Html.Raw(L["RobotConfirm"])">
+                                        <i class="fa-solid fa-robot"></i>
+                                    </button>
+                                    <button onclick='window.dispatchEvent(new CustomEvent("putaway-action", { detail: { action: "Print QR", item: ${JSON.stringify(item)} } }))'
+                                            class="text-orange-600 hover:text-orange-800" title="@Html.Raw(L["Print QR"])">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </button>` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                ],
+                filters: {
+                    asn_no: '',
+                    goods_owner_name: ''
+                }
+            },
+
+            async init() {
+                // Load locations immediately when component initializes
+                await this.loadLocations();
+
+                // Listen for custom events
+                window.addEventListener('putaway-action', (e) => {
+                    this.handleAction(e.detail.action, e.detail);
+                });
+
+                // Listen for tab changes
+                window.addEventListener('tab-changed', (e) => {
+                    if (e.detail.tab === 'putaway') {
+                        this.reloadData();
+                    }
+                });
+            },
+
+            handleAction(action, detail) {
+                console.log('Putaway action received:', action, detail);
+                if (action === 'putaway') {
+                    this.openPutawayModal(detail.item);
+                } else if (action === 'view') {
+                    // Handle view action if needed
+                } else if (action === 'robot-confirm') {
+                    this.confirmRobotSuccess(detail.item);
+                } else if (action === 'Print QR') {
+                    this.printQrCode(detail.item);
+                }
+            },
+
+            // Load Locations
+            async loadLocations() {
+                console.log('DEBUG: loadLocations called!');
+                try {
+                    const response = await fetch('?handler=GoodLocations');
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.availableLocations = Array.isArray(result) ? result : (result.data || []);
+                    } else {
+                        console.error('Load locations failed:', response.status, response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Load locations error:', error);
+                }
+            },
+
+            // Get available locations for a specific item, excluding locations already selected by other items
+            getAvailableLocationsForItem(currentItem, currentIndex) {
+                // Get all location IDs that are selected by OTHER items
+                const usedLocationIds = this.selectedItems
+                    .filter((item, idx) => idx !== currentIndex && item.goods_location_id)
+                    .map(item => parseInt(item.goods_location_id));
+
+                // Return locations that are not used by other items, plus the current item's location
+                return this.availableLocations.filter(loc => {
+                    const isCurrentItemLocation = parseInt(currentItem.goods_location_id) === loc.id;
+                    const isNotUsedByOthers = !usedLocationIds.includes(loc.id);
+                    return isCurrentItemLocation || isNotUsedByOthers;
+                });
+            },
+
+            // Location Assignment
+            async openLocationModal(items = null) {
+                // Ensure locations are loaded
+                if (!this.availableLocations || this.availableLocations.length === 0) {
+                    await this.loadLocations();
+                }
+
+                if (items && Array.isArray(items)) {
+                    // Bulk assign from Putaway Modal (Local UI update only)
+                    this.targetItems = items;
+                    this.selectedCount = items.length;
+
+                    // Pre-select if single item has location
+                    if (items.length === 1 && items[0].goods_location_id) {
+                        this.selectedLocation = items[0].goods_location_id;
+                    } else {
+                        this.selectedLocation = '';
+                    }
+
+                    this.showLocationModal = true;
+                } else {
+                    // Bulk assign from Main Table (Backend update)
+                    const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                    if (!tableEl || !tableEl._x_dataStack) return;
+
+                    const tableData = tableEl._x_dataStack[0];
+                    const selected = tableData.selectedRows;
+
+                    if (!selected || selected.length === 0) {
+                        Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                        return;
+                    }
+
+                    this.targetItems = null; // Clear to indicate main table mode
+                    this.selectedCount = selected.length;
+                    this.selectedLocation = '';
+                    this.showLocationModal = true;
+                }
+            },
+
+            async submitLocationAssignment() {
+                if (!this.selectedLocation) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectLocation"])');
+                    return;
+                }
+
+                this.isSubmitting = true;
+
+                const selectedLocObj = this.availableLocations.find(l => l.locationName === this.selectedLocation);
+                const locationId = selectedLocObj ? (selectedLocObj.id || 0) : 0;
+                const locationName = selectedLocObj ? selectedLocObj.locationName : '';
+
+                if (this.targetItems) {
+                    this.targetItems.forEach(item => {
+                        item.goods_location_id = locationId;
+                        item.tempLocationName = locationName;
+                    });
+                    this.showLocationModal = false;
+                    this.targetItems = null;
+                    this.isSubmitting = false; // Reset submitting state
+                    return;
+                }
+
+
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const payload = {
+                        location_id: locationId,
+                        ids: selected.map(r => r.Id)
+                    };
+
+                    const response = await fetch('?handler=AssignLocation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["LocationAssignedSuccess"])');
+                        this.showLocationModal = false;
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["LocationAssignedFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Assign location error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            // Putaway
+            async openPutawayModal(item) {
+                if (item) {
+                    // Single item mode from row action
+                    try {
+                        const response = await fetch(`?handler=AsnPendingPutaway&asnId=${item.Id}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            // Initialize goods_location_id and selected state
+                            this.selectedItems = data.map(i => ({
+                                ...i,
+                                goods_location_id: i.goods_location_id || i.GoodLocationId || '',
+                                selected: false // Initialize selection state
+                            }));
+                            this.selectedCount = data.length;
+                            this.generateQrCode = false;
+                            this.showPutawayModal = true;
+                        } else {
+                            Notify.error('@Html.Raw(L["LoadDataFailed"])');
+                        }
+                    } catch (error) {
+                        console.error('Load putaway data error:', error);
+                        Notify.error('@Html.Raw(L["SystemError"])');
+                    }
+                } else {
+                    // Bulk mode from checkbox selection (if enabled)
+                    const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                    if (!tableEl || !tableEl._x_dataStack) return;
+
+                    const tableData = tableEl._x_dataStack[0];
+                    const selected = tableData.selectedRows;
+                    if (!selected || selected.length === 0) {
+                        Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                        return;
+                    }
+                    this.selectedItems = selected.map(i => ({ ...i, selected: false }));
+                    this.selectedCount = this.selectedItems.length;
+                    this.generateQrCode = false;
+                    this.showPutawayModal = true;
+                }
+            },
+
+            async submitPutaway() {
+                if (!this.selectedItems || this.selectedItems.length === 0) return;
+
+                // Validate: all items must have a location selected
+                const itemsWithoutLocation = this.selectedItems.filter(item => !item.goods_location_id);
+                if (itemsWithoutLocation.length > 0) {
+                    Notify.error('@Html.Raw(L["AllItemsMustHaveLocation"])');
+                    return;
+                }
+
+                // Validate: no duplicate locations
+                const locationIds = this.selectedItems.map(item => parseInt(item.goods_location_id));
+                const uniqueLocationIds = [...new Set(locationIds)];
+                if (locationIds.length !== uniqueLocationIds.length) {
+                    Notify.error('@Html.Raw(L["DuplicateLocationNotAllowed"])');
+                    return;
+                }
+
+                this.isSubmitting = true;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    // Construct payload for OnPostUpdatePutawayAsync
+                    const requestData = {
+                        updatePutawayRequests: this.selectedItems.map(item => {
+                            const locId = item.goods_location_id || item.GoodLocationId || 0;
+                            return {
+                                asn_id: item.asn_id || item.AsnId || item.Id,
+                                goods_owner_id: item.goods_owner_id || item.GoodOwnerId || 0,
+                                goods_location_id: parseInt(locId),
+                                putaway_qty: parseFloat(item.sorted_qty || item.SortedQuantity || 0),
+                                series_number: item.series_number || item.SeriesNumber || ''
+                            };
+                        })
+                    };
+
+                    const response = await fetch('?handler=UpdatePutaway', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["PutawaySuccess"])');
+                        this.showPutawayModal = false;
+
+                        // Show QR codes if requested
+                        if (this.generateQrCode) {
+                            const processedIds = result.ids || this.selectedItems.map(i => i.Id || i.asn_id);
+                            await this.fetchAndShowQrCodes(processedIds);
+                        }
+
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["PutawayFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Putaway error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            // Reject Putaway
+            async rejectPutaway() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                const confirmed = await Notify.confirm(`@Html.Raw(L["ConfirmRejectPutawayMessage"])`.replace('{0}', selected.length));
+                if (!confirmed) return;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const ids = selected.map(r => r.Id);
+
+                    const response = await fetch('?handler=RejectPutaway', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(ids)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message);
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Reject error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                }
+            },
+
+            async confirmRobotSuccess(item) {
+                const confirmed = await Notify.confirm("Đây là tính năng bypass sắp triển khai và sẽ do wcs thực hiện");
+                if (!confirmed) return;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    // API expects a list of IDs
+                    const payload = [item.Id];
+
+                    const response = await fetch('?handler=ConfirmRobot', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message);
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Robot confirm error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                }
+            },
+
+            reloadData() {
+                // Reload tab counts
+                const processPageEl = document.querySelector('[x-data^="processPage"]');
+                if (processPageEl && processPageEl._x_dataStack) {
+                    const processPage = processPageEl._x_dataStack[0];
+                    if (processPage.loadTabCounts) {
+                        processPage.loadTabCounts();
+                    }
+                }
+
+                // Reload table
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (tableEl && tableEl._x_dataStack) {
+                    const tableData = tableEl._x_dataStack[0];
+                    tableData.fetchData(tableData.pagination.pageIndex);
+                }
+            },
+
+            // Print QR Code - Calls external function from qr-print.js
+            async printQrCode(item) {
+                const messages = {
+                    loading: '@Html.Raw(L["LoadingQrCode"])...',
+                    loadFailed: '@Html.Raw(L["LoadQrCodeFailed"])',
+                    noQrFound: '@Html.Raw(L["NoQrCodeFound"])',
+                    popupBlocked: '@Html.Raw(L["PopupBlockedMessage"])',
+                    systemError: '@Html.Raw(L["SystemError"])'
+                };
+                await window.printQrCode(item, '?handler=ShowQrCode', messages);
+            },
+
+            exportExcel() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                // Check if any rows are selected
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                if (typeof XLSX === 'undefined') {
+                    Notify.error('XLSX library not loaded');
+                    return;
+                }
+
+                try {
+                    // Map status codes to text
+                    const statusMap = {
+                        0: '@Html.Raw(L["New"])',
+                        1: '@Html.Raw(L["Delivery"])',
+                        2: '@Html.Raw(L["Unload"])',
+                        3: '@Html.Raw(L["Putaway"])',
+                        4: '@Html.Raw(L["WaitingRobot"])',
+                        5: '@Html.Raw(L["Completed"])',
+                        8: '@Html.Raw(L["Cancelled"])'
+                    };
+
+                    // Prepare data for Excel
+                    const exportData = selected.map((item, index) => ({
+                        '@Html.Raw(L["STT"])': index + 1,
+                        '@Html.Raw(L["ASNNumber"])': item.AsnNo || '',
+                        '@Html.Raw(L["Supplier"])': item.SupplierName || '',
+                        '@Html.Raw(L["Status"])': statusMap[item.AsnStatus] || item.AsnStatus || '',
+                        '@Html.Raw(L["GoodsOwnerName"])': item.GoodsOwnerName || '',
+                        '@Html.Raw(L["SkuCode"])': item.SkuCode || '',
+                        '@Html.Raw(L["SkuName"])': item.SkuName || '',
+                        '@Html.Raw(L["AsnQty"])': parseFloat(item.AsnQty || 0)
+                    }));
+
+                    // Create worksheet
+                    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+                    // Set column widths
+                    worksheet['!cols'] = [
+                        { wch: 8 },  // STT
+                        { wch: 20 }, // ASNNumber
+                        { wch: 30 }, // Supplier
+                        { wch: 15 }, // Status
+                        { wch: 25 }, // GoodsOwnerName
+                        { wch: 20 }, // SkuCode
+                        { wch: 35 }, // SkuName
+                        { wch: 12 }  // AsnQty
+                    ];
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Putaway");
+
+                    const timestamp = new Date().getTime();
+                    const filename = `Putaway_Export_${timestamp}.xlsx`;
+
+                    XLSX.writeFile(workbook, filename, { bookType: 'xlsx', compression: true });
+                    Notify.success('@Html.Raw(L["ExportSuccess"])');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    Notify.error('@Html.Raw(L["ExportFailed"])');
+                }
+            }
+        }));
+    });
+</script>

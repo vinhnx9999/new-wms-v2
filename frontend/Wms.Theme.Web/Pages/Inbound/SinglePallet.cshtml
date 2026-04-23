@@ -1,0 +1,883 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inbound.SinglePalletModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["SinglePallet"];
+}
+@Html.AntiForgeryToken()
+<div style=" height : 80vh">
+    <div class="flex justify-end items-center gap-2 mb-3">
+        <a href="/Inbound/Receipt"
+               title="@Localizer["Back"]"
+               class="flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md shadow-sm border border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            @Localizer["Back"]
+        </a>
+
+        <button type="button"
+                onclick="submitPallet()"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md shadow-sm border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            @Localizer["Save"]
+        </button>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+                <label for="palletCode" class="block text-xs font-medium text-gray-700 mb-1">
+                    @Localizer["PalletCode"]
+                </label>
+                <input type="text"
+                       id="palletCode"
+                       name="palletCode"
+                       placeholder=""
+                       class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+            </div>
+
+            <div>
+                <label for="palletRFId" class="block text-xs font-medium text-gray-700 mb-1">
+                    @Localizer["Pallet RFID"]
+                </label>
+                <input type="text"
+                       id="palletRFId"
+                       name="palletRFId"
+                       placeholder=""
+                       class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+            </div>
+ 
+            <div>
+                <label for="location" class="block text-xs font-medium text-gray-700 mb-1">
+                    @Localizer["Location"]
+                </label>
+
+                <div class="relative">
+                    <input type="text"
+                            id="location"
+                            name="location"
+                            autocomplete="off"
+                            placeholder=""
+                            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+
+                    <input type="hidden" id="selectedLocationId" name="selectedLocationId" />
+
+                    <ul id="locationDropdown"
+                        class="absolute z-20 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-end pb-2">
+           
+                <div class="flex items-center h-[34px]">
+                    <input id="isMixed"
+                               name="isMixed"
+                            type="checkbox"
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="isMixed" class="ml-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+                        @Localizer["Mixed"]
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="md:col-span-3 mt-2">
+            <label for="message" class="block mb-1 text-xs font-medium text-gray-700">
+                @Localizer["AddNote"]
+            </label>
+            <textarea id="message"
+                      name="message"
+                      rows="2"
+                      placeholder="@Localizer["EnterNote"]"
+                      class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white resize-y"></textarea>
+        </div>
+    </div>
+
+    <div class="flex justify-end mb-2">
+        <button type="button" 
+                onclick="addRow()" 
+                class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            @Localizer["AddRow"] </button>
+    </div>
+
+    <div id="myGrid" class="ag-theme-quartz" style="height: 350px"></div>
+
+    <!--Modal search Sku Item-->
+    @await Html.PartialAsync("Inbound/_SkuSearchModal")
+
+    <!--Supplier Search Modal-->
+    @await Html.PartialAsync("Inbound/_SupplierSearchModal")
+
+</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+
+        class FlatpickrCellEditor {
+            init(params) {
+                this.params = params;
+                const today = new Date();
+        
+                const todayIso = toLocalIsoDate(today);
+                const rawIso = toIsoDateOnly(params.value);
+                this.selectedIso = rawIso || '';
+
+                this.eInput = document.createElement('input');
+                this.eInput.type = 'text';
+                this.eInput.className = 'w-full h-full px-2 outline-none bg-transparent dark:text-gray-200';
+                this.eInput.value = this.selectedIso ? toDisplayDate(this.selectedIso) : '';
+
+                this.fp = flatpickr(this.eInput, {
+                    dateFormat: "d/m/Y",
+                    allowInput: false,
+                    disableMobile: true,
+                    minDate: today,
+                    defaultDate: rawIso ? new Date(rawIso) : today,
+    
+                    onReady: function(selectedDates, dateStr, instance) {
+                        if (instance.calendarContainer) {
+                            instance.calendarContainer.classList.add('ag-custom-component-popup');
+                        }
+                    },
+    
+                    onChange: (selectedDates) => {
+                    
+        
+                        if (selectedDates?.length) {
+                            this.selectedIso = toLocalIsoDate(selectedDates[0]);
+                            
+                        }
+        
+                       
+                        setTimeout(() => this.params.stopEditing(), 0);
+                    }
+                });
+            }
+            getGui() {
+                return this.eInput;
+            }
+            afterGuiAttached() {
+                setTimeout(() => { this.eInput.focus(); this.fp.open(); }, 0);
+            }
+            getValue() {
+                return this.selectedIso;
+            }
+            isPopup() {
+                return false;
+            }
+            destroy() {
+                this.fp?.destroy();
+            }
+        }
+
+         function toDisplayDate(value) {
+             const iso = toIsoDateOnly(value);
+             if (!iso) return '';
+             const [y, m, d] = iso.split('-');
+             return `${d}/${m}/${y}`;
+        }
+
+        function toLocalIsoDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function toIsoDateOnly(value) {
+            if (!value) return null;
+
+            if (value instanceof Date && !isNaN(value.getTime())) {
+                return toLocalIsoDate(value); 
+            }
+
+            const text = value.toString().trim();
+            if (!text) return null;
+
+            // yyyy-MM-dd
+            if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+                return text;
+            }
+
+            // dd/MM/yyyy
+            const vn = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (vn) {
+                return `${vn[3]}-${vn[2]}-${vn[1]}`;
+            }
+            return null;
+        }
+        
+        let gridApi;
+
+
+        const columnDefs = [
+            {
+                headerName:  '@Html.Raw(L["SkuCode"])',
+                field: "itemCode",
+                flex: 1.5,
+                editable: false,
+                cellClass: 'hover:bg-blue-50 transition-colors cursor-pointer',
+                cellRenderer: function(params) {
+                    const displayValue = params.value ?
+                        `<span class="font-medium text-blue-700">${params.value}</span>` :
+                        `<span class="text-gray-400 italic"></span>`;
+
+                    const iconColor = params.value ? 'text-blue-600' : 'text-gray-400';
+
+                    return `
+                         <div class="flex justify-between items-center w-full h-full" onclick="openItemSearchModal('${params.node.id}')" title="Nhấn để tìm kiếm mặt hàng">
+                            <div class="truncate pr-2">${displayValue}</div>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-1 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                             </svg>
+                        </div>
+                    `;
+                }
+            },
+            {
+                headerName: '@Html.Raw(L["SkuName"])',
+                field: "itemName",
+                flex: 2,
+                editable: false,
+                wrapText : true,
+                autoHeight : true,
+                cellClass: 'py-3 px-3 leading-tight'
+            },
+            {
+                headerName: '@Html.Raw(L["Unit"])',
+                field: "uom",
+                flex: 1,
+                editable: false ,
+                cellRenderer: function(params) {
+                    return `<div class="flex items-center h-full w-full">${params.value || ''}</div>`;
+                }
+            },
+           {
+                headerName: '@Html.Raw(L["Supplier"])',
+                field: "supplier",
+                flex: 2,
+                editable: false,
+                wrapText : true,
+                autoHeight : true,
+             
+                onCellClicked: function(params) {
+                    openSupplierModalForRow(params.node.id);
+                },
+                cellRenderer: function(params) {
+                    const displayValue = params.value ?
+                        `<span class="font-medium text-gray-900">${params.value}</span>` :
+                        `<span class="text-gray-400 italic"></span>`; 
+
+                 
+                    return `
+                        <div class="flex justify-between items-center w-full h-full" title="Nhấn để tìm nhà cung cấp">
+                            <div class="truncate pr-2">${displayValue}</div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-1 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    `;
+                },
+             
+                cellClass: 'py-3 px-3 leading-tight cursor-pointer hover:bg-blue-50 transition-colors'
+            },
+             {
+                 headerName: "@Html.Raw(L["ExpiryDate"])",
+                 field: "expiryDate",
+                 width: 150,
+                 editable: true,
+                 cellDataType : false,
+                 cellEditor: FlatpickrCellEditor,
+                 valueFormatter: params => toDisplayDate(params.value),
+                 
+                cellClass: 'expiry-date-cell bg-amber-50 border border-amber-100'
+            },
+            {
+                headerName: '@Html.Raw(L["Quantity"])',
+                field: "qty",
+                flex: 1,
+                editable: true,
+                cellEditor: 'agNumberCellEditor' ,
+
+                cellEditorParams: {
+                    min: 0.001,
+                    step: 'any',
+                },
+
+                valueParser: function(params) {
+                    const num = parseFloat(params.newValue);
+                    if (isNaN(num) || num <= 0) {
+                        return null;
+                    }
+                    return num;
+                },
+
+               
+                cellRenderer: function(params) {
+                    const val = params.value !== undefined && params.value !== null ? params.value : '';
+                    return `<div class="flex items-center h-full w-full">${val}</div>`;
+                }
+            },
+           
+            {
+                headerName: '@Html.Raw(L["Actions"])',
+                width: 100,
+                sortable: false,
+                filter: false,
+                cellRenderer: function(params) {
+                    return `
+                        <button type="button" onclick="deleteRow('${params.node.id}')" class="text-red-500 hover:text-red-700 flex items-center justify-center w-full h-full" title="Xóa dòng này">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>`;
+                }
+            }
+        ];
+
+        const rowData = [
+            { id: "row-init"  ,itemCode: "", itemName: "", uom: "", qty: null }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+
+            getRowId: params => params.data.id ,
+            pagination: true,
+            paginationPageSize: 20,
+
+            singleClickEdit: true,
+            stopEditingWhenCellsLoseFocus: true
+        };
+
+        function addRow() {
+            const newRecord = {
+                id: Math.random().toString(36).substr(2, 9),
+                itemCode: "",
+                itemName: "",
+                uom: "",
+                qty: null ,
+                referenceCode : ""
+            };
+            gridApi.applyTransaction({ add: [newRecord] });
+        }
+
+        function deleteRow(nodeId) {
+            const rowNode = gridApi.getRowNode(nodeId);
+            if(rowNode) {
+                gridApi.applyTransaction({ remove: [rowNode.data] });
+            }
+        }
+
+         document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#myGrid');
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                gridDiv.classList.remove('ag-theme-quartz');
+                gridDiv.classList.add('ag-theme-quartz-dark');
+            }
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+        });
+            
+         // util state function
+        function debounce (fn , delay){
+            let timer; 
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        const itemSearchModal = document.getElementById('itemSearchModal');
+        const itemSearchInput = document.getElementById('itemSearchInput');
+        const itemSearchResultBody = document.getElementById('itemSearchResultBody');
+        let currentRowIdForItemSearch = null;
+        let itemSearchAbortController = null;
+        let currentPage = 1;
+        const pageSize = 20; 
+        let isFetching = false;
+        let hasMoreData = true;
+
+
+        async function fetchSkuItems(supplierId, keyword = '', pageIndex = 1) {
+            if (itemSearchAbortController) itemSearchAbortController.abort();
+            itemSearchAbortController = new AbortController();
+
+            try {
+                const keyWordParam = keyword?.trim()
+                    ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                    : '';
+
+             
+                const supplierParam = Number.isInteger(supplierId) && supplierId > 0
+                    ? `&supplierId=${supplierId}`
+                    : '';
+
+                const url = `?handler=SearchSku${supplierParam}${keyWordParam}&pageIndex=${pageIndex}&pageSize=${pageSize}`;
+                const response = await fetch(url, { signal: itemSearchAbortController.signal });
+
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (e) {
+                if (e.name === 'AbortError') return null;
+                console.error('Error fetching SKU items:', e);
+                return [];
+            }
+        }
+
+        async function openItemSearchModal(rowNodeId) {
+            currentPage = 1;
+            hasMoreData = true;
+            currentRowIdForItemSearch = rowNodeId;
+            itemSearchInput.value = '';
+            scrollContainer.scrollTop = 0;
+
+            showItemSearchLoading();
+            itemSearchModal.classList.remove('hidden');
+            setTimeout(() => itemSearchInput.focus(), 100);
+
+            isFetching = true;
+            const data = await fetchSkuItems(null, '', currentPage); 
+            isFetching = false;
+
+            if (data !== null) renderItemTable(data, false);
+        }
+
+
+      
+
+        function closeItemSearchModal() {
+             itemSearchModal.classList.add('hidden');
+             currentRowIdForItemSearch = null;
+
+             if (itemSearchAbortController) {
+                 itemSearchAbortController.abort();
+                 itemSearchAbortController = null;
+             }
+        }
+
+        function renderItemTable(data , isAppend = false) {
+             if (!isAppend) {
+                itemSearchResultBody.innerHTML = '';
+             }
+
+            
+             if (!Array.isArray(data) || data.length === 0) {
+                 if (!isAppend) {
+                     itemSearchResultBody.innerHTML = `
+                         <tr>
+                             <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                 ${L.noItemFound}
+                             </td>
+                         </tr>`;
+                 }
+                 hasMoreData = false;
+                 scrollAnchor.classList.add('hidden');
+                 return;
+             }
+
+             if (data.length < pageSize) {
+                hasMoreData = false;
+                scrollAnchor.classList.add('hidden');
+             
+             } else {
+                hasMoreData = true;
+                scrollAnchor.classList.remove('hidden');
+             }
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors cursor-pointer";
+        
+                tr.onclick = () => {
+                    selectItem(
+                    item.skuId,
+                    item.skuCode,
+                    item.skuName,
+                    item.unitName ?? '',
+                    item.skuUomId ?? 0,
+                    item.supplierId,  
+                    item.supplierName   
+                    );
+                };
+                 tr.innerHTML = `
+                     <td class="px-6 py-3 whitespace-nowrap text-sm font-medium  text-gray-900">
+                         ${item.skuCode ?? ''}
+                     </td>
+                     <td class="px-6 py-3 text-sm text-gray-700">${item.skuName ?? ''}</td>
+                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                         ${item.unitName ?? ''}
+                     </td>
+                     <td class="px-6 py-3 whitespace-nowrap text-sm text-blue-600 font-medium">
+                         ${item.supplierName ?? ''}
+                     </td>
+                    
+                 `;
+                 itemSearchResultBody.appendChild(tr);
+             });
+        }
+
+        function showItemSearchLoading(){
+              itemSearchResultBody.innerHTML = `
+                 <tr>
+                     <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                         <div class="flex justify-center items-center gap-2">
+                             <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                  fill="none" viewBox="0 0 24 24">
+                                 <circle class="opacity-25" cx="12" cy="12" r="10"
+                                         stroke="currentColor" stroke-width="4"></circle>
+                                 <path class="opacity-75" fill="currentColor"
+                                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                             </svg>
+                            @Html.Raw(L["Loading"])
+                         </div>
+                     </td>
+                 </tr>`;
+        }
+
+       
+         const scrollContainer = document.getElementById('scrollContainer');
+         const scrollAnchor = document.getElementById('scroll-anchor');
+         const loadingIndicator = document.getElementById('loading-indicator');
+         const observerOptions = {
+            root: scrollContainer,
+            rootMargin: '0px 0px 100px 0px', 
+            threshold: 0
+         };
+
+        const infiniteScrollObserver = new IntersectionObserver(async (entries) => {
+            const target = entries[0];
+    
+          
+            if (target.isIntersecting && !isFetching && hasMoreData) {
+                isFetching = true;
+                loadingIndicator.classList.remove('hidden');
+
+                currentPage++;
+               // const supplierId = document.getElementById('selectedSupplierId').value.trim();
+                const keyword = itemSearchInput.value;
+
+                const data = await fetchSkuItems(null, keyword, currentPage);
+        
+                if (data !== null) {
+                    renderItemTable(data, true);
+                }
+
+                loadingIndicator.classList.add('hidden');
+                isFetching = false;
+            }
+        }, observerOptions);
+
+        
+         infiniteScrollObserver.observe(scrollAnchor);
+         const debouncedSkuSearch = debounce(async function () {
+             isFetching = true ;
+
+             currentPage = 1;
+             hasMoreData = true;
+             showItemSearchLoading();
+
+             //const supplierId = document.getElementById('selectedSupplierId').value.trim();
+             const keyword = itemSearchInput.value;
+
+             try {
+                const data = await fetchSkuItems(null, keyword, currentPage);
+                if (data !== null) {
+                   renderItemTable(data, false); 
+                }
+             }
+             finally {
+                 isFetching = false;
+             }
+         }, 300);
+
+         itemSearchInput.addEventListener('input', debouncedSkuSearch);
+
+        function selectItem(skuId, code, name, uom , skuUomId , supplierId, supplierName) {
+             if (!currentRowIdForItemSearch) return;
+
+             const rowNode = gridApi.getRowNode(currentRowIdForItemSearch);
+             if (rowNode) {
+                 rowNode.setDataValue('itemCode', code);
+                 rowNode.setDataValue('itemName', name);
+                 rowNode.setDataValue('uom', uom);
+                 rowNode.data.skuId = parseInt(skuId) || 0;
+                 rowNode.data.skuUomId = parseInt(skuUomId) || 0;
+             }
+
+             if (supplierName) {
+                rowNode.setDataValue('supplier', supplierName);
+                rowNode.data.supplierId = supplierId || 0;
+            }
+             closeItemSearchModal();
+         }
+
+        let currentRowIdForSupplier = null;
+        const supplierSearchModal = document.getElementById('supplierSearchModal');
+        const supplierModalSearchInput = document.getElementById('supplierModalSearchInput');
+        const supplierSearchResultBody = document.getElementById('supplierSearchResultBody');
+
+        function openSupplierModalForRow(rowNodeId) {
+            currentRowIdForSupplier = rowNodeId;
+            supplierSearchModal.classList.remove('hidden');
+            supplierModalSearchInput.value = '';
+            loadSuppliers('');
+        }
+
+        function closeSupplierModal() {
+            supplierSearchModal.classList.add('hidden');
+            currentRowIdForSupplier = null;
+        }
+
+        async function loadSuppliers(keyword) {
+            const url = `?handler=SearchSupplier&keyword=${encodeURIComponent(keyword ?? '')}`;
+            const response = await fetch(url);
+            const data = response.ok ? await response.json() : [];
+            renderSupplierTable(data);
+        }
+
+        function renderSupplierTable(data) {
+            supplierSearchResultBody.innerHTML = '';
+            (data || []).forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors cursor-pointer";
+                tr.onclick = () => selectSupplierForRow(s.id, s.supplierName || '');
+                tr.innerHTML = `
+                    <td class="px-6 py-3 text-sm text-gray-900">${s.supplierName ?? ''}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${s.address ?? ''}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${s.city ?? ''}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${s.email ?? ''}</td>
+                    <td class="px-6 py-3 text-sm text-gray-700">${s.contactTel ?? ''}</td>
+                `;
+                supplierSearchResultBody.appendChild(tr);
+            });
+        }
+
+        function selectSupplierForRow(supplierId, supplierName) {
+            if (!currentRowIdForSupplier) return;
+            const rowNode = gridApi.getRowNode(currentRowIdForSupplier);
+            if (!rowNode) return;
+
+            rowNode.data.supplierId = supplierId;
+            rowNode.setDataValue('supplier', supplierName);
+
+            closeSupplierModal();
+        }
+
+        supplierModalSearchInput?.addEventListener('input', debounce(() => {
+            loadSuppliers(supplierModalSearchInput.value || '');
+        }, 300));
+
+        function showItemSearchLoading() {
+            itemSearchResultBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        <div class="flex justify-center items-center gap-2">
+                            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                 fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Loading
+                        </div>
+                    </td>
+                </tr>`;
+        }
+
+        function closeItemSearchModal() {
+            itemSearchModal.classList.add('hidden');
+            currentRowIdForItemSearch = null;
+
+            if (itemSearchAbortController) {
+                itemSearchAbortController.abort();
+                itemSearchAbortController = null;
+            }
+        }
+
+        const locationInput = document.getElementById('location');
+        const locationDropdown = document.getElementById('locationDropdown');
+        const selectedLocationIdInput = document.getElementById('selectedLocationId');
+
+        let locationAbortController = null;
+
+        async function fetchLocations(keyword = '', pageIndex = 1) {
+            if (locationAbortController) locationAbortController.abort();
+            locationAbortController = new AbortController();
+
+            try {
+                const keyWordParam = keyword?.trim() ? `&keyWord=${encodeURIComponent(keyword.trim())}` : '';
+                const url = `?handler=SearchLocation${keyWordParam}&pageIndex=${pageIndex}`;
+                const response = await fetch(url, { signal: locationAbortController.signal });
+        
+                if (!response.ok) return [];
+        
+             
+                const data = await response.json(); 
+        
+                console.log('Fetched locations:', data);
+                return data; 
+
+            } catch (e) {
+                if (e.name === 'AbortError') return null;
+                console.error('Error fetching locations:', e);
+                return [];
+            }
+        }
+
+        function renderLocationDropdown(data) {
+            if (data === null || !Array.isArray(data)) return;
+
+            locationDropdown.innerHTML = '';
+
+            if (data.length === 0) {
+                locationDropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">No location found</li>`;
+                locationDropdown.classList.remove('hidden');
+                return;
+            }
+
+            data.forEach(loc => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = loc.locationName ?? '';
+                li.onclick = () => {
+                    locationInput.value = loc.locationName ?? '';
+                    selectedLocationIdInput.value = loc.id ?? '';
+                    locationDropdown.classList.add('hidden');
+                };
+                locationDropdown.appendChild(li);
+            });
+
+            locationDropdown.classList.remove('hidden');
+        }
+
+        const debouncedLocationSearch = debounce(async function () {
+            selectedLocationIdInput.value = ''; 
+            const data = await fetchLocations(locationInput.value);
+            renderLocationDropdown(data);
+        }, 300);
+
+        locationInput.addEventListener('input', debouncedLocationSearch);
+
+        locationInput.addEventListener('focus', async function () {
+            if (!locationDropdown.classList.contains('hidden')) return;
+            const data = await fetchLocations(this.value);
+            renderLocationDropdown(data);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!locationInput.contains(e.target) && !locationDropdown.contains(e.target)) {
+                locationDropdown.classList.add('hidden');
+            }
+        });
+
+    async function submitPallet() {
+   
+        const palletCode = document.getElementById('palletCode').value.trim();
+        const palletRFID = document.getElementById('palletRFId').value.trim();
+        const locationIdStr = document.getElementById('selectedLocationId').value;
+        const description = document.getElementById('message').value.trim();
+        const isMixed = document.getElementById('isMixed').checked;
+
+ 
+        const locationId = parseInt(locationIdStr);
+        if (isNaN(locationId) || locationId <= 0) {
+            Notify.info("Vui lòng chọn Location hợp lệ từ danh sách.");
+            return;
+        }
+
+    
+        const details = [];
+        const uniqueSkuIds = new Set();
+        let hasError = false;
+
+  
+        gridApi.stopEditing();
+
+        gridApi.forEachNode(node => {
+            const data = node.data;
+        
+            if (data.skuId && data.skuId > 0) {
+              
+                if (!data.qty || data.qty <= 0) {
+                    Notify.error(`Dòng có mã ${data.itemCode} chưa nhập số lượng hợp lệ.`);
+                    hasError = true;
+                    return;
+                }
+
+                uniqueSkuIds.add(data.skuId);
+
+                details.push({
+                    skuId: data.skuId,
+                    skuUomId: data.skuUomId,
+                    quantity: data.qty,
+                    supplierId: data.supplierId || null,
+          
+                    expiryDate: data.expiryDate ? new Date(data.expiryDate).toISOString() : null
+                });
+            }
+        });
+
+        if (hasError) return;
+
+        if (details.length === 0) {
+            Notify.error('@Html.Raw(L["CreateReceipt_ValidAtLeastOneItem"])');
+            return;
+        }
+
+        if (!isMixed && uniqueSkuIds.size > 1) {
+            Notify.error('@Html.Raw(L["InvalidData"])' );
+            return;
+        }
+ 
+        const payload = {
+            palletCode: palletCode,
+            palletRFID: palletRFID,
+            locationId: locationId,
+            description: description,
+            isMixed: isMixed,
+            details: details
+        };
+
+ 
+        const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenElement ? tokenElement.value : '';
+
+       
+        try {
+            const response = await fetch('?handler=CreateInboundPallet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token 
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {  
+                const result = await response.json();
+                if (result.success) {
+                    Notify.success('@Html.Raw(L["OperationSuccessful"])' );
+                   setTimeout(() => {
+                       window.location.reload();
+                   }, 300);
+                } else {
+                    Notify.error('@Html.Raw(L["OperationFailed"])' );
+                }
+            } else {
+                Notify.error('@Html.Raw(L["OperationFailed"])');
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            Notify.error('@Html.Raw(L["OperationFailed"])');
+        }
+    }
+    </script>
+}

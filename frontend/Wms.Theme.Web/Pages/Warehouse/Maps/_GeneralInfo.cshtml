@@ -1,0 +1,83 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model WarehouseGeneralInfo
+@if(Model != null)
+{
+    <div class="grid grid-cols-12 gap-1">
+        <!-- Phần tử chiếm 1 cột -->
+        
+        <!-- Phần tử chiếm 11 cột -->
+        <div class="col-span-12">
+            <div id="divWHGeneralInfo">
+                <section class="grid gap-4 md:grid-cols-5">
+                    <div class="bg-dashboard-sub-card bg-white rounded-lg shadow px-4 border-l-4 border-indigo-500 flex items-center justify-between h-28">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 truncate">Công suất kho</p>
+                            <p class="mt-1 text-3xl font-semibold text-gray-900">@Model.CapacityPercent %</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-full">
+                            <a href="/Warehouse/List">
+                                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Tổng kho -->
+                    <div class="bg-dashboard-sub-card bg-white rounded-lg shadow px-4 border-indigo-500 flex items-center justify-between h-28">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 truncate">Tổng vị trí</p>
+                            <p class="mt-2 text-3xl font-bold tracking-tight text-sky-300">@Model.LocationCount</p>
+                            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Kho đang hoạt động</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-full">
+                            <a href="/Warehouse/List">
+                                <i class="fa-solid fa-warehouse text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Tổng SKU -->
+                    <div class="bg-dashboard-sub-card bg-white rounded-lg shadow px-4 border-indigo-500 flex items-center justify-between h-28">
+                        <div>
+                            <p class="text-[13px] font-medium text-slate-300">Tổng tồn</p>
+                            <p class="mt-1 text-3xl font-semibold text-gray-900">@Model.TotalInventory</p>
+                            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Sản phẩm tồn</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-full">
+                            <a href="/Setting/Sku">
+                                <i class="fa-solid fa-barcode text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Tồn kho -->
+                    <div class="bg-dashboard-sub-card bg-white rounded-lg shadow px-4 border-indigo-500 flex items-center justify-between h-28">
+                        <div>
+                            <p class="text-[13px] font-medium text-slate-300">Tồn pallet</p>
+                            <p class="mt-2 text-3xl font-bold tracking-tight text-amber-300">@Model.TotalPallet / @Model.LocationCount</p>
+                            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Số lượng pallet </p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-full">
+                            <a href="/Inventory/Search">
+                                <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Đơn chưa xử lý -->
+                    <div class="bg-dashboard-sub-card bg-white rounded-lg shadow px-4 border-indigo-500 flex items-center justify-between h-28">
+                        <div>
+                            <p class="text-[13px] font-medium text-slate-300">Đơn cần xử lý</p>
+                            <p class="mt-2 text-3xl font-bold tracking-tight text-rose-300">@Model.ProcessingOrders</p>
+                            <p class="mt-1 text-[11px] uppercase tracking-wider text-slate-400">Đơn bán cần xử lý</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 rounded-full">
+                            <a href="/Inbound/Receipt">
+                                <i class="fa-solid fa-clock text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>        
+}
+
+<script>
+    
+</script>

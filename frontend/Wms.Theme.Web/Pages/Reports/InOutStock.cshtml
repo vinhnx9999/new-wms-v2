@@ -1,0 +1,407 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Reports.InOutStockModel
+
+@{
+    ViewData["Title"] = L["InOutStock"];
+}
+
+<div class="space-y-6">
+    <div class="flex items-start justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">@L["InOutOnHandReport"]</h1>
+            <p class="mt-1 text-gray-600 dark:text-gray-300">@L["ViewStockMovementsBalances"]</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">@L["Filters"]</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="label">@L["Warehouse"]</label>
+                    <select id="filterWarehouse" class="input">
+                        <option value="">@L["All"]</option>
+                        <option value="WH01">WH01</option>
+                        <option value="WH02">WH02</option>
+                        <option value="WH03">WH03</option>
+                        <option value="WH04">WH04</option>
+                        <option value="WH05">WH05</option>
+                        <option value="WH06">WH06</option>
+                        <option value="WH07">WH07</option>
+                        <option value="WH08">WH08</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label">@L["DateFrom"]</label>
+                    <input type="date" id="filterDateFrom" class="input" />
+                </div>
+                <div>
+                    <label class="label">@L["DateTo"]</label>
+                    <input type="date" id="filterDateTo" class="input" />
+                </div>
+                <div>
+                    <label class="label">@L["SKU"]</label>
+                    <input type="text" id="filterSku" class="input" placeholder="@L["SKUPlaceholder"]" />
+                </div>
+            </div>
+            <button type="button" id="btnApply" class="btn btn-primary">@L["Apply"]</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-emerald-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Tổng Nhập</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="kpiImport">0</h3>
+                </div>
+                <div class="p-2 bg-emerald-100 rounded-full">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Tổng Xuất</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="kpiExport">0</h3>
+                </div>
+                <div class="p-2 bg-blue-100 rounded-full">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Tồn Kho Cuối Kỳ</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1" id="kpiStock">0</h3>
+                </div>
+                <div class="p-2 bg-purple-100 rounded-full">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
+            <div class="flex justify-between items-start">
+                <div class="overflow-hidden">
+                    <p class="text-sm font-medium text-gray-500">Xuất nhiều nhất</p>
+                    <h3 class="text-lg font-bold text-gray-800 mt-1 truncate" id="kpiTopSku">---</h3>
+                    <p class="text-sm font-semibold text-orange-600" id="kpiTopQty">0</p>
+                </div>
+                <div class="p-2 bg-orange-100 rounded-full shrink-0">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">@L["Results"]</h3>
+
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button type="button" id="btnViewTrend" class="px-4 py-1.5 text-sm font-medium rounded-md shadow-sm bg-white text-gray-800" onclick="switchView('trend')">
+                    Xu hướng (Ngày)
+                </button>
+                <button type="button" id="btnViewPie" class="px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-800" onclick="switchView('pie')">
+                    Tỷ trọng (Sản phẩm)
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div id="trendChartContainer" class="relative h-[500px] w-full">
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <div id="pieChartContainer" class="relative h-[500px] w-full hidden">
+                <div class="h-full w-full flex justify-center">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- BIẾN TOÀN CỤC ---
+        let GLOBAL_DATA = [];
+        let myMixedChart = null; // Chart Cột/Line
+        let myPieChart = null;   // Chart Tròn mới
+        let currentView = 'trend'; // 'trend' hoặc 'pie'
+
+        // --- 1. HÀM TẢI DỮ LIỆU ---
+        async function loadDataFromFile() {
+            try {
+                const response = await fetch('/data/inventory_data.json');
+                if (!response.ok) throw new Error("HTTP Error");
+                GLOBAL_DATA = await response.json();
+                updateMainLogic(); // Gọi hàm xử lý chính
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi tải dữ liệu. Đang dùng dữ liệu mẫu.");
+                // Dữ liệu mẫu dự phòng
+                GLOBAL_DATA = [
+                    { "date": "2025-11-02", "wh": "WH01", "sku": "IPHONE15", "name": "iPhone 15", "import": 50, "export": 30, "stock": 100 },
+                    { "date": "2025-11-02", "wh": "WH01", "sku": "SAMSUNGS24", "name": "Galaxy S24", "import": 20, "export": 15, "stock": 50 },
+                    { "date": "2025-11-03", "wh": "WH01", "sku": "MACBOOK", "name": "MacBook Air", "import": 10, "export": 5, "stock": 20 }
+                ];
+                updateMainLogic();
+            }
+        }
+
+        // --- 2. HÀM KPI (Giữ nguyên) ---
+        function calculateKPI(dataFiltered) {
+            const setTextSafe = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+            if (!dataFiltered || dataFiltered.length === 0) return; // Xử lý reset về 0 nếu cần
+
+            const fmt = new Intl.NumberFormat('vi-VN');
+            const totalImport = dataFiltered.reduce((sum, item) => sum + item.import, 0);
+            const totalExport = dataFiltered.reduce((sum, item) => sum + item.export, 0);
+
+            const maxDate = dataFiltered.reduce((max, item) => item.date > max ? item.date : max, dataFiltered[0].date);
+            const currentStock = dataFiltered.filter(item => item.date === maxDate).reduce((sum, item) => sum + item.stock, 0);
+
+            // Tìm Top SKU
+            const skuSales = {};
+            dataFiltered.forEach(item => {
+                const key = item.name || item.sku;
+                if (!skuSales[key]) skuSales[key] = 0;
+                skuSales[key] += item.export;
+            });
+            let topName = "---", topQty = 0;
+            for (const [name, qty] of Object.entries(skuSales)) {
+                if (qty > topQty) { topQty = qty; topName = name; }
+            }
+
+            setTextSafe('kpiImport', fmt.format(totalImport));
+            setTextSafe('kpiExport', fmt.format(totalExport));
+            setTextSafe('kpiStock', fmt.format(currentStock));
+            setTextSafe('kpiTopSku', topName);
+            setTextSafe('kpiTopQty', `${fmt.format(topQty)} đã xuất`);
+        }
+
+        // --- 3. LOGIC LỌC DỮ LIỆU CHUNG ---
+        function getFilteredData() {
+            const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const filters = {
+                warehouse: getVal('filterWarehouse'),
+                dateFrom: getVal('filterDateFrom'),
+                dateTo: getVal('filterDateTo'),
+                sku: getVal('filterSku').trim()
+            };
+
+            if (!GLOBAL_DATA || GLOBAL_DATA.length === 0) return [];
+
+            return GLOBAL_DATA.filter(item => {
+                const matchWH = filters.warehouse === "" || item.wh === filters.warehouse;
+                const matchSKU = filters.sku === "" || item.sku.toLowerCase().includes(filters.sku.toLowerCase()) || (item.name && item.name.toLowerCase().includes(filters.sku.toLowerCase()));
+                const matchDateFrom = !filters.dateFrom || item.date >= filters.dateFrom;
+                const matchDateTo = !filters.dateTo || item.date <= filters.dateTo;
+                return matchWH && matchSKU && matchDateFrom && matchDateTo;
+            });
+        }
+
+        // --- 4. VẼ BIỂU ĐỒ XU HƯỚNG (Cột/Line) ---
+        function updateTrendChart(data) {
+            // Group by Date
+            let grouped = {};
+            data.forEach(item => {
+                if (!grouped[item.date]) grouped[item.date] = { import: 0, export: 0, stock: 0 };
+                grouped[item.date].import += item.import;
+                grouped[item.date].export += item.export;
+                grouped[item.date].stock += item.stock;
+            });
+            const sortedDates = Object.keys(grouped).sort();
+
+            // Init chart if needed
+            if (!myMixedChart) {
+                const ctx = document.getElementById('mainChart');
+                if(ctx) {
+                    myMixedChart = new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: { datasets: [] }, // Sẽ fill data sau
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            scales: {
+                                y: { position: 'left', beginAtZero: true, title: {display:true, text:'SL Nhập/Xuất'} },
+                                y1: { position: 'right', grid: {drawOnChartArea: false}, title: {display:true, text:'Tồn kho'} }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Update Data
+            if (myMixedChart) {
+                myMixedChart.data.labels = sortedDates;
+                myMixedChart.data.datasets = [
+                    { type: 'bar', label: 'Nhập', data: sortedDates.map(d => grouped[d].import), backgroundColor: 'rgba(16, 185, 129, 0.6)', yAxisID: 'y', order: 2 },
+                    { type: 'bar', label: 'Xuất', data: sortedDates.map(d => grouped[d].export), backgroundColor: 'rgba(59, 130, 246, 0.6)', yAxisID: 'y', order: 3 },
+                    { type: 'line', label: 'Tồn kho', data: sortedDates.map(d => grouped[d].stock), borderColor: 'rgba(139, 92, 246, 1)', borderWidth: 2, tension: 0.3, yAxisID: 'y1', order: 1 }
+                ];
+                myMixedChart.update();
+            }
+        }
+
+        // --- 5. VẼ BIỂU ĐỒ TRÒN (PIE CHART) ---
+    function updatePieChart(data) {
+        // 1. Group by Product Name (Chỉ tính Tổng Xuất để xem tỷ trọng bán hàng)
+        let grouped = {};
+        data.forEach(item => {
+            const name = item.name || item.sku; // Ưu tiên tên hiển thị
+            if (!grouped[name]) grouped[name] = 0;
+            grouped[name] += item.export;
+        });
+
+        // 2. Sắp xếp và lấy Top 6 sản phẩm, còn lại gộp vào "Khác"
+        let sortedProducts = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+
+        let labels = [];
+        let values = [];
+
+        if (sortedProducts.length > 6) {
+            const top6 = sortedProducts.slice(0, 6);
+            const others = sortedProducts.slice(6);
+            const otherSum = others.reduce((sum, item) => sum + item[1], 0);
+
+            labels = top6.map(i => i[0]);
+            values = top6.map(i => i[1]);
+            labels.push("Sản phẩm khác");
+            values.push(otherSum);
+        } else {
+            labels = sortedProducts.map(i => i[0]);
+            values = sortedProducts.map(i => i[1]);
+        }
+
+        // 3. Khởi tạo Chart nếu chưa có
+        if (!myPieChart) {
+            const ctx = document.getElementById('pieChart');
+            if (ctx) {
+                myPieChart = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut', // Dùng Doughnut cho đẹp hơn Pie
+                    data: {
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Tỷ trọng Xuất kho theo Sản phẩm'
+                            },
+                            // --- CẤU HÌNH TOOLTIP ---
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        // context.parsed = giá trị số lượng của miếng bánh
+                                        // context.dataset.data = mảng chứa tất cả giá trị
+
+                                        let label = context.label || '';
+                                        if (label) label += ': ';
+
+                                        // A. Lấy giá trị số lượng
+                                        const value = context.parsed;
+
+                                        // B. Tính tổng của tất cả các miếng trong dataset hiện tại
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+
+                                        // C. Tính phần trăm
+                                        const percentage = ((value / total) * 100).toFixed(1);
+
+                                        // D. Ghép chuỗi kết quả hiển thị
+                                        // Ví dụ: "iPhone 15: 1.200 (45.5%)"
+                                        const fmt = new Intl.NumberFormat('vi-VN');
+                                        return label + fmt.format(value) + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 4. Cập nhật dữ liệu
+        if (myPieChart) {
+            // Mảng màu sắc đẹp mắt
+            const colors = ['#F87171', '#60A5FA', '#34D399', '#FBBF24', '#A78BFA', '#F472B6', '#9CA3AF'];
+
+            myPieChart.data.labels = labels;
+            myPieChart.data.datasets = [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                hoverOffset: 4
+            }];
+            myPieChart.update();
+        }
+    }
+
+        // --- 6. HÀM ĐIỀU PHỐI CHÍNH (MAIN LOGIC) ---
+        function updateMainLogic() {
+            const data = getFilteredData();
+
+            // Luôn tính lại KPI dù đang ở view nào
+            calculateKPI(data);
+
+            // Chỉ vẽ biểu đồ đang active để tối ưu hiệu năng
+            if (currentView === 'trend') {
+                updateTrendChart(data);
+            } else {
+                updatePieChart(data);
+            }
+        }
+
+        // --- 7. HÀM CHUYỂN ĐỔI VIEW (SWITCHER) ---
+        // Gán vào window để HTML gọi được
+        window.switchView = function(view) {
+            currentView = view;
+            const btnTrend = document.getElementById('btnViewTrend');
+            const btnPie = document.getElementById('btnViewPie');
+            const boxTrend = document.getElementById('trendChartContainer');
+            const boxPie = document.getElementById('pieChartContainer');
+
+            // Cập nhật CSS hiển thị
+            if (view === 'trend') {
+                // Style nút
+                btnTrend.className = "px-4 py-1.5 text-sm font-medium rounded-md shadow-sm bg-white text-gray-800 transition-all";
+                btnPie.className = "px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-800 transition-all";
+                // Ẩn hiện box
+                boxTrend.classList.remove('hidden');
+                boxPie.classList.add('hidden');
+            } else {
+                // Style nút
+                btnTrend.className = "px-4 py-1.5 text-sm font-medium rounded-md text-gray-500 hover:text-gray-800 transition-all";
+                btnPie.className = "px-4 py-1.5 text-sm font-medium rounded-md shadow-sm bg-white text-gray-800 transition-all";
+                // Ẩn hiện box
+                boxTrend.classList.add('hidden');
+                boxPie.classList.remove('hidden');
+            }
+
+            // Gọi hàm vẽ lại ngay lập tức
+            updateMainLogic();
+        };
+
+        // --- INIT ---
+        loadDataFromFile();
+
+        // Event listener cho nút Apply
+        const btnApply = document.getElementById('btnApply');
+        if (btnApply) {
+            btnApply.addEventListener('click', function(e) { e.preventDefault(); updateMainLogic(); });
+        }
+    });
+</script>

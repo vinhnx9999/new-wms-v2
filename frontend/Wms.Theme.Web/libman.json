@@ -1,0 +1,15 @@
+{
+  "version": "3.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "sweetalert2@11.23.0",
+      "destination": "wwwroot/lib/sweetalert2/"
+    },
+    {
+      "provider": "cdnjs",
+      "library": "ag-grid@34.2.0",
+      "destination": "wwwroot/lib/ag-grid/"
+    }
+  ]
+}

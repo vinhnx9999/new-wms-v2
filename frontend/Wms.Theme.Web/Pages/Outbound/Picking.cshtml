@@ -1,0 +1,165 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.PickingModel
+@{
+    ViewData["Title"] = L["Picking"];
+}
+@Html.AntiForgeryToken()
+
+<div class="p-6" x-data="AlpineDataTable(getPickingConfig())" @@datatable-reload.window="reload()">
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="relative max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text" x-model="filters.dispatchNo" @@input.debounce.600ms="reload()"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-sm"
+                placeholder="@Html.Raw(L["SearchDispatchNo"]) ...">
+        </div>
+    </div>
+
+    <partial name="Shared/Components/_AlpineDataTable" />
+</div>
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js"></script>
+    <script>
+
+        function getPickingConfig() {
+            return {
+                apiUrl: '?handler=DataTable',
+                columns: [
+                    { title: '@Html.Raw(L["dispatch_no"])', field: 'dispatchNo', sortable: true, class: 'font-medium text-gray-900 dark:text-white' },
+                    { title: '@Html.Raw(L["customer_name"])', field: 'customerName', sortable: true },
+                    { title: '@Html.Raw(L["Status"])', field: 'dispatchStatus', render: (row) => renderStatusBadge(row.dispatchStatus) },
+                    { title: '@Html.Raw(L["Qty"])', field: 'qty', class: 'text-right', render: (row) => formatNumber(row.qty) },
+                    { title: '@Html.Raw(L["Weight"])', field: 'weight', class: 'text-right', render: (row) => formatNumber(row.weight, 2) },
+                    { title: '@Html.Raw(L["Volume"])', field: 'volume', class: 'text-right', render: (row) => formatNumber(row.volume, 2) },
+                    { title: '@Html.Raw(L["Creator"])', field: 'creator' },
+                    { title: '@Html.Raw(L["Action"])', field: null, sortable: false, class: 'text-center', render: (row) => renderActions(row) }
+                ],
+                filters: {
+                    dispatchNo: ''
+                }
+            };
+        }
+
+        // Initialize the table with config
+        window.getPickingConfig = getPickingConfig;
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                0: { text: '@Html.Raw(L["StatusNew"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+                1: { text: '@Html.Raw(L["StatusWaitPickup"])', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+                2: { text: '@Html.Raw(L["StatusPicked"])', class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300' },
+                3: { text: '@Html.Raw(L["StatusPacking"])', class: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300' },
+                4: { text: '@Html.Raw(L["StatusPacked"])', class: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+                5: { text: '@Html.Raw(L["StatusWeighed"])', class: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' },
+                6: { text: '@Html.Raw(L["StatusExported"])', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+                7: { text: '@Html.Raw(L["StatusCompleted"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }
+            };
+            const s = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+            return `<span class="px-2 py-1 rounded text-xs font-semibold ${s.class}">${s.text}</span>`;
+        }
+
+        function formatNumber(value, decimals = 0) {
+            if (value === null || value === undefined) return '';
+            return new Intl.NumberFormat('vi-VN', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        function renderActions(row) {
+            return `
+                    <div class="flex justify-center gap-2">
+                        <button onclick="confirmPicked('${row.dispatchNo}')" 
+                                title="@Html.Raw(L["ConfirmPicked"])"
+                                class="w-8 h-8 flex items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:border-green-300 transition-all shadow-sm">
+                            <i class="fas fa-check text-sm"></i>
+                        </button>
+                        <button onclick="cancelOrder('${row.dispatchNo}', ${row.dispatchStatus})" 
+                                title="@Html.Raw(L["CancelOrder"])"
+                                class="w-8 h-8 flex items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-300 transition-all shadow-sm">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                `;
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        }
+
+        async function cancelOrder(dispatchNo, currentStatus) {
+            const isConfirmed = await Notify.confirm(
+                '@Html.Raw(L["ConfirmCancel"])',
+                '@Html.Raw(L["ConfirmCancelMessage"]) ' + dispatchNo + '?',
+                '@Html.Raw(L["YesCancel"])'
+            );
+
+            if (!isConfirmed) return;
+
+            const payload = {
+                dispatch_no: dispatchNo,
+                dispatch_status: parseInt(currentStatus)
+            };
+
+            try {
+                const response = await fetch('?handler=CancelOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Notify.success(result.message);
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.message || '@Html.Raw(L["ErrorProcessing"])');
+                }
+            } catch (error) {
+                console.error(error);
+                Notify.error('@Html.Raw(L["ConnectionError"])');
+            }
+        }
+
+        async function confirmPicked(dispatchNo) {
+            const isConfirmed = await Notify.confirm(
+                '@Html.Raw(L["ConfirmPicked"])',
+                '@Html.Raw(L["ConfirmPickedMessage"]) ' + dispatchNo + '?',
+                '@Html.Raw(L["Confirm"])'
+            );
+
+            if (!isConfirmed) return;
+
+            try {
+                const response = await fetch('?handler=ConfirmDispatchHasPicked', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(dispatchNo)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Notify.success(result.message);
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.message || '@Html.Raw(L["ErrorConfirming"])');
+                }
+            } catch (err) {
+                console.error(err);
+                Notify.error('@Html.Raw(L["ConnectionError"])');
+            }
+        }
+    </script>
+}

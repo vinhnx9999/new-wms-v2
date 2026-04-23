@@ -1,0 +1,58 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model IEnumerable<InboundInfoModel>;
+
+<div id="gridWHInboundInfo" style="height: 350px; width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnWHInboundDefs = [
+        { headerName: "Code", field: "SkuCode", sortable: true, filter: true },
+        { headerName: "Name", field: "SkuName", sortable: true, filter: true },
+        { headerName: "Qty", field: "Quantity", sortable: true, filter: true ,
+            cellStyle: { textAlign: 'right' } 
+        },
+        { headerName: "UoM", field: "UnitName", sortable: true, filter: true },
+        { headerName: "Expiry Date", field: "ExpiryDate", 
+            sortable: true, filter: true,        
+            cellRenderer: (params) => {
+            if((params.value ?? "").length < 1) return "";
+
+                const date = new Date(params.value);
+                const today = new Date();
+
+                // clone today before mutating
+                const next7Days = new Date(today);
+                next7Days.setDate(today.getDate() + 7);
+
+                let displayColor = date < today
+                  ? 'red'
+                  : date < next7Days
+                    ? 'yellow'
+                    : 'green';
+
+                return `<span style="color: ${displayColor}" title="${date.toLocaleDateString()}" >
+                          ${date.toLocaleDateString()}
+                        </span>`;
+                      }
+
+        },
+        { headerName: "Supplier", field: "SupplierName", sortable: true, filter: true }
+    ];
+
+    // Serialize Razor model into JSON
+    const rowWHInbound = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+    const gridWHInboundOptions = {
+        columnDefs: columnWHInboundDefs,
+        rowData: rowWHInbound,
+        //pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridWHInboundInfo');
+         agGrid.createGrid(gridDiv, gridWHInboundOptions);
+    });
+</script>

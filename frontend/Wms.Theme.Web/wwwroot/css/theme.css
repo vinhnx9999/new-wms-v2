@@ -1,0 +1,84 @@
+/* Theme variables ported from React index.css (simplified) */
+
+:root {
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --chart-1: #3b82f6;
+  --chart-2: #60a5fa;
+  --chart-3: #93c5fd;
+  --chart-4: #bfdbfe;
+  --chart-5: #dbeafe;
+  --radius: 0.65rem;
+  --background: #ffffff;
+  --foreground: #020817;
+  --card: #ffffff;
+  --card-foreground: #020817;
+  --popover: #ffffff;
+  --popover-foreground: #020817;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3b82f6;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #3b82f6;
+}
+
+.dark {
+  --primary: #3b82f6;
+  --primary-foreground: #eff6ff;
+  --sidebar-primary: #2563eb;
+  --sidebar-primary-foreground: #eff6ff;
+  --background: #1e3a5f;
+  --foreground: #ffffff;
+  --card: #1a2f4a;
+  --card-foreground: #e5e7eb;
+  --popover: #1a2f4a;
+  --popover-foreground: #e5e7eb;
+  --secondary: #2d4a6f;
+  --secondary-foreground: #b3d9ff;
+  --muted: #3d5a7f;
+  --muted-foreground: #9ca3af;
+  --accent: #2d4a6f;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #3d5a7f;
+  --input: #2d4a6f;
+  --ring: #3b82f6;
+  --chart-1: #60a5fa;
+  --chart-2: #3b82f6;
+  --chart-3: #2563eb;
+  --chart-4: #1d4ed8;
+  --chart-5: #1e40af;
+  --sidebar: #1a2f4a;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-accent: #2d4a6f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #3d5a7f;
+  --sidebar-ring: #3b82f6;
+}
+
+/* Apply theme to page */
+html,
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Optional helpers if used */
+.bg-card {
+  background-color: #2a4a6f;
+}

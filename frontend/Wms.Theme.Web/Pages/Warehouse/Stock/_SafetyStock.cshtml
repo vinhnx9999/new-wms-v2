@@ -1,0 +1,54 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model IEnumerable<StoreRuleSettingsDto>
+
+@if (Model == null) return;
+
+<div id="gridConfigSafetyStock" style="height: 500px; width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    // Serialize Razor model into JSON
+    const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model ?? []));
+
+    const columnDefs = [
+        { headerName: "Rule", field: "RuleSettings", sortable: true, filter: true },
+        { headerName: "Supplier", field: "SupplierName", sortable: true, filter: true },
+        { headerName: "SKU", field: "SkuName", sortable: true, filter: true },
+        { headerName: "Floor", field: "FloorName", sortable: true, filter: true },
+        {
+            headerName: "",
+            field: "Id",
+            cellRenderer: (params) => {
+                const button = document.createElement("button");
+                button.innerHTML = "🗑️"; // delete icon
+                button.addEventListener("click", () => {
+                   params.api.applyTransaction({ remove: [params.node.data] });
+                   deleteRuleSetting(params.data.Id)
+                });
+
+                return button;
+            },
+       }
+    ];
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridConfigLocations');
+         agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    function deleteRuleSetting(id) {
+        postData('?handler=DeleteSettings', { settingRuleId: id })
+        .then((result) => {
+            Notify.success(result.message || 'Deleted successfully.');
+        });
+    }
+</script>

@@ -1,0 +1,96 @@
+﻿namespace WMSSolution.WMS.Entities.ViewModels
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class SkuSelectViewModel
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public SkuSelectViewModel()
+        {
+
+        }
+
+        /// <summary>
+        /// sku_id
+        /// </summary>
+        public int sku_id { get; set; } = 0;
+
+        /// <summary>
+        /// spu_id
+        /// </summary>
+        public int spu_id { get; set; } = 0;
+
+        /// <summary>
+        /// spu_code
+        /// </summary>
+        public string spu_code { get; set; } = string.Empty;
+
+        /// <summary>
+        /// spu_name
+        /// </summary>
+        public string spu_name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// sku_code
+        /// </summary>
+        public string sku_code { get; set; } = string.Empty;
+
+        /// <summary>
+        /// sku_name
+        /// </summary>
+        public string sku_name { get; set; } = string.Empty;
+
+
+        /// <summary>
+        /// supplier_id
+        /// </summary>
+        public int supplier_id { get; set; } = 0;
+
+        /// <summary>
+        /// supplier_name
+        /// </summary>
+        public string supplier_name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// brand
+        /// </summary>
+        public string brand { get; set; } = string.Empty;
+
+        /// <summary>
+        /// origin
+        /// </summary>
+        public string origin { get; set; } = string.Empty;
+
+        /// <summary>
+        /// unit
+        /// </summary>
+        public string unit { get; set; } = string.Empty;
+
+        /// <summary>
+        /// qty_available
+        /// </summary>
+        public decimal qty_available { get; set; } = 0;
+
+        /// <summary>
+        /// cost
+        /// </summary>
+        public decimal cost { get; set; } = 0;
+
+        /// <summary>
+        /// price
+        /// </summary>
+        public decimal price { get; set; } = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal weight { get; set; } = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        public decimal height { get; set; } = 0;
+        public decimal volume { get; set; } = 0;
+    }
+}

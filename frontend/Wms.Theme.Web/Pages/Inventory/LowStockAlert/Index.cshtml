@@ -1,0 +1,225 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.LowStockAlert.IndexModel
+@{
+}
+@Html.AntiForgeryToken()
+
+<div id="gridLowStockAlert" style="height: calc(90vh - 40px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnDefs = [
+        {
+                headerName: '@Html.Raw(L["Warehouse"])',
+                sortable : true,
+                filter: true,
+                field: "warehouseName",
+                pinned : "left",
+                minWidth: 165
+        },
+        { headerName: '@Html.Raw(L["SKU"])',
+            pinned : "left",
+            width: 120,
+            field: "itemCode",
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["SkuName"])',
+            flex: 2,
+            field: "itemName",
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["Unit"])',            
+            field: "unit",
+            width: 120,
+            sortable: true,
+            filter: true
+        },
+        {
+            headerName: '@Html.Raw(L["SafetyStock"])',
+            field: "safetyStockQty",
+            width: 120,
+            cellClass: 'text-right font-semibold text-blue-700',
+        },
+        {
+                headerName: '@Html.Raw(L["Quantity"])',
+                field: "quantity",
+                width: 120,
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    let openingBalance = +(params.data.quantity ?? 0);
+                    if(openingBalance  === 0) return '';
+
+                    let cssRow = openingBalance < 0 ? "text-orange-600 dark:text-orange-400 text-red-700"
+                    : "text-gray-700 dark:text-gray-500";
+
+                    return `<span class="text-right font-semibold ${cssRow}">${openingBalance}</span>`
+                }
+        },
+        {
+            headerName: '@Html.Raw(L["Incoming"])',
+            field: "incomeQuantity",
+            width: 120,
+            cellClass: 'text-right font-semibold text-blue-700',
+        },
+        {
+            headerName: '@Html.Raw(L["Outcoming"])',
+            field: "outcomeQuantity",
+            width: 120,
+            cellClass: 'text-right font-semibold text-blue-700',
+        },
+        {
+                headerName: '@Html.Raw(L["AdditionalStock"])',
+                field: "additionalQty",
+                width: 120,
+                pinned : "right",
+                cellClass: 'text-right font-semibold text-blue-700',
+                cellRenderer: params => {
+                    if (params.value === undefined || params.value === null) return '';
+                    let openingBalance = +(params.data.additionalQty ?? 0);
+                    if(openingBalance  === 0) return '';
+                    let cssRow = openingBalance < 0 ? "text-orange-600 dark:text-orange-400 text-red-700"
+                    : "text-gray-700 dark:text-gray-500";
+
+                    return `<span class="text-right font-semibold ${cssRow}">${openingBalance}</span>`
+                }
+        },
+        {
+                headerName: '@Html.Raw(L["BelowThreshold"])',
+                field: "belowThreshold",
+                width: 120,
+                pinned : "right",
+                cellClass: 'text-right font-semibold text-blue-700',
+        }
+    ];
+
+    // Serialize Razor model into JSON
+    let rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LowStockAlerts,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridApi;
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridLowStockAlert');
+         gridApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+
+    async function searchData() {
+        const fromDateText = document.getElementById('fromDate')?.value?.trim();
+        const toDateText = document.getElementById('toDate')?.value?.trim();
+        const warehouseIdText = document.getElementById('selectedWarehouseId')?.value?.trim();
+
+        const payload = {
+                    WarehouseId: Number(warehouseIdText)
+                };
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const response = await fetch(`?handler=SearchInventory`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // Replace all rows with new data
+                    gridApi.setGridOption("rowData", data.items);
+                })
+                .catch(err => console.error('Error loading inventory:', err));
+    }
+
+    let warehouses = [];
+        const searchInput = document.getElementById('warehouseSearch');
+        const dropdown = document.getElementById('warehouseDropdown');
+        const selectedWarehouseIdInput = document.getElementById('selectedWarehouseId');
+        let currentAbortController = null;
+
+        async function fetchWarehouses(keyword = '' , pageIndex = 1){
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            currentAbortController = new AbortController();
+            try
+            {
+               const keyWordParam = keyword?.trim()
+                     ? `&keyWord=${encodeURIComponent(keyword.trim())}`
+                     : '';
+
+                const url = `?handler=SearchWareHouse${keyWordParam}&pageIndex=${pageIndex}`;
+                const response = await fetch(url , {
+                        signal : currentAbortController.signal
+                });
+                if (!response.ok) return [];
+                return await response.json();
+            }catch (e) {
+               if (e.name === 'AbortError') {
+                   return null;
+               }
+                console.error('Error fetching warehouses:', e);
+                return [];
+            }
+        }
+
+
+        function renderDropdown(data) {
+            if(data === null){
+                return;
+            }
+            if(!Array.isArray(data)){
+                return
+            }
+            dropdown.innerHTML = '';
+            if (data.length === 0) {
+                dropdown.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">${L.noWarehouseFound}</li>`;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+            data.forEach(wh => {
+                const li = document.createElement('li');
+                li.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0";
+                li.textContent = `${wh.warehouseName}`
+                li.onclick = () => {
+                    searchInput.value = wh.warehouseName;
+                    selectedWarehouseIdInput.value = wh.id;
+                    dropdown.classList.add('hidden');
+                };
+                dropdown.appendChild(li);
+            });
+             dropdown.classList.remove('hidden');
+        }
+
+        const debouncedSearch = debounce(async function () {
+            const data = await fetchWarehouses(searchInput.value);
+            renderDropdown(data);
+        }, 300);
+
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('focus', async function () {
+            if (!dropdown.classList.contains('hidden')) return;
+            const data = await fetchWarehouses(this.value);
+            renderDropdown(data);
+        });
+
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+</script>

@@ -1,0 +1,21 @@
+﻿@using Wms.Theme.Web.Model.Warehouse
+@model IEnumerable<WcsLocationDto>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+
+<div class="wcs-locations">
+    @if (Model?.Any() ?? false)
+    {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @foreach (var warehouse in Model)
+            {
+                <div class="grid grid-cols-3 gap-4">
+                    @warehouse.Address
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No WCS locations available.</p>
+    }
+</div>

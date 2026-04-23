@@ -1,0 +1,58 @@
+@model List<Wms.Theme.Web.Model.Warehouse.WarehouseViewModel>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+<form id="createLocationForm" class="space-y-6">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["Warehouse"]) <span class="text-red-500">*</span></label>
+        <select id="warehouseId" class="block w-full rounded-md border-gray-300 shadow-sm border p-2">
+            @foreach (var wh in Model)
+            {
+                <option value="@wh.id">@wh.WarehouseName</option>
+            }
+        </select>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <input id="isVirtualLocation" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+        <label for="isVirtualLocation" class="text-sm font-medium text-gray-700">@Html.Raw(Localizer["VirtualLocation"])</label>
+    </div>
+
+    <div id="physicalFields" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["CoordinateX"]) <span class="text-red-500">*</span></label>
+            <input id="coordinateX" class="block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["CoordinateY"]) <span class="text-red-500">*</span></label>
+            <input id="coordinateY" class="block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["CoordinateZ"]) <span class="text-red-500">*</span></label>
+            <input id="coordinateZ" class="block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+        </div>
+    </div>
+
+    <div id="virtualFields" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["VirtualLocationName"]) <span class="text-red-500">*</span></label>
+        <input id="locationName" class="block w-full rounded-md border-gray-300 shadow-sm border p-2" />
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">@Html.Raw(Localizer["PriorityRange"]) <span class="text-red-500">*</span></label>
+        <select id="priority" class="block w-full rounded-md border-gray-300 shadow-sm border p-2">
+            @for (int i = 1; i <= 6; i++)
+            {
+                <option value="@i">@i</option>
+            }
+        </select>
+    </div>
+
+    <div class="flex justify-end gap-3 border-t pt-4">
+        <button id="btnCancelModal" type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium">
+            @Html.Raw(Localizer["Cancel"])
+        </button>
+        <button id="btnSubmit" type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-sm">
+            @Html.Raw(Localizer["Create"])
+        </button>
+    </div>
+</form>

@@ -1,0 +1,677 @@
+@using Microsoft.Extensions.Localization
+@using Wms.Theme.Web
+@inject IStringLocalizer<SharedResource> L
+
+<div x-data="qcTab()" x-init="init()" class="space-y-4">
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-2 mb-4">
+        <button @@click="exportExcel()" title="@L["ExportExcel"]"
+            class="w-20 py-3 bg-white border border-gray-300 text-green-600 text-base rounded-lg shadow-sm hover:bg-gray-50 hover:text-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 flex justify-center items-center">
+            <i class="fa-solid fa-file-excel"></i>
+        </button>
+        <button @@click="confirmQC()" title="@L["Confirm"]"
+            class="w-20 py-3 bg-green-600 text-white text-base rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 flex justify-center items-center">
+            <i class="fa-solid fa-check"></i>
+        </button>
+    </div>
+
+    <!-- Data Table -->
+    <div x-data="AlpineDataTable(tableConfig)" x-init="init()">
+        <partial name="Shared/Components/_AlpineDataTable" />
+    </div>
+
+    <!-- Add QC Item Modal -->
+    <template x-teleport="body">
+        <div x-show="showAddQcModal" style="display: none;"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[9999] flex items-center justify-center">
+            <div class="relative p-6 border w-96 md:w-[500px] shadow-xl rounded-xl bg-white dark:bg-gray-800 dark:border-gray-700 transition-all transform scale-100"
+                @@click.away="showAddQcModal = false">
+                <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">@L["AddQcItemTitle"]</h3>
+                    <button @@click="showAddQcModal = false"
+                        class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div
+                    class="bg-blue-50 rounded-lg p-4 mb-5 border border-blue-100 dark:bg-gray-700 dark:border-gray-600">
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span
+                                class="block text-xs font-semibold text-blue-600 uppercase tracking-wider dark:text-blue-300">@L["ASNNumber"]</span>
+                            <span x-text="addQcData.asnNo"
+                                class="font-bold text-gray-900 dark:text-white text-base"></span>
+                        </div>
+                        <div>
+                            <span
+                                class="block text-xs font-semibold text-blue-600 uppercase tracking-wider dark:text-blue-300">@L["ExpectedQuantity"]</span>
+                            <span x-text="addQcData.asnQty"
+                                class="font-bold text-gray-900 dark:text-white text-base"></span>
+                        </div>
+                        <div>
+                            <span
+                                class="block text-xs font-semibold text-blue-600 uppercase tracking-wider dark:text-blue-300">@L["SortedQty"]</span>
+                            <span x-text="addQcData.sortedQty"
+                                class="font-bold text-gray-900 dark:text-white text-base"></span>
+                        </div>
+                        <div class="col-span-2 border-t border-blue-200 mt-2 pt-2 dark:border-gray-600">
+                            <span
+                                class="block text-xs font-semibold text-blue-600 uppercase tracking-wider dark:text-blue-300">@L["SkuName"]</span>
+                            <span x-text="addQcData.skuName"
+                                class="font-medium text-gray-800 dark:text-gray-200 truncate block"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@L["Quantity"]</label>
+                    <div class="relative">
+                        <input type="number" x-model="addQcData.qty" min="1" :max="addQcData.maxQty"
+                            class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
+                            @@input="validateQcQty()">
+                        <div
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                        </div>
+                    </div>
+                    <p x-show="qtyWarning" class="mt-2 text-sm text-yellow-600 flex items-center gap-1 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        @L["WarningQtyExceeds"]
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">@L["ExpiryDate"]</label>
+                    <input type="date" x-model="addQcData.expiryDate" readonly
+                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                </div>
+
+                <!-- Auto Generate Series Number Checkbox -->
+                <div class="mb-6">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" x-model="isAutoNum"
+                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                        <span
+                            class="text-sm font-medium text-gray-700 dark:text-gray-300">@L["AutoGenerateSeriesNumber"]</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button @@click="showAddQcModal = false"
+                        class="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        @L["Cancel"]
+                    </button>
+                    <button @@click="submitAddQc()" :disabled="isSubmitting"
+                        class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all">
+                        <span x-show="!isSubmitting">@L["Save"]</span>
+                        <span x-show="isSubmitting">@L["Processing"]...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Update QC Details Modal -->
+    <template x-teleport="body">
+        <div x-show="showUpdateQcModal" style="display: none;"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[9999] flex items-center justify-center">
+            <div class="relative p-6 border w-3/4 md:w-[700px] shadow-xl rounded-xl bg-white dark:bg-gray-800 dark:border-gray-700 transition-all transform scale-100"
+                @@click.away="showUpdateQcModal = false">
+                <div class="flex justify-between items-center mb-5 border-b border-gray-100 pb-3 dark:border-gray-700">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">@L["UpdateQcDetailTitle"]</h3>
+                    <button @@click="showUpdateQcModal = false"
+                        class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div
+                    class="bg-indigo-50 rounded-lg p-4 mb-5 border border-indigo-100 dark:bg-gray-700 dark:border-gray-600">
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span
+                                class="block text-xs font-semibold text-indigo-600 uppercase tracking-wider dark:text-indigo-300">@L["ASNNumber"]</span>
+                            <span x-text="updateQcData.asnNo"
+                                class="font-bold text-gray-900 dark:text-white text-base"></span>
+                        </div>
+                        <div class="border-l border-indigo-200 pl-4 dark:border-gray-500">
+                            <span
+                                class="block text-xs font-semibold text-indigo-600 uppercase tracking-wider dark:text-indigo-300">@L["SkuName"]</span>
+                            <span x-text="updateQcData.skuName"
+                                class="font-medium text-gray-800 dark:text-gray-200 truncate block"></span>
+                        </div>
+                        <div class="border-l border-indigo-200 pl-4 dark:border-gray-500">
+                            <span
+                                class="block text-xs font-semibold text-indigo-600 uppercase tracking-wider dark:text-indigo-300">@L["SortedQty"]</span>
+                            <span x-text="updateQcData.originalSortedQty"
+                                class="font-bold text-gray-900 dark:text-white text-base"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="overflow-x-auto overflow-y-auto mb-6 min-h-[100px] max-h-[300px] border border-gray-200 rounded-lg dark:border-gray-600">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3">@L["SeriesNumber"]</th>
+                                <th class="px-4 py-3">@L["Quantity"]</th>
+                                <th class="px-4 py-3">@L["Creator"]</th>
+                                <th class="px-4 py-3">@L["Actions"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(detail, index) in qcDetails" :key="detail.id || index">
+                                <tr x-show="!detail.isDeleted"
+                                    class="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2" x-text="detail.series_number || 'N/A'"></td>
+                                    <td class="px-4 py-2">
+                                        <input type="number" x-model.number="detail.sorted_qty" min="1"
+                                            class="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    </td>
+                                    <td class="px-4 py-2 text-gray-500 dark:text-gray-400"
+                                        x-text="detail.creator || '-'">
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <button @@click="removeQcDetail(index)" class="text-red-600 hover:text-red-800"
+                                            title="@Html.Raw(L["Remove"])">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                        <tfoot class="bg-gray-100 dark:bg-gray-700 font-semibold sticky bottom-0">
+                            <tr>
+                                <td class="px-4 py-3">@L["Total"]</td>
+                                <td class="px-4 py-3">
+                                    <span x-text="getTotalQty()"
+                                        :class="getTotalQty() === updateQcData.originalSortedQty ? 'text-green-600' : 'text-red-600'"></span>
+                                    <span class="text-gray-500"> / <span
+                                            x-text="updateQcData.originalSortedQty"></span></span>
+                                </td>
+                                <td colspan="2" class="px-4 py-3">
+                                    <span x-show="getTotalQty() !== updateQcData.originalSortedQty"
+                                        class="text-red-500 text-xs">
+                                        <i class="fa-solid fa-warning mr-1"></i>@L["TotalQtyMustMatchSortedQty"]
+                                    </span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button @@click="showUpdateQcModal = false"
+                        class="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        @L["Cancel"]
+                    </button>
+                    <button @@click="submitUpdateQc()" :disabled="isSubmitting"
+                        class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all">
+                        <span x-show="!isSubmitting">@L["Save"]</span>
+                        <span x-show="isSubmitting">@L["Processing"]...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('qcTab', () => ({
+            // State
+            showAddQcModal: false,
+            showUpdateQcModal: false,
+            isSubmitting: false,
+            qtyWarning: false,
+            isAutoNum: false,
+
+            // Add QC Data
+            addQcData: {
+                id: null,
+                asnNo: '',
+                asnQty: 0,
+                sortedQty: 0,
+                skuName: '',
+                qty: 1,
+                maxQty: 0,
+                expiryDate: ''
+            },
+
+            // Update QC Data
+            updateQcData: {
+                id: null,
+                asnNo: '',
+                skuName: '',
+                originalSortedQty: 0
+            },
+            qcDetails: [],
+
+            // Configuration for AlpineDataTable
+            tableConfig: {
+                apiUrl: '?handler=DataTable&handlerName=QcTable',
+                columns: [
+                    { title: '@Html.Raw(L["ASNNumber"])', data: 'AsnNo',
+                        render: (row) => `<a href="/Inbound/ASN/Detail/${row.Id}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors" title="@Html.Raw(L["Detail"])">
+                              ${row.AsnNo}
+                         </a>`},
+                    { title: '@Html.Raw(L["Status"])', data: 'StatusBadge', render: (item) => item.StatusBadge },
+                    { title: '@Html.Raw(L["UnloadTime"])', data: 'UnloadTime', render: (item) => GlobalFormatDate(item.UnloadTime) },
+                    { title: '@Html.Raw(L["Price"])', data: 'Price', render: (item) => GlobalFormatCurrency(item.Price) },
+                    { title: '@Html.Raw(L["SkuCode"])', data: 'SkuCode' },
+                    { title: '@Html.Raw(L["SkuName"])', data: 'SkuName' },
+                    { title: '@Html.Raw(L["AsnQty"])', data: 'AsnQty', align: 'right', render: (item) => GlobalFormatNumber(item.AsnQty) },
+                    { title: '@Html.Raw(L["SortedQty"])', data: 'SortedQty', align: 'right', render: (item) => GlobalFormatNumber(item.SortedQty) },
+                    // Actions
+                    {
+                        title: '@Html.Raw(L["Actions"])',
+                        data: null,
+                        align: 'center',
+                        render: (item) => {
+                            return `
+                                <div class="flex items-center gap-4 justify-start">                                   
+                                    <button onclick="window.dispatchEvent(new CustomEvent('qc-action', { detail: { action: 'add', id: '${item.Id}', item: ${JSON.stringify(item).replace(/"/g, '&quot;')} } }))"
+                                            class="text-green-600 hover:text-green-800" title="@Html.Raw(L["AddQC"])">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                    ${item.SortedQty > 0 ? `
+                                    <button onclick="window.dispatchEvent(new CustomEvent('qc-action', { detail: { action: 'update', id: '${item.Id}', item: ${JSON.stringify(item).replace(/"/g, '&quot;')} } }))"
+                                            class="text-blue-600 hover:text-blue-800" title="@Html.Raw(L["UpdateQC"])">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </button>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                    }
+                ],
+                filters: {
+                    asn_no: '',
+                    goods_owner_name: ''
+                }
+            },
+
+            init() {
+                // Listen for custom events from the table renderers
+                window.addEventListener('qc-action', (e) => {
+                    this.handleAction(e.detail.action, e.detail.id, e.detail.item);
+                });
+
+                // Listen for tab changes
+                window.addEventListener('tab-changed', (e) => {
+                    if (e.detail.tab === 'qc') {
+                        this.reloadData();
+                    }
+                });
+            },
+
+            handleAction(action, id, item) {
+                if (action === 'add') {
+                    this.openAddQcModal(item);
+                } else if (action === 'update') {
+                    this.openUpdateQcModal(id, item);
+                }
+            },
+
+            // Add QC Modal Methods
+            openAddQcModal(item) {
+                if (!item) return;
+                this.addQcData = {
+                    id: item.Id,
+                    asnNo: item.AsnNo,
+                    asnQty: item.AsnQty,
+                    sortedQty: item.SortedQty || 0,
+                    skuName: item.SkuName,
+                    maxQty: item.AsnQty - (item.SortedQty || 0),
+                    qty: item.AsnQty,
+                    expiryDate: item.ExpiryDate
+                };
+                this.qtyWarning = false;
+                this.showAddQcModal = true;
+            },
+
+            validateQcQty() {
+                const qty = parseInt(this.addQcData.qty) || 0;
+                this.qtyWarning = qty > this.addQcData.maxQty;
+            },
+
+            async submitAddQc() {
+                if (!this.addQcData.qty || this.addQcData.qty <= 0) {
+                    Notify.warning('@Html.Raw(L["PleaseEnterValidQuantity"])');
+                    return;
+                }
+
+                if (this.addQcData.qty > this.addQcData.maxQty) {
+                    Notify.warning('@Html.Raw(L["QuantityExceedsMaximum"])');
+                    return;
+                }
+
+                this.isSubmitting = true;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const payload = {
+                        Id: this.addQcData.id,
+                        SortedQuantity: this.addQcData.qty,
+                        ExpiryDate: this.addQcData.expiryDate,
+                        IsAutoNum: this.isAutoNum
+                    };
+
+                    const response = await fetch('?handler=AddQc', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["QcItemAddedSuccess"])');
+                        this.showAddQcModal = false;
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["QcItemAddedFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Add QC error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            // Update QC Modal Methods
+            async openUpdateQcModal(id, item) {
+                try {
+                    this.updateQcData = {
+                        id: id,
+                        asnNo: item ? item.AsnNo : '',
+                        skuName: item ? item.SkuName : '',
+                        originalSortedQty: item ? (item.SortedQty || 0) : 0
+                    };
+
+                    const response = await fetch(`?handler=QcDetails&asnId=${id}`);
+                    const result = await response.json();
+
+                    if (Array.isArray(result)) {
+                        // Initialize isDeleted flag for each item
+                        this.qcDetails = (result || []).map(d => ({ ...d, isDeleted: false }));
+                        this.showUpdateQcModal = true;
+                    } else if (result && result.data) {
+                        // Fallback in case structure changes back
+                        const details = result.data.details || result.data || [];
+                        this.qcDetails = details.map(d => ({ ...d, isDeleted: false }));
+                        this.showUpdateQcModal = true;
+                    } else {
+                        this.qcDetails = [];
+                        this.showUpdateQcModal = true;
+                    }
+                } catch (error) {
+                    console.error('Load QC details error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                }
+            },
+
+            // Calculate total qty of non-deleted items
+            getTotalQty() {
+                return this.qcDetails
+                    .filter(d => !d.isDeleted)
+                    .reduce((sum, d) => sum + (parseInt(d.sorted_qty) || 0), 0);
+            },
+
+            // Mark item as deleted by negating its ID
+            removeQcDetail(index) {
+                const detail = this.qcDetails[index];
+                if (detail.id && detail.id > 0) {
+                    // Mark for deletion by negating the ID and setting isDeleted flag
+                    detail.id = -Math.abs(detail.id);
+                    detail.isDeleted = true;
+                } else {
+                    // If it's a new item without ID, just remove from array
+                    this.qcDetails.splice(index, 1);
+                }
+            },
+
+            // Submit updated QC details with validation
+            async submitUpdateQc() {
+                // Check if there are any non-deleted items
+                const activeItems = this.qcDetails.filter(d => !d.isDeleted);
+                if (activeItems.length === 0) {
+                    Notify.warning('@Html.Raw(L["NoQcDetailsToUpdate"])');
+                    return;
+                }
+
+                // Validate: total qty of non-deleted items must equal originalSortedQty
+                const totalQty = this.getTotalQty();
+                if (totalQty !== this.updateQcData.originalSortedQty) {
+                    Notify.error('@Html.Raw(L["TotalQtyMustMatchSortedQty"])');
+                    return;
+                }
+
+                // Validate: each item must have qty >= 1
+                const invalidItems = activeItems.filter(d => (parseInt(d.sorted_qty) || 0) < 1);
+                if (invalidItems.length > 0) {
+                    Notify.error('@Html.Raw(L["EachItemMustHaveValidQuantity"])');
+                    return;
+                }
+
+                this.isSubmitting = true;
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    // Send all items including deleted ones (with negative IDs)
+                    const payload = {
+                        Items: this.qcDetails.map(detail => ({
+                            id: detail.id, // Negative ID means delete
+                            asn_id: this.updateQcData.id,
+                            sorted_qty: parseInt(detail.sorted_qty) || 0,
+                            series_number: detail.series_number || '',
+                            creator: detail.creator || ''
+                        }))
+                    };
+
+                    const response = await fetch('?handler=UpdateQc', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message || '@Html.Raw(L["QcDetailsUpdatedSuccess"])');
+                        this.showUpdateQcModal = false;
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message || '@Html.Raw(L["QcDetailsUpdatedFailed"])');
+                    }
+                } catch (error) {
+                    console.error('Update QC error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            },
+
+            // Confirm/Reject Methods
+            async confirmQC() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                const confirmed = await Notify.confirm(`@Html.Raw(L["ConfirmQC"])`, `@Html.Raw(L["ConfirmQCMessage"])`.replace('{0}', selected.length));
+                if (!confirmed) return;
+
+                await this.performAction('ConfirmQc', selected);
+            },
+
+            async rejectQC() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                const confirmed = await Notify.confirm(`@Html.Raw(L["RejectQcMessage"])`.replace('{0}', selected.length));
+                if (!confirmed) return;
+
+                await this.performAction('RejectQc', selected);
+            },
+
+            async performAction(handler, rows) {
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const ids = rows.map(r => r.Id);
+
+                    const payload = { ids: ids };
+
+                    const response = await fetch(`?handler=${handler}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Notify.success(result.message);
+                        this.reloadData();
+                    } else {
+                        Notify.error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Action error:', error);
+                    Notify.error('@Html.Raw(L["SystemError"])');
+                }
+            },
+
+            reloadData() {
+                // Reload tab counts
+                const processPageEl = document.querySelector('[x-data^="processPage"]');
+                if (processPageEl && processPageEl._x_dataStack) {
+                    const processPage = processPageEl._x_dataStack[0];
+                    if (processPage.loadTabCounts) {
+                        processPage.loadTabCounts();
+                    }
+                }
+
+                // Reload table
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (tableEl && tableEl._x_dataStack) {
+                    const tableData = tableEl._x_dataStack[0];
+                    tableData.fetchData(tableData.pagination.pageIndex);
+                }
+            },
+
+            exportExcel() {
+                const tableEl = this.$root.querySelector('[x-data^="AlpineDataTable"]');
+                if (!tableEl || !tableEl._x_dataStack) return;
+
+                const tableData = tableEl._x_dataStack[0];
+                const selected = tableData.selectedRows;
+
+                // Check if any rows are selected
+                if (!selected || selected.length === 0) {
+                    Notify.warning('@Html.Raw(L["PleaseSelectAtLeastOneRow"])');
+                    return;
+                }
+
+                if (typeof XLSX === 'undefined') {
+                    Notify.error('XLSX library not loaded');
+                    return;
+                }
+
+                try {
+                    // Map status codes to text
+                    const statusMap = {
+                        0: '@Html.Raw(L["New"])',
+                        1: '@Html.Raw(L["Delivery"])',
+                        2: '@Html.Raw(L["Unload"])',
+                        3: '@Html.Raw(L["Putaway"])',
+                        4: '@Html.Raw(L["WaitingRobot"])',
+                        5: '@Html.Raw(L["Completed"])',
+                        8: '@Html.Raw(L["Cancelled"])'
+                    };
+
+                    // Prepare data for Excel
+                    const exportData = selected.map((item, index) => ({
+                        '@Html.Raw(L["STT"])': index + 1,
+                        '@Html.Raw(L["ASNNumber"])': item.AsnNo || '',
+                        '@Html.Raw(L["Status"])': statusMap[item.AsnStatus] || item.AsnStatus || '',
+                        '@Html.Raw(L["UnloadTime"])': item.UnloadTime ? new Date(item.UnloadTime).toLocaleDateString('vi-VN') : '',
+                        '@Html.Raw(L["Price"])': parseFloat(item.Price || 0),
+                        '@Html.Raw(L["SkuCode"])': item.SkuCode || '',
+                        '@Html.Raw(L["SkuName"])': item.SkuName || '',
+                        '@Html.Raw(L["AsnQty"])': parseFloat(item.AsnQty || 0),
+                        '@Html.Raw(L["SortedQty"])': parseFloat(item.SortedQty || 0)
+                    }));
+
+                    // Create worksheet
+                    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+                    // Set column widths
+                    worksheet['!cols'] = [
+                        { wch: 8 },  // STT
+                        { wch: 20 }, // ASNNumber
+                        { wch: 15 }, // Status
+                        { wch: 15 }, // UnloadTime
+                        { wch: 12 }, // Price
+                        { wch: 20 }, // SkuCode
+                        { wch: 35 }, // SkuName
+                        { wch: 12 }, // AsnQty
+                        { wch: 12 }  // SortedQty
+                    ];
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "QC");
+
+                    const timestamp = new Date().getTime();
+                    const filename = `QC_Export_${timestamp}.xlsx`;
+
+                    XLSX.writeFile(workbook, filename, { bookType: 'xlsx', compression: true });
+                    Notify.success('@Html.Raw(L["ExportSuccess"])');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    Notify.error('@Html.Raw(L["ExportFailed"])');
+                }
+            }
+        }));
+    });
+</script>

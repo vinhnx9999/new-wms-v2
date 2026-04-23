@@ -1,0 +1,185 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Setting.Sku.CreateModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["Create"];
+}
+
+<div class="max-w-7xl mx-auto p-6 bg-white shadow-md rounded-lg mt-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6">@ViewData["Title"]</h2>
+
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4 text-sm"></div>
+
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Thông tin cơ bản</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div>
+                <label asp-for="Sku.SkuCode" class="block text-sm font-medium text-gray-700">Mã SKU <span class="text-red-500">*</span></label>
+                <input asp-for="Sku.SkuCode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+                <span asp-validation-for="Sku.SkuCode" class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+            <div>
+                <label asp-for="Sku.SkuName" class="block text-sm font-medium text-gray-700">Tên SKU <span class="text-red-500">*</span></label>
+                <input asp-for="Sku.SkuName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+                <span asp-validation-for="Sku.SkuName" class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+            <div>
+                <label asp-for="Sku.BarCode" class="block text-sm font-medium text-gray-700">Barcode</label>
+                <input asp-for="Sku.BarCode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+        </div>
+
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Phân loại & Thuộc tính</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+            <div class="relative custom-select-container">
+                <label class="block text-sm font-medium text-gray-700">SPU</label>
+                <input type="hidden" asp-for="Sku.SpuId" class="hidden-value" />
+                <input type="text" class="search-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Gõ để tìm SPU..." autocomplete="off" />
+                <ul class="dropdown-list absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto hidden"></ul>
+            </div>
+
+            <div class="relative custom-select-container">
+                <label class="block text-sm font-medium text-gray-700">Đơn vị tính (UOM) <span class="text-red-500">*</span></label>
+                <input type="hidden" asp-for="Sku.SkuUomID" class="hidden-value" />
+                <input type="text" class="search-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Gõ để tìm UOM..." autocomplete="off" />
+                <ul class="dropdown-list absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto hidden"></ul>
+                <span asp-validation-for="Sku.SkuUomID" class="text-red-500 text-xs mt-1 block"></span>
+            </div>
+
+            <div class="relative custom-select-container" >
+                <label class="block text-sm font-medium text-gray-700">Category</label>
+                <input type="hidden" asp-for="Sku.CategoryId" class="hidden-value" />
+                <input type="text" class="search-input mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Gõ để tìm Category..." autocomplete="off" />
+                <ul class="dropdown-list absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto hidden"></ul>
+            </div>
+
+        </div>
+
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Kích thước & Trọng lượng</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+            <div>
+                <label asp-for="Sku.Weight" class="block text-sm font-medium text-gray-700">Trọng lượng</label>
+                <input asp-for="Sku.Weight" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+            <div>
+                <label asp-for="Sku.Lenght" class="block text-sm font-medium text-gray-700">Chiều dài</label>
+                <input asp-for="Sku.Lenght" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+            <div>
+                <label asp-for="Sku.Width" class="block text-sm font-medium text-gray-700">Chiều rộng</label>
+                <input asp-for="Sku.Width" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+            <div>
+                <label asp-for="Sku.Height" class="block text-sm font-medium text-gray-700">Chiều cao</label>
+                <input asp-for="Sku.Height" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+            <div>
+                <label asp-for="Sku.Volume" class="block text-sm font-medium text-gray-700">Thể tích</label>
+                <input asp-for="Sku.Volume" type="number" min="0" step="0.0001" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+        </div>
+
+        <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Giá trị</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label asp-for="Sku.Cost" class="block text-sm font-medium text-gray-700">Giá vốn (Cost)</label>
+                <input asp-for="Sku.Cost" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+            <div>
+                <label asp-for="Sku.Price" class="block text-sm font-medium text-gray-700">Giá bán (Price)</label>
+                <input asp-for="Sku.Price" type="number" min="0" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" />
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-4 border-t pt-4">
+            <a asp-page="./Index" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium">Hủy</a>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-sm">Lưu SKU</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+         
+            function debounce(func, delay) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
+            // Logic xử lý cho từng ô select
+            document.querySelectorAll('.custom-select-container').forEach(container => {
+                const searchInput = container.querySelector('.search-input');
+                const hiddenInput = container.querySelector('.hidden-value');
+                const dropdownList = container.querySelector('.dropdown-list');
+                const endpoint = container.dataset.endpoint;
+
+                // Hàm fetch dữ liệu từ API
+                const fetchData = debounce(async (keyword) => {
+                    if (!keyword) {
+                        dropdownList.innerHTML = '';
+                        dropdownList.classList.add('hidden');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${endpoint}?keyword=${encodeURIComponent(keyword)}`);
+                        if (!response.ok) throw new Error('Network error');
+                        const data = await response.json();
+
+                        dropdownList.innerHTML = ''; // Xóa list cũ
+                        
+                        if (data.length === 0) {
+                            dropdownList.innerHTML = '<li class="text-gray-500 cursor-default select-none relative py-2 pl-3 pr-9">Không tìm thấy kết quả</li>';
+                        } else {
+                            data.forEach(item => {
+                                const li = document.createElement('li');
+                                li.className = 'text-gray-900 cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-100';
+                                li.textContent = item.text;
+                                li.dataset.id = item.id;
+                                
+                                // Bắt sự kiện chọn item
+                                li.addEventListener('click', function () {
+                                    hiddenInput.value = item.id;
+                                    searchInput.value = item.text;
+                                    dropdownList.classList.add('hidden');
+                                });
+
+                                dropdownList.appendChild(li);
+                            });
+                        }
+                        dropdownList.classList.remove('hidden');
+                    } catch (error) {
+                        console.error('Lỗi khi fetch data:', error);
+                    }
+                }, 300);
+
+                // Lắng nghe sự kiện gõ phím
+                searchInput.addEventListener('input', (e) => {
+                    hiddenInput.value = ''; // Xóa ID cũ nếu người dùng gõ text mới
+                    fetchData(e.target.value);
+                });
+
+                // Hiện list khi focus lại nếu đã có text
+                searchInput.addEventListener('focus', () => {
+                    if (searchInput.value.trim() !== '') {
+                        dropdownList.classList.remove('hidden');
+                    }
+                });
+
+                // Đóng list khi click ra ngoài container
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdownList.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+}

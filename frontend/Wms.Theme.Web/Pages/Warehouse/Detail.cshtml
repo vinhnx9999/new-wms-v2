@@ -1,0 +1,712 @@
+@page "/Warehouse/Detail/{id:int}"
+@model Wms.Theme.Web.Pages.Warehouse.DetailModel;
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["Warehouse"];
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .reset-element {
+        all: revert;
+    }
+
+    .reset-page * {
+        all: revert;
+    }
+</style>
+@await Html.PartialAsync("Maps/_HeaderInfo", Model.GeneralInfo)
+<div class="w-full text-left mx-auto" style="height: 80vh; overflow: hidden;">        
+    <div class="tabs">
+        <!-- Tab Buttons -->
+        <div class="flex border-b justify-end items-center h-16">
+            <h3 class="font-bold text-gray-900 mr-4">@Model.GeneralInfo.Code</h3>
+            <button class="tab-button flex-1 py-2 px-4 text-blue-600 border-b-2 border-blue-600 font-medium" data-tab="tab0">
+                @L["GeneralInfo"]
+            </button>            
+            <button class="tab-button flex-1 py-2 px-4 text-gray-600 hover:text-blue-600" data-tab="tab2">
+                @L["Rules"]
+            </button>
+            <button class="tab-button flex-1 py-2 px-4 text-gray-600 hover:text-blue-600" data-tab="tab3">
+                @L["Maps"]
+            </button>
+            <button class="tab-button flex-1 py-2 px-4 text-gray-600 hover:text-blue-600" data-tab="tab4">
+                @L["SafetyStock"]
+            </button>
+            <button class="tab-button flex-1 py-2 px-4 text-gray-600 hover:text-blue-600" data-tab="tabWCSMaps">
+                @L["LinkWCSMaps"]
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-2">
+            <div id="tab0" class="tab-content block mt-4 text-left opacity-100 transition-opacity duration-500 ease-in-out">
+                <div class="overflow-y-auto  ">
+                    <div class="grid grid-cols-12 gap-4 pb-2">
+                        <div id="generalInfoContainer" class="col-span-12 md:col-span-12 w-full ">
+                            @await Html.PartialAsync("Maps/_GeneralInfo", Model.GeneralInfo)
+                        </div>
+                    </div>
+                    @await Html.PartialAsync("Inventory/_InventoryInfo", Model.InventoryInfo)                    
+                </div>                
+            </div>            
+            <div id="tab2" class="tab-content hidden"> 
+                <div class="relative w-full">                    
+                    @await Html.PartialAsync("Rules/_LocationRules", Model.GeneralRuleInfo)
+                </div>                          
+            </div>
+            <div id="tab3" class="tab-content hidden">
+                <div class=" p-4">        
+                    <div class="relative w-full">            
+                        <div class="absolute top-0 right-0 z-10">
+                            <button onclick="getCurrentLocations()"
+                                    class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <span>@L["LoadMaps"]</span>
+                            </button>
+                        </div>
+                        <div id="mapContainer" >
+                            @await Html.PartialAsync("Maps/_MapPalletLocations", Model.WHLocations)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab4" class="tab-content hidden">
+                <div class="relative space-x-4 p-4">
+                    <div class="flex items-end gap-3 justify-end">
+                        <form id="excelFormSafetyStockConfig" asp-action="Warehouse/Detail/ImportExcel" enctype="multipart/form-data" method="post">
+                            <input type="file" name="excelFile" accept=".xlsx,.xls" class="hidden" id="excelUploadSafetyStockConfig" />
+                            <label for="excelUploadSafetyStockConfig" class="btn btn-secondary cursor-pointer">
+                                @L["Common_ImportExcel"]
+                            </label>
+                        </form>
+                        <button id="downloadBtnSafetyStockConfig" class="btn btn-primary" title="@Html.Raw(L["GetTemplate"])">
+                            <span class="hidden sm:inline">@Html.Raw(L["GetTemplate"])</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading spinner -->
+                <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                            background-color:rgba(0,0,0,0.4); z-index:9998;">
+                </div>
+
+                <div id="loadingSpinner" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang xử lý...</span>
+                    </div>
+                </div>
+
+                <div class="w-full">
+                    @await Html.PartialAsync("Rules/_SafetyStockConfig", Model.SkuSafetyStocks)
+                </div>
+            </div>
+
+            <div id="tabWCSMaps" class="tab-content hidden">
+                <div class="flex items-center justify-between space-x-4 p-4">
+                    <!-- Dropdown -->
+                    <div class="flex-1">
+                        <select id="blockSelect" asp-for="@Model.BlockSelect" asp-items="@Model.OptionBlocks" onchange="onBlockChange(this)"
+                                required
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
+                       focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+                       dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                            <option value="">@L["SelectBlock"]</option>
+                        </select>
+                    </div>
+
+                    <!-- Button -->
+                    <div>
+                        <button onclick="getWcsLocations()"
+                                class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md shadow-sm
+                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300
+                       disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <span>@L["WCSMaps"]</span>
+                        </button>
+                    </div>
+
+                    <!-- Save WCS Locations -->
+                    <div id="btnSaveWcsLocations" class="hidden">
+                        <button type="submit" onclick="saveWcsLocations()"
+                                class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>@L["Save"]</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-y-auto border rounded p-4" style="height: 59vh;">
+                    <div class="grid grid-cols-12 gap-4 h-screen place-items-center">
+                        <div id="mapWcsContainer" class="col-span-12 md:col-span-12 w-full ">
+                            @await Html.PartialAsync("Maps/_WcsMapLocations", Model.WcsLocations)
+                        </div>
+                    </div>
+                </div>                
+            </div>
+
+        </div>
+    </div>
+
+    <div id="globalSkuSuggest"
+         class="hidden fixed z-[10001] bg-white border border-gray-200 rounded-lg shadow max-h-60 overflow-y-auto">
+    </div>
+
+    <div id="globalSupplierSuggest"
+         class="hidden fixed z-[10001] bg-white border border-gray-200 rounded-lg shadow max-h-60 overflow-y-auto">
+    </div>
+
+    @await Html.PartialAsync("Warehouse/Inbound/_InputInventoryModal")
+
+</div>
+
+@section Scripts {
+    <script src="~/js/warehouse/warehouse-map.js"></script>
+    <script>
+
+        function initTabs(containerSelector) {
+          const container = document.querySelector(containerSelector);
+          const buttons = container.querySelectorAll(".tab-button");
+          const contents = container.querySelectorAll(".tab-content");
+
+          buttons.forEach(button => {
+            button.addEventListener("click", () => {
+              const target = button.getAttribute("data-tab");
+
+              // Hide all contents
+              contents.forEach(content => content.classList.add("hidden"));
+
+              // Reset button styles
+              buttons.forEach(btn => {
+                btn.classList.remove("text-blue-600", "border-b-2", "border-blue-600", "font-medium");
+                btn.classList.add("text-gray-600");
+              });
+
+              // Show selected content
+              container.querySelector(`#${target}`).classList.remove("hidden");
+
+              // Highlight active button
+              button.classList.remove("text-gray-600");
+              button.classList.add("text-blue-600", "border-b-2", "border-blue-600", "font-medium");
+            });
+          });
+
+          // Initialize first tab as active
+          buttons[0].classList.add("text-blue-600", "border-b-2", "border-blue-600", "font-medium");
+          contents[0].classList.remove("hidden");
+        }
+
+        // Initialize all tab groups
+        document.querySelectorAll(".tabs").forEach((tabs, index) => {
+          initTabs(`.tabs:nth-of-type(${index+1})`);
+        });
+
+        function onBlockChange(selectElement) {
+            const selectedValue = selectElement.value;
+            if (selectedValue) {
+                console.log("Block", selectedValue)
+            }
+        }
+
+        function getCurrentRuleSettings() {
+            fetch(`?handler=ReloadRuleSettings`)
+            .then(response => response.text())
+            .then(html => {
+                //document.getElementById('inventoryInfoContainer').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading RuleSettings:', error));
+        }
+
+        function getCurrentInventory() {
+            fetch(`?handler=ReloadInventory`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('inventoryInfoContainer').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading map:', error));
+        }
+
+        function getCurrentLocations () {
+            fetch(`?handler=ReloadMapLocations`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('mapContainer').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading map:', error));
+        }
+
+        function getWcsLocations () {
+            let blockId = document.getElementById("blockSelect").value
+            let id = encodeURIComponent(blockId);
+            fetch(`?handler=ReloadWcsLocations&blockId=${id}`)
+                            .then(response => response.text())
+                            .then(html => {
+                                document.getElementById('mapWcsContainer').innerHTML = html;
+                                
+                                let btnSave = document.getElementById('btnSaveWcsLocations');
+                                let isShow = html.trim().length > 0;
+                                btnSave.style.display = isShow ? 'block' : 'none';
+                                btnSave.hidden = !isShow;
+
+                            }).catch(error => {
+                                console.error('Error loading WCS map:', error);
+                            });
+        }
+
+        function saveWcsLocations() {
+            isLoading = true;
+            let blockId = document.getElementById("blockSelect").value;
+            let payload = {
+                blockId: blockId,
+                locations: []
+            };
+
+            postData('?handler=SaveWcsLocations', payload)
+                .then((result) => {
+                    isLoading = false;
+                    if (!result.success) {
+                        Notify.error(result.message || "Lỗi trong quá trình lưu");
+                    } else {
+                        console.log("saveWcsLocations", result);
+                        Notify.success(result.message || 'Completed successfully.');
+                    }
+                })
+                .catch((err) => {
+                    console.log("[ERROR] saveWcsLocations", err);
+                    isLoading = false;
+                    Notify.error("Có lỗi xảy ra khi lưu dữ liệu");
+                });
+        }
+
+        async function postData(url, data) {
+            if(!data) return;
+
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const response = await fetch(url,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                                body: JSON.stringify(data)
+                            }
+                        );
+
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return await response.json();
+        }
+
+        document.getElementById("excelUploadSafetyStockConfig").addEventListener("change", function () {
+            // Hiện loading
+            document.getElementById("loadingSpinner").style.display = "block";
+            document.getElementById("loadingOverlay").style.display = "block";
+
+            const form = document.getElementById("excelFormSafetyStockConfig");
+            const formData = new FormData(form);
+
+            fetch('?handler=ImportExcel', {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+
+                document.getElementById("loadingOverlay").style.display = "none";
+                document.getElementById("loadingSpinner").style.display = "none";
+
+                if (response.ok) {
+                    Notify.info('@Html.Raw(L["OperationSuccessful"])');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    Notify.info('@Html.Raw(L["Retry"])');
+                }
+            })
+            .catch(error => {
+                document.getElementById("loadingSpinner").style.display = "none";
+                document.getElementById("loadingOverlay").style.display = "none";
+                console.error("Lỗi:", error);
+                Notify.error('Connection error');
+            });
+
+        });
+
+        document.getElementById("downloadBtnSafetyStockConfig").addEventListener("click", async () => {
+            try {
+                const response = await fetch('?handler=DownloadTemplate');
+                if (!response.ok) {
+                    throw new Error("Không thể tải file");
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "TemplateSafetyStockConfig.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                Notify.error(err.message);
+            }
+        });
+
+        function openInputModal(address, locationId) {
+            document.getElementById('modalLocationLabel').innerText = address;
+            document.getElementById('inputLocationAddress').value = address;
+            document.getElementById('inputLocationId').value = locationId || '';
+   
+            const tbody = document.getElementById('inventoryRows');
+            tbody.innerHTML = '';
+            addRow();
+    
+            document.getElementById('inventoryModal').classList.remove('hidden');
+        }
+
+        // Đóng popup
+        function closeInputModal() {
+            document.getElementById('inventoryModal').classList.add('hidden');
+        }
+
+
+        function addRow() {
+            const tbody = document.getElementById('inventoryRows');
+            const tr = document.createElement('tr');
+            tr.className = "bg-white hover:bg-gray-50 item-row";
+            tr.innerHTML = `
+                <td class="p-2 relative">
+                    <input type="text" name="sku" autocomplete="off"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2"
+                           required placeholder="Mã SKU hoặc tên SKU"
+                           oninput="onSkuInput(this)" onfocus="onSkuInput(this)" />
+
+                    <input type="hidden" name="skuId" />
+                    <input type="hidden" name="skuUomId" />
+
+                    <div class="sku-suggest hidden absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow max-h-60 overflow-y-auto"></div>
+                </td>
+                <td class="p-2">
+                    <input type="text" name="productName" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2" placeholder="Tên hàng" readonly>
+                </td>
+                <td class="p-2">
+                    <input type="text" name="unit" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2" readonly>
+                </td>
+                <td class="p-2">
+                    <input type="number" name="quantity" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2" required min="1" value="1">
+                </td>
+                <td class="p-2">
+                    <input type="hidden" name="supplierId" />
+                    <input type="text"
+                           name="supplierName"
+                           autocomplete="off"
+                           class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2"
+                           placeholder="Tên NCC"
+                           oninput="onSupplierInput(this)"
+                           onfocus="onSupplierInput(this)" />
+                </td>
+                <td class="p-2">
+                    <input type="date" name="expireDate" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                </td>
+                <td class="p-2 text-center">
+                    <button type="button" onclick="removeRow(this)" class="text-red-500 hover:text-red-700 p-1 bg-red-50 hover:bg-red-100 rounded transition-colors" title="Xóa dòng này">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+      
+        function removeRow(btn) {
+            const tbody = document.getElementById('inventoryRows');
+        
+            if (tbody.querySelectorAll('tr').length <= 1) {
+                Notify.info("Phải có ít nhất 1 mặt hàng."); 
+                return;
+            }
+            btn.closest('tr').remove();
+        }
+
+    
+        function submitInventory(event) {
+            event.preventDefault();
+
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length === 0) return;
+
+            document.getElementById("loadingOverlay").style.display = "block";
+            document.getElementById("loadingSpinner").style.display = "block";
+
+            const locationId = parseInt(document.getElementById('inputLocationId').value || "0", 10);
+            const locationAddress = document.getElementById('inputLocationAddress').value || '';
+
+               const items = Array.from(rows)
+                    .map(row => ({
+                        sku: row.querySelector('[name="sku"]').value.trim(),
+                        skuId: parseInt(row.querySelector('[name="skuId"]').value || "0", 10),
+                        skuUomId: parseInt(row.querySelector('[name="skuUomId"]').value || "0", 10),
+                        quantity: parseInt(row.querySelector('[name="quantity"]').value || "0", 10),
+                        supplierId: parseInt(row.querySelector('[name="supplierId"]').value || "0", 10),
+                        supplierName: row.querySelector('[name="supplierName"]').value.trim(),
+                        expireDate: row.querySelector('[name="expireDate"]').value || null
+                    }))
+                    .filter(x => x.skuId > 0 && x.skuUomId > 0 && x.quantity > 0);
+
+            const supplierId = parseInt(
+                rows[0]?.querySelector('[name="supplierId"]')?.value || "0",
+                10
+            );
+
+            const payload = {
+                locationId: locationId > 0 ? locationId : null,
+                locationAddress: locationAddress,
+                items: items
+            };
+
+            
+            postData('?handler=SaveInboundReceipt', payload)
+                .then((result) => {
+                    document.getElementById("loadingOverlay").style.display = "none";
+                    document.getElementById("loadingSpinner").style.display = "none";
+
+                    if (!result.success) {
+                        Notify.error(result.message || "Có lỗi khi lưu dữ liệu");
+                    } else {
+                        Notify.success("Nhập hàng thành công!");
+                        closeInputModal();
+                       //getCurrentLocations();
+                    }
+                })
+                .catch((err) => {
+                    console.error("Lỗi submitInventory:", err);
+                    document.getElementById("loadingOverlay").style.display = "none";
+                    document.getElementById("loadingSpinner").style.display = "none";
+                    Notify.error("Lỗi kết nối đến máy chủ.");
+                });
+        }
+
+        const skuDebounceMap = new WeakMap();
+        const globalSkuSuggest = document.getElementById('globalSkuSuggest');
+        let activeSkuInput = null;
+        let activeSkuRow = null;
+
+        function debounceInput(input, fn, delay = 300) {
+            clearTimeout(skuDebounceMap.get(input));
+            const t = setTimeout(fn, delay);
+            skuDebounceMap.set(input, t);
+        }
+
+        function placeGlobalSuggest(inputEl) {
+            const rect = inputEl.getBoundingClientRect();
+            globalSkuSuggest.style.left = `${rect.left}px`;
+            globalSkuSuggest.style.top = `${rect.bottom + 4}px`;
+            globalSkuSuggest.style.width = `${rect.width}px`;
+        }
+
+        function hideGlobalSuggest() {
+            globalSkuSuggest.classList.add('hidden');
+            globalSkuSuggest.innerHTML = '';
+        }
+
+        async function onSkuInput(inputEl) {
+            const keyword = (inputEl.value || '').trim();
+            const row = inputEl.closest('tr');
+
+            activeSkuInput = inputEl;
+            activeSkuRow = row;
+
+            debounceInput(inputEl, async () => {
+                if (!keyword) {
+                    clearSkuRow(row);
+                    hideGlobalSuggest();
+                    return;
+                }
+
+                try {
+                    const url = `?handler=SearchSku&keyWord=${encodeURIComponent(keyword)}&pageIndex=1&pageSize=20`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        hideGlobalSuggest();
+                        return;
+                    }
+
+                    const data = await response.json();
+                    renderSkuSuggestions(data || []);
+                    placeGlobalSuggest(inputEl);
+                } catch {
+                    hideGlobalSuggest();
+                }
+            });
+        }
+
+        function renderSkuSuggestions(items) {
+            if (!Array.isArray(items) || items.length === 0) {
+                globalSkuSuggest.innerHTML = `<div class="px-3 py-2 text-sm text-gray-500">Không tìm thấy SKU</div>`;
+                globalSkuSuggest.classList.remove('hidden');
+                return;
+            }
+
+            globalSkuSuggest.innerHTML = items.map(item => {
+                const skuCode = item.skuCode ?? item.SkuCode ?? '';
+                const skuName = item.skuName ?? item.SkuName ?? '';
+                const unitName = item.unitName ?? item.UnitName ?? '';
+                const supplierName = item.supplierName ?? item.SupplierName ?? '';
+                const payload = encodeURIComponent(JSON.stringify(item));
+
+                return `
+                    <button type="button" class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100"
+                            onclick="selectSkuForActiveRow('${payload}')">
+                        <div class="text-sm font-medium text-gray-900">${skuCode}</div>
+                        <div class="text-xs text-gray-600">${skuName} | ${unitName} | ${supplierName}</div>
+                    </button>
+                `;
+            }).join('');
+
+            globalSkuSuggest.classList.remove('hidden');
+        }
+
+        function selectSkuForActiveRow(encodedItem) {
+            if (!activeSkuRow) return;
+            const item = JSON.parse(decodeURIComponent(encodedItem));
+
+            const skuCode = item.skuCode ?? item.SkuCode ?? '';
+            const skuName = item.skuName ?? item.SkuName ?? '';
+            const unitName = item.unitName ?? item.UnitName ?? '';
+            const skuId = item.skuId ?? item.SkuId ?? 0;
+            const skuUomId = item.skuUomId ?? item.SkuUomId ?? 0;
+            const supplierId = item.supplierId ?? item.SupplierId ?? 0;
+            const supplierName = item.supplierName ?? item.SupplierName ?? '';
+
+            activeSkuRow.querySelector('[name="sku"]').value = skuCode;
+            activeSkuRow.querySelector('[name="productName"]').value = skuName;
+            activeSkuRow.querySelector('[name="unit"]').value = unitName;
+            activeSkuRow.querySelector('[name="skuId"]').value = skuId;
+            activeSkuRow.querySelector('[name="skuUomId"]').value = skuUomId;
+            activeSkuRow.querySelector('[name="supplierId"]').value = supplierId;
+            activeSkuRow.querySelector('[name="supplierName"]').value = supplierName;
+
+            hideGlobalSuggest();
+        }
+
+        function clearSkuRow(row) {
+            row.querySelector('[name="skuId"]').value = '';
+            row.querySelector('[name="skuUomId"]').value = '';
+            row.querySelector('[name="productName"]').value = '';
+            row.querySelector('[name="unit"]').value = '';
+            row.querySelector('[name="supplierId"]').value = '';
+            row.querySelector('[name="supplierName"]').value = '';
+        }
+
+        window.addEventListener('resize', () => activeSkuInput && placeGlobalSuggest(activeSkuInput));
+        window.addEventListener('scroll', () => activeSkuInput && placeGlobalSuggest(activeSkuInput), true);
+
+        document.addEventListener('click', (e) => {
+            if (!globalSkuSuggest.contains(e.target) && e.target !== activeSkuInput) {
+                hideGlobalSuggest();
+            }
+        });
+                     
+        const supplierDebounceMap = new WeakMap();
+        const globalSupplierSuggest = document.getElementById('globalSupplierSuggest');
+        let activeSupplierInput = null;
+        let activeSupplierRow = null;
+
+        function debounceSupplierInput(input, fn, delay = 300) {
+            clearTimeout(supplierDebounceMap.get(input));
+            const t = setTimeout(fn, delay);
+            supplierDebounceMap.set(input, t);
+        }
+
+        function placeGlobalSupplierSuggest(inputEl) {
+            const rect = inputEl.getBoundingClientRect();
+            globalSupplierSuggest.style.left = `${rect.left}px`;
+            globalSupplierSuggest.style.top = `${rect.bottom + 4}px`;
+            globalSupplierSuggest.style.width = `${rect.width}px`;
+        }
+
+        function hideGlobalSupplierSuggest() {
+            globalSupplierSuggest.classList.add('hidden');
+            globalSupplierSuggest.innerHTML = '';
+        }
+
+        async function onSupplierInput(inputEl) {
+            const keyword = (inputEl.value || '').trim();
+            const row = inputEl.closest('tr');
+
+            activeSupplierInput = inputEl;
+            activeSupplierRow = row;
+
+            debounceSupplierInput(inputEl, async () => {
+                if (!keyword) {
+                    row.querySelector('[name="supplierId"]').value = '';
+                    hideGlobalSupplierSuggest();
+                    return;
+                }
+
+                try {
+                    const url = `?handler=SearchSupplier&keyword=${encodeURIComponent(keyword)}&pageIndex=1&pageSize=20`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        hideGlobalSupplierSuggest();
+                        return;
+                    }
+
+                    const data = await response.json();
+                    renderSupplierSuggestions(data || []);
+                    placeGlobalSupplierSuggest(inputEl);
+                } catch {
+                    hideGlobalSupplierSuggest();
+                }
+            });
+        }
+
+        function renderSupplierSuggestions(items) {
+            if (!Array.isArray(items) || items.length === 0) {
+                globalSupplierSuggest.innerHTML = `<div class="px-3 py-2 text-sm text-gray-500">Không tìm thấy NCC</div>`;
+                globalSupplierSuggest.classList.remove('hidden');
+                return;
+            }
+
+            globalSupplierSuggest.innerHTML = items.map(item => {
+                const supplierId = item.supplierId ?? item.SupplierId ?? item.id ?? item.Id ?? 0;
+                const supplierName = item.supplierName ?? item.SupplierName ?? '';
+                const contactTel = item.contactTel ?? item.ContactTel ?? '';
+                const payload = encodeURIComponent(JSON.stringify({ supplierId, supplierName }));
+
+                return `
+                    <button type="button"
+                            class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100"
+                            onclick="selectSupplierForActiveRow('${payload}')">
+                        <div class="text-sm font-medium text-gray-900">${supplierName}</div>
+                        <div class="text-xs text-gray-600">${contactTel}</div>
+                    </button>
+                `;
+            }).join('');
+
+            globalSupplierSuggest.classList.remove('hidden');
+        }
+
+        function selectSupplierForActiveRow(encodedItem) {
+            if (!activeSupplierRow) return;
+
+            const item = JSON.parse(decodeURIComponent(encodedItem));
+            activeSupplierRow.querySelector('[name="supplierId"]').value = item.supplierId || 0;
+            activeSupplierRow.querySelector('[name="supplierName"]').value = item.supplierName || '';
+
+            hideGlobalSupplierSuggest();
+        }
+
+        window.addEventListener('resize', () => activeSupplierInput && placeGlobalSupplierSuggest(activeSupplierInput));
+        window.addEventListener('scroll', () => activeSupplierInput && placeGlobalSupplierSuggest(activeSupplierInput), true);
+
+        document.addEventListener('click', (e) => {
+            if (!globalSupplierSuggest.contains(e.target) && e.target !== activeSupplierInput) {
+                hideGlobalSupplierSuggest();
+            }
+        });
+    </script>
+}
+

@@ -1,0 +1,625 @@
+/* Layout and sidebar styles extracted from _Layout.cshtml */
+/* Tailwind handles base resets; avoid overriding it */
+
+:root {
+    --sidebar-bg: #1f2937;
+    /* slate-800 */
+    --sidebar-fg: #e5e7eb;
+    /* gray-200 */
+    --sidebar-link: #d1d5db;
+    /* gray-300 */
+    --sidebar-hover-bg: #374151;
+    /* slate-700 */
+    --sidebar-hover-fg: #ffffff;
+    --sidebar-border: #374151;
+
+    --header-bg: #ffffff;
+    --header-border: #e5e7eb;
+
+    --card-bg: #ffffff;
+    --text-color: #1f2937;
+    /* gray-800 */
+    --accent-bg: #3b82f6;
+    /* blue-500 */
+    --accent-fg: #ffffff;
+}
+
+.dark {
+    --sidebar-bg: #0f172a;
+    /* slate-900 */
+    --sidebar-fg: #e5e7eb;
+    --sidebar-link: #cbd5e1;
+    /* slate-300 */
+    --sidebar-hover-bg: #1f2937;
+    /* slate-800 */
+    --sidebar-hover-fg: #ffffff;
+    --sidebar-border: #1f2937;
+
+    --header-bg: #111827;
+    /* gray-900 */
+    --header-border: #1f2937;
+    /* gray-800 */
+
+    --card-bg: #111827;
+    --text-color: #e5e7eb;
+    /* gray-200 */
+    --accent-bg: #2563eb;
+    /* blue-600 */
+    --accent-fg: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+}
+
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-fg);
+    padding: 1rem;
+    overflow-y: auto;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+}
+
+.main-content {
+    margin-left: 250px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+    .sidebar-menu li {
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--sidebar-link);
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu a:hover {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--sidebar-hover-fg);
+}
+
+.sidebar-menu a.active {
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+}
+
+.sidebar-menu a .icon i {
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.sidebar-menu a .icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.95;
+}
+
+.sidebar-menu a .menu-label {
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    color: inherit;
+}
+
+.sidebar-menu a:hover .menu-label,
+.sidebar-menu a.active .menu-label {
+    color: inherit;
+}
+
+.menu-title {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.metric-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.metric-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.metric-value.primary {
+    color: #3b82f6;
+}
+
+.metric-value.success {
+    color: #10b981;
+}
+
+.metric-value.warning {
+    color: #f59e0b;
+}
+
+.metric-value.danger {
+    color: #ef4444;
+}
+
+.sidebar-logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+/* Collapsible sidebar submenu */
+.menu-group {
+    margin-bottom: 0.25rem;
+}
+
+.submenu-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: var(--sidebar-link);
+    border: 0;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.submenu-toggle:hover {
+    background-color: var(--sidebar-hover-bg);
+    color: var(--sidebar-hover-fg);
+}
+
+.submenu-toggle .icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.submenu-toggle .icon i {
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.submenu-toggle .menu-label {
+    flex: 1 1 auto;
+    text-align: left;
+}
+
+.submenu {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.25rem 0 0.5rem 0;
+    display: none;
+}
+
+.menu-group.open>.submenu {
+    display: block;
+}
+
+.submenu li a {
+    padding-left: 2.5rem;
+    font-size: 0.95em;
+}
+
+.caret {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    margin-left: 0.5rem;
+}
+
+.caret i {
+    color: inherit;
+}
+
+.menu-group.open .caret {
+    transform: rotate(90deg);
+}
+
+
+/* Collapsed Sidebar Styles */
+:root {
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 60px;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    transition: width 0.3s ease;
+    z-index: 50;
+}
+
+.main-content {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+}
+
+body.collapsed-sidebar .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+body.collapsed-sidebar .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Hide text in collapsed mode */
+body.collapsed-sidebar .menu-label,
+body.collapsed-sidebar .menu-title,
+body.collapsed-sidebar .sidebar-logo .text-2xl,
+body.collapsed-sidebar .sidebar-logo .text-sm,
+body.collapsed-sidebar .caret {
+    display: none !important;
+}
+
+/* Center icons in collapsed mode */
+body.collapsed-sidebar .sidebar-menu a,
+body.collapsed-sidebar .submenu-toggle {
+    justify-content: center;
+}
+
+body.collapsed-sidebar .sidebar-menu a .icon,
+body.collapsed-sidebar .submenu-toggle .icon {
+    margin: 0;
+}
+
+/* Hide submenu in collapsed mode (unless we want a flyout - simple hide for now) */
+body.collapsed-sidebar .menu-group.open>.submenu {
+    display: none;
+}
+
+/* Show icons in collapsed mode even for hidden submenus if needed? 
+   For now, we'll keep the simple behavior: clicking a group toggle in collapsed mode 
+   might just expand the sidebar or do nothing. 
+   Ideally, hovering a collapsed sidebar should expand it, or we treat it as purely icon-based.
+   Let's ensure the logo wrapper centers or hides appropriately.
+*/
+body.collapsed-sidebar .sidebar-logo {
+    padding: 0.5rem;
+    text-align: center;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+
+/* REVISED Sidebar Styles for Internal Toggle & Hover Expand */
+
+/* Default transition for smoothness */
+.sidebar {
+    transition: width 0.3s ease;
+    z-index: 100 !important;
+    /* Ensure it floats above content on hover */
+    overflow-x: hidden;
+    /* Hide content while colliding */
+    white-space: nowrap;
+}
+
+.main-content {
+    transition: margin-left 0.3s ease;
+}
+
+/* Collapsed State */
+body.collapsed-sidebar .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+body.collapsed-sidebar .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Hover Expand Effect (Only when collapsed) */
+body.collapsed-sidebar .sidebar:hover {
+    width: var(--sidebar-width);
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+    /* Add shadow for overlay effect */
+}
+
+/* Text Visibility Logic */
+/* Hide text immediately when collapsed */
+body.collapsed-sidebar .menu-label,
+body.collapsed-sidebar .menu-title,
+body.collapsed-sidebar .sidebar-logo .text-2xl,
+body.collapsed-sidebar .sidebar-logo .text-sm,
+body.collapsed-sidebar .caret {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+/* Show text on hover */
+body.collapsed-sidebar .sidebar:hover .menu-label,
+body.collapsed-sidebar .sidebar:hover .caret {
+    opacity: 1;
+    pointer-events: auto;
+    display: inline-block !important;
+}
+
+body.collapsed-sidebar .sidebar:hover .menu-title,
+body.collapsed-sidebar .sidebar:hover .sidebar-logo .text-2xl,
+body.collapsed-sidebar .sidebar:hover .sidebar-logo .text-sm {
+    opacity: 1;
+    pointer-events: auto;
+    display: block !important;
+}
+
+/* Centering Icons in Collapsed Mode (Non-Hover) */
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-menu a,
+body.collapsed-sidebar .sidebar:not(:hover) .submenu-toggle {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-menu a .icon,
+body.collapsed-sidebar .sidebar:not(:hover) .submenu-toggle .icon {
+    margin: 0;
+}
+
+/* Logo Adjustments */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 1rem;
+    min-height: 64px;
+}
+
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-logo {
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+/* Hide Logo Text Wrapper in collapsed non-hover */
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-logo .text-white {
+    display: none;
+}
+
+/* Toggle Button Styling */
+#sidebar-toggle {
+    background: transparent;
+    border: none;
+    color: var(--sidebar-fg);
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s;
+}
+
+#sidebar-toggle:hover {
+    color: white;
+}
+
+/* Active State in Collapsed Mode */
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-menu a.active {
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+    border-radius: 0.375rem;
+    margin: 0 0.5rem;
+}
+
+/* Fix: Allow submenus to show when hovering the collapsed sidebar */
+body.collapsed-sidebar .sidebar:hover .menu-group.open>.submenu {
+    display: block !important;
+}
+
+
+/* Fix: Indentation for submenu items */
+.submenu li a {
+    padding-left: 3.5rem !important;
+    /* Increased from 2.5rem */
+}
+
+/* Fix: Ensure group toggles center properly in collapsed mode */
+body.collapsed-sidebar .sidebar:not(:hover) .submenu-toggle {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+body.collapsed-sidebar .sidebar:not(:hover) .submenu-toggle .icon {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* Fix: Reduce sidebar padding in collapsed mode to give more space */
+body.collapsed-sidebar .sidebar {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+/* Fix: Make active item round/square and centered in collapsed mode */
+body.collapsed-sidebar .sidebar:not(:hover) .sidebar-menu a.active {
+    width: 44px;
+    height: 44px;
+    padding: 0 !important;
+    margin: 0 auto !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.5rem;
+    /* Soft round */
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+}
+
+/* Fix: Style Active Group Parent in Collapsed Mode */
+body.collapsed-sidebar .sidebar:not(:hover) .menu-group.active-group .submenu-toggle {
+    width: 44px;
+    height: 44px;
+    padding: 0 !important;
+    margin: 0 auto !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.5rem;
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+}
+
+/* Ensure inner icon inherits color */
+body.collapsed-sidebar .sidebar:not(:hover) .menu-group.active-group .submenu-toggle .icon {
+    color: inherit;
+}
+
+
+
+
+/* Ensure text remains hidden during cooldown */
+body.collapsed-sidebar .sidebar.no-hover:hover .menu-label,
+body.collapsed-sidebar .sidebar.no-hover:hover .menu-title,
+body.collapsed-sidebar .sidebar.no-hover:hover .sidebar-logo .text-2xl,
+body.collapsed-sidebar .sidebar.no-hover:hover .sidebar-logo .text-sm,
+body.collapsed-sidebar .sidebar.no-hover:hover .caret {
+    opacity: 0 !important;
+    display: none !important;
+    pointer-events: none !important;
+}
+
+
+/* Ensure no-hover class completely blocks interactions */
+body.collapsed-sidebar .sidebar.no-hover {
+    pointer-events: none;
+    /* Optional: totally disable clicks too? maybe just hover is enough */
+}
+
+body.collapsed-sidebar .sidebar.no-hover:hover {
+    width: var(--sidebar-collapsed-width) !important;
+}
+
+/* background of cells in the map*/
+.bg-storage-slot {
+    background-color: #07ce8f;
+}
+
+.bg-horizontal-path {
+    background-color: #458cff;
+}
+
+.bg-lift-point {
+    background-color: #b0bec5;
+}
+
+/* borders of cells in the map */
+.border-storage-slot {
+    border-color: #07ce8f;
+}
+
+.border-horizontal-path {
+    border-color: #458cff;
+}
+
+.border-lift-point {
+    border-color: #94a3b8;
+}

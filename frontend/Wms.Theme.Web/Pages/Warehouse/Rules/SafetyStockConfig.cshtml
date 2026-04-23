@@ -1,0 +1,44 @@
+﻿@page
+@using Wms.Theme.Web.Model.Sku
+@model IEnumerable<SkuSafetyStockDto>
+@{
+}
+
+<div id="gridSafetyStockConfig" style="height: calc(90vh - 240px); width:100%;" class="ag-theme-alpine"></div>
+
+<script>
+    const columnDefs = [        
+        { headerName: '@Html.Raw(L["SKU"])', 
+            pinned : "left",
+            field: "itemCode", 
+            sortable: true, 
+            filter: true 
+        },
+        {
+            headerName: '@Html.Raw(L["SkuName"])',
+            flex: 2,
+            field: "itemName",
+            sortable: true,
+            filter: true
+        }
+    ]
+
+     let rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        rowData: rowData,
+        pagination: true,
+        defaultColDef: {
+          resizable: true,
+          flex: 1
+        }
+    };
+
+    let gridApi;
+
+    document.addEventListener('DOMContentLoaded', () => {
+         const gridDiv = document.querySelector('#gridSafetyStockConfig');
+         gridApi = agGrid.createGrid(gridDiv, gridOptions);
+    });
+</script>

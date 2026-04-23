@@ -1,0 +1,866 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Backup\\WMS\\backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\services\\receipt\\receiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\services\\receipt\\receiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\services\\receipt\\outboundreceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\services\\receipt\\outboundreceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\iservices\\receipt\\ioutboundreceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\iservices\\receipt\\ioutboundreceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\controllers\\orders\\orderscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\controllers\\orders\\orderscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\controllers\\receipt\\receiptcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\controllers\\receipt\\receiptcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\viewmodels\\receipt\\outbound\\outboundreceiptdetaileddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\viewmodels\\receipt\\outbound\\outboundreceiptdetaileddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|d:\\backup\\wms\\backend\\wmssolution\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|solutionrelative:wmssolution\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|d:\\backup\\wms\\backend\\wmssolution\\appsettings.staging.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|solutionrelative:wmssolution\\appsettings.staging.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|d:\\backup\\wms\\backend\\wmssolution\\appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|solutionrelative:wmssolution\\appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|d:\\backup\\wms\\backend\\wmssolution\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|solutionrelative:wmssolution\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\models\\receipt\\inboundreceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\models\\receipt\\inboundreceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\models\\receipt\\outboundreceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\models\\receipt\\outboundreceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\models\\receipt\\basereceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\models\\receipt\\basereceiptdetailentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\models\\receipt\\inboundreceiptentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\models\\receipt\\inboundreceiptentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8E8FC264-84FF-4353-B68B-ED007859E095}|WMSSolution.Core\\WMSSolution.Core.csproj|d:\\backup\\wms\\backend\\wmssolution.core\\controller\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8E8FC264-84FF-4353-B68B-ED007859E095}|WMSSolution.Core\\WMSSolution.Core.csproj|solutionrelative:wmssolution.core\\controller\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|d:\\backup\\wms\\backend\\wmssolution\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{59E73801-09AE-4234-9B14-9FF5787F7004}|WMSSolution\\WMSSolution.csproj|solutionrelative:wmssolution\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\entities\\viewmodels\\receipt\\inbound\\inboundreceiptdetaileddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\entities\\viewmodels\\receipt\\inbound\\inboundreceiptdetaileddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\iservices\\receipt\\ireceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\iservices\\receipt\\ireceiptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|d:\\backup\\wms\\backend\\wmssolution.wms\\services\\user\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A69B0EE-95A8-4459-96DE-867C160EA615}|WMSSolution.WMS\\WMSSolution.WMS.csproj|solutionrelative:wmssolution.wms\\services\\user\\userservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4CD9181C-5683-4B64-9E91-37842268D69A}|WMSSolution.Shared\\WMSSolution.Shared.csproj|d:\\backup\\wms\\backend\\wmssolution.shared\\enums\\stockjobtypeenum.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4CD9181C-5683-4B64-9E91-37842268D69A}|WMSSolution.Shared\\WMSSolution.Shared.csproj|solutionrelative:wmssolution.shared\\enums\\stockjobtypeenum.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Auth\\Register.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\OutboundReceiptService.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IOutboundReceiptService.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\ReceiptService.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IReceiptService.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\OutboundReceipt\\OutboundReceiptDetailedDto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\InboundReceipt\\InboundReceiptDetailedDTO.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Properties\\launchSettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_HeaderInfo.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_GeneralInfo.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_Layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_MyMenu.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\BulkInsert.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\SinglePallet.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Rules\\_LocationRules.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Reports\\InOutStatement.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\List.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Register.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Auth\\Register.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Auth\\Register.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Auth\\Register.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Auth\\Register.cshtml",
+              "ViewState": "AgIAALsAAAAAAAAAAAAAAM0AAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-23T03:02:04.415Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ReceiptController.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Controllers\\Receipt\\ReceiptController.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Controllers\\Receipt\\ReceiptController.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Controllers\\Receipt\\ReceiptController.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Controllers\\Receipt\\ReceiptController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABYAAABGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:04:05.444Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "OutboundReceiptService.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\Receipt\\OutboundReceiptService.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Services\\Receipt\\OutboundReceiptService.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\Receipt\\OutboundReceiptService.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Services\\Receipt\\OutboundReceiptService.cs",
+              "ViewState": "AgIAAAYGAAAAAAAAAAAAAEoGAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:33:02.438Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ReceiptService.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\Receipt\\ReceiptService.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Services\\Receipt\\ReceiptService.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\Receipt\\ReceiptService.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Services\\Receipt\\ReceiptService.cs",
+              "ViewState": "AgIAAAUBAAAAAAAAAAAAAA4BAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:06:14.166Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml",
+              "ViewState": "AgIAABAAAAAAAAAAAAAkwCEAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-23T01:54:08.892Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAABwAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T07:09:15.717Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "OrdersController.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Controllers\\Orders\\OrdersController.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Controllers\\Orders\\OrdersController.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Controllers\\Orders\\OrdersController.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Controllers\\Orders\\OrdersController.cs",
+              "ViewState": "AgIAACkAAAAAAAAAAAAYwDAAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T08:13:47.418Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "OutboundReceiptService.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\OutboundReceiptService.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\OutboundReceiptService.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\OutboundReceiptService.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\OutboundReceiptService.cs",
+              "ViewState": "AgIAAFABAAAAAAAAAAAIwFMBAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:58:29.202Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "Detail.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml",
+              "ViewState": "AgIAAMMAAAAAAAAAAAAAANQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-23T01:57:27.779Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "Detail.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Detail.cshtml.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAkwC0AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:52:43.449Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\SalesOrders\\Index.cshtml.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAEAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T02:21:15.99Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IOutboundReceiptService.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\IServices\\Receipt\\IOutboundReceiptService.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\IServices\\Receipt\\IOutboundReceiptService.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\IServices\\Receipt\\IOutboundReceiptService.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\IServices\\Receipt\\IOutboundReceiptService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGgAAABoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T02:02:17.905Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "IOutboundReceiptService.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IOutboundReceiptService.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IOutboundReceiptService.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IOutboundReceiptService.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IOutboundReceiptService.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAswEMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T02:22:38.099Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "ReceiptService.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\ReceiptService.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\ReceiptService.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\ReceiptService.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\ReceiptService.cs",
+              "ViewState": "AgIAAKABAAAAAAAAAAAEwLEBAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T04:34:01.877Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Orders\\Index.cshtml.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAwBEAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T07:10:21.303Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Program.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Program.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Program.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Program.cs",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAAAGcAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T02:08:39.59Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "IReceiptService.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IReceiptService.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IReceiptService.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IReceiptService.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Services\\Receipt\\IReceiptService.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAIA8wBUAAABLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T07:38:10.741Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "OutboundReceiptDetailedDto.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Outbound\\OutboundReceiptDetailedDto.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Outbound\\OutboundReceiptDetailedDto.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Outbound\\OutboundReceiptDetailedDto.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Outbound\\OutboundReceiptDetailedDto.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAA5wCgAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T02:05:30.062Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "Detail.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T03:28:48.359Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Create.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Create.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Create.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Create.cshtml",
+              "ViewState": "AgIAACQAAAAAAAAAAAAAAAgAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-23T02:10:17.086Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Index.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Index.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Index.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Outbound\\Receipt\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-23T02:10:28.389Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "OutboundReceiptDetailedDto.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\OutboundReceipt\\OutboundReceiptDetailedDto.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\OutboundReceipt\\OutboundReceiptDetailedDto.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\OutboundReceipt\\OutboundReceiptDetailedDto.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\OutboundReceipt\\OutboundReceiptDetailedDto.cs",
+              "ViewState": "AgIAACcAAAAAAAAAAAAIwCgAAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:50:58.223Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "Detail.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Detail.cshtml.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABAAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T03:42:51.912Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "InboundReceiptDetailedDTO.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\InboundReceipt\\InboundReceiptDetailedDTO.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\InboundReceipt\\InboundReceiptDetailedDTO.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\InboundReceipt\\InboundReceiptDetailedDTO.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Model\\InboundReceipt\\InboundReceiptDetailedDTO.cs",
+              "ViewState": "AgIAAEkAAAAAAAAAAAA2wFUAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:44:29.267Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution\\Program.cs",
+              "RelativeDocumentMoniker": "WMSSolution\\Program.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution\\Program.cs",
+              "RelativeToolTip": "WMSSolution\\Program.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAYwAsAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T08:12:54.912Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "OutBoundReceiptDetailEntity.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\OutBoundReceiptDetailEntity.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\Models\\Receipt\\OutBoundReceiptDetailEntity.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\OutBoundReceiptDetailEntity.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\Models\\Receipt\\OutBoundReceiptDetailEntity.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAYwCAAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:25:15.237Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.json",
+              "RelativeDocumentMoniker": "WMSSolution\\appsettings.json",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.json",
+              "RelativeToolTip": "WMSSolution\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-23T01:39:15.549Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "appsettings.Production.json",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.Production.json",
+              "RelativeDocumentMoniker": "WMSSolution\\appsettings.Production.json",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.Production.json",
+              "RelativeToolTip": "WMSSolution\\appsettings.Production.json",
+              "ViewState": "AgIAADMAAAAAAAAAAAAAAA4AAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-23T01:40:02.09Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "appsettings.Staging.json",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.Staging.json",
+              "RelativeDocumentMoniker": "WMSSolution\\appsettings.Staging.json",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution\\appsettings.Staging.json",
+              "RelativeToolTip": "WMSSolution\\appsettings.Staging.json",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABAAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-23T01:40:10.1Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Properties\\launchSettings.json",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAYAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-23T01:39:03.856Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "BaseReceiptDetailEntity.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\BaseReceiptDetailEntity.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\Models\\Receipt\\BaseReceiptDetailEntity.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\BaseReceiptDetailEntity.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\Models\\Receipt\\BaseReceiptDetailEntity.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAkwDgAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:23:09.387Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "InboundReceiptDetailEntity.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptDetailEntity.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptDetailEntity.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptDetailEntity.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptDetailEntity.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAAA9wDIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:23:04.956Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "InboundReceiptEntity.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptEntity.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptEntity.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptEntity.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\Models\\Receipt\\InboundReceiptEntity.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAuwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T01:22:58.944Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\appsettings.json",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\appsettings.json",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\appsettings.json",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-22T06:13:16.858Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "_HeaderInfo.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_HeaderInfo.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_HeaderInfo.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_HeaderInfo.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_HeaderInfo.cshtml",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:29:45.99Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Index.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Index.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Index.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Index.cshtml",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:30:12.612Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "_GeneralInfo.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_GeneralInfo.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_GeneralInfo.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_GeneralInfo.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Maps\\_GeneralInfo.cshtml",
+              "ViewState": "AgIAACQAAAAAAAAAAAAAAAwAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:29:37.354Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAKIAAAAAAAAAAAAAAKoAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:22:25.035Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "_MyMenu.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_MyMenu.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_MyMenu.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_MyMenu.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Shared\\_MyMenu.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAACAAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:39:52.772Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "BulkInsert.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\BulkInsert.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\BulkInsert.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\BulkInsert.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\BulkInsert.cshtml",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAAADMAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:32:05.216Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "SinglePallet.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\SinglePallet.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\SinglePallet.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\SinglePallet.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\SinglePallet.cshtml",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAAAA4AAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:31:57.519Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAABgAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T06:40:42.506Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "_LocationRules.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Rules\\_LocationRules.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Rules\\_LocationRules.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Rules\\_LocationRules.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Rules\\_LocationRules.cshtml",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T08:29:56.356Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 49,
+              "Title": "Detail.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml",
+              "ViewState": "AgIAACUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T03:43:01.623Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Startup.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution\\Startup.cs",
+              "RelativeDocumentMoniker": "WMSSolution\\Startup.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution\\Startup.cs",
+              "RelativeToolTip": "WMSSolution\\Startup.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T08:13:09.065Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.Core\\Controller\\AccountController.cs",
+              "RelativeDocumentMoniker": "WMSSolution.Core\\Controller\\AccountController.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.Core\\Controller\\AccountController.cs",
+              "RelativeToolTip": "WMSSolution.Core\\Controller\\AccountController.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAAwD4AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T08:13:22.279Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "IReceiptService.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\IServices\\Receipt\\IReceiptService.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\IServices\\Receipt\\IReceiptService.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\IServices\\Receipt\\IReceiptService.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\IServices\\Receipt\\IReceiptService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAMAAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T08:04:03.199Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "InboundReceiptDetailedDto.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Inbound\\InboundReceiptDetailedDto.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Inbound\\InboundReceiptDetailedDto.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Inbound\\InboundReceiptDetailedDto.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Entities\\ViewModels\\Receipt\\Inbound\\InboundReceiptDetailedDto.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAAAswAUAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:46:41.225Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 50,
+              "Title": "InOutStatement.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Reports\\InOutStatement.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Reports\\InOutStatement.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Reports\\InOutStatement.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Reports\\InOutStatement.cshtml",
+              "ViewState": "AgIAAGABAAAAAAAAAAAAAG0BAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T07:32:38.869Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 51,
+              "Title": "Index.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Index.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Index.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Index.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Index.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:13:02.662Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "UserService.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\User\\UserService.cs",
+              "RelativeDocumentMoniker": "WMSSolution.WMS\\Services\\User\\UserService.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.WMS\\Services\\User\\UserService.cs",
+              "RelativeToolTip": "WMSSolution.WMS\\Services\\User\\UserService.cs",
+              "ViewState": "AgIAAJ0DAAAAAAAAAAAQwKsDAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:09:58.081Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 52,
+              "Title": "Create.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Inbound\\Receipt\\Create.cshtml.cs",
+              "ViewState": "AgIAAGwAAAAAAAAAAAAYwHQAAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T06:28:59.384Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 53,
+              "Title": "Detail.cshtml.cs",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml.cs",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml.cs",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\Detail.cshtml.cs",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAqwJMAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T03:43:01.201Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 54,
+              "Title": "List.cshtml",
+              "DocumentMoniker": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\List.cshtml",
+              "RelativeDocumentMoniker": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\List.cshtml",
+              "ToolTip": "D:\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\List.cshtml",
+              "RelativeToolTip": "..\\..\\..\\SourceCodes\\WMS2026\\DP.WMS\\frontend\\Wms.Theme.Web\\Pages\\Warehouse\\List.cshtml",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAAAKIAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-22T03:43:43.756Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "StockJobTypeEnum.cs",
+              "DocumentMoniker": "D:\\Backup\\WMS\\backend\\WMSSolution.Shared\\Enums\\StockJobTypeEnum.cs",
+              "RelativeDocumentMoniker": "WMSSolution.Shared\\Enums\\StockJobTypeEnum.cs",
+              "ToolTip": "D:\\Backup\\WMS\\backend\\WMSSolution.Shared\\Enums\\StockJobTypeEnum.cs",
+              "RelativeToolTip": "WMSSolution.Shared\\Enums\\StockJobTypeEnum.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAlwBYAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-22T03:36:46.445Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

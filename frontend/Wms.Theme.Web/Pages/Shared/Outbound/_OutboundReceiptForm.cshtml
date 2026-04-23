@@ -1,0 +1,168 @@
+﻿@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+<div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        
+        <div>
+            <label for="receiptNumber" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateReceipt_ReceiptNumber"] <span class="text-red-500">*</span>
+            </label>
+            <input type="text"
+                   id="receiptNumber"
+                   name="receiptNumber"
+                   placeholder="PX-2023-001"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>  
+
+        <div>
+            <label for="receiptDate" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateReceipt_ReceiptDate"] <span class="text-red-500">*</span>
+            </label>
+            <input type="text"
+                   id="receiptDate"
+                   name="receiptDate"
+                   placeholder="dd/mm/yyyy"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+        </div>
+        <div>
+            <label for="issueType" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateOutboundReceipt_IssueType"]<span class="text-red-500">*</span>
+            </label>
+            <select id="issueType"
+                    name="issueType"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+                <option value="SALES">@Localizer["CreateOutboundReceipt_IssueTypeSales"]</option>
+                <option value="RETURN">@Localizer["CreateOutboundReceipt_IssueTypeReturnSupplier"]</option>
+                <option value="SCRAP">@Localizer["CreateOutboundReceipt_IssueTypeScrap"]</option>
+                <option value="MISC">@Localizer["CreateOutboundReceipt_IssueTypeMisc"]</option>
+            </select>
+        </div>
+
+        <div class="md:col-span-2">
+            <label for="customerSearch" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateOutboundReceipt_Customer"]  <span class="text-red-500">*</span>
+            </label>
+            <div class="flex">
+                <div class="relative flex-1">
+                    <input type="text"
+                           id="customerSearch"
+                           name="customerSearch"
+                           autocomplete="off"
+                           placeholder="@Localizer["CreateOutboundReceipt_CustomerSearchPlaceholder"]"
+                           class="w-full px-3 py-1.5 text-sm border border-gray-300 border-r-0 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <ul id="customerDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+                    </ul>
+                </div>
+                <button type="button"
+                        title="Tạo nhanh khách hàng"
+                        onclick="openCustomerModal()"
+                        class="px-2 py-1.5 bg-gray-50 border border-gray-300 border-l-0 rounded-r-md text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div>
+            <label for="consignee" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["Consignee"]
+            </label>
+            <input type="text"
+                   id="consignee"
+                   name="consignee"
+                   placeholder="Người nhận hàng"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+
+        <div class="md:col-span-2">
+            <label for="warehouseSearch" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateOutboundReceipt_Warehouse"] <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+                <input type="text"
+                       id="warehouseSearch"
+                       autocomplete="off"
+                       placeholder="@Localizer["CreateOutboundReceipt_WarehouseSearchPlaceholder"]"
+                       class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <ul id="warehouseDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto [&::-webkit-scrollbar]:w-1.5">
+                </ul>
+            </div>
+        </div>
+        <div>
+            <label for="gatewaySearch" class="block text-xs font-medium text-gray-700 mb-1">
+                @Localizer["CreateOutboundReceipt_Gateway"]  <span class="text-red-500">*</span>
+            </label>
+            <div class="flex">
+                <div class="relative flex-1">
+                    <input type="text"
+                           id="gatewaySearch"
+                           name="gatewaySearch"
+                           autocomplete="off"
+                           placeholder="@Localizer["CreateOutboundReceipt_GatewaySearchPlaceholder"]"
+                           class="w-full px-3 py-1.5 text-sm border border-gray-300 border-r-0 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                    <ul id="gatewayDropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 hidden shadow-lg max-h-48 overflow-y-auto">
+                    </ul>
+                </div>
+                <button type="button"
+                        title="@Localizer["CreateOutboundReceipt_QuickCreateGateway"]"
+                        onclick="openGatewayModal()"
+                        class="px-2 py-1.5 bg-gray-50 border border-gray-300 border-l-0 rounded-r-md text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <label for="exportDate" class="block text-xs font-medium text-gray-700 mb-1">
+                Thời gian dự kiến xuất hàng
+            </label>
+            <input type="text"
+                   id="exportDate"
+                   name="exportDate"
+                   placeholder="dd/mm/yyyy HH:mm"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+        </div>
+
+        <div>
+            <label for="pickingDate" class="block text-xs font-medium text-gray-700 mb-1">
+                Thời gian bắt đầu picking
+            </label>
+            <input type="text"
+                   id="pickingDate"
+                   name="pickingDate"
+                   placeholder="dd/mm/yyyy HH:mm"
+                   class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white">
+        </div>
+
+        <div class="md:col-span-3">
+            <label for="message" class="block mb-1 text-xs font-medium text-gray-700">
+                @Localizer["AddNote"]
+            </label>
+            <textarea id="message"
+                      name="message"
+                      rows="2"
+                      placeholder="@Localizer["EnterNote"]"
+                      class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white resize-y"></textarea>
+        </div>
+
+        <div class="hidden md:col-span-3">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Tham chiếu</label>
+            <div class="flex items-stretch">
+                <div id="referenceOrderContainer"
+                     onclick="openOrderModal()"
+                     class="flex-1 px-3 py-1.5 border border-gray-300 border-r-0 rounded-l-md bg-gray-50 flex flex-wrap gap-2 items-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                    <span id="refPlaceholder" class="text-gray-400 text-sm italic leading-5">Tham chiếu lệnh xuất kho</span>
+                </div>
+                <button type="button"
+                        onclick="openOrderModal()"
+                        class="px-3 bg-blue-50 border border-blue-200 border-l-0 rounded-r-md text-blue-600 hover:bg-blue-100 transition-colors flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

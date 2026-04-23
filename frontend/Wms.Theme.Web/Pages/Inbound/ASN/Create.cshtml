@@ -1,0 +1,1319 @@
+﻿@page "/Inbound/ASN/Create"
+@model Wms.Theme.Web.Pages.Inbound.AsnCreateModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["CreateASN"];
+}
+@Html.AntiForgeryToken()
+
+<div class="max-w-7xl mx-auto p-6 space-y-6 pb-32">
+    <div class="flex gap-2 justify-end">
+        @* <button type="button" class="btn btn-primary" onclick="openImportModal()">@L["ImportFromPO"]</button> *@
+        @* <button type="button" class="btn btn-secondary">@L["ImportFromExcel"]</button> *@
+    </div>
+
+    <form method="post" id="asn-create-form" onsubmit="return submitAsnForm(event)">
+
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    @L["GeneralInformation"]
+                </h3>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div style="display:none">
+                    <label asp-for="CreateRequest.AsnNo"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        @L["ASNNumber"] <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="CreateRequest.AsnNo" class="form-input" placeholder="@L["EnterASNNumber"]"
+                        value="1" />
+                    <input type="hidden" name="CreateRequest.PoId" />
+                </div>
+
+                <div>
+                    <label asp-for="CreateRequest.AsnBatch"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">@L["ASNBatch"]</label>
+                    <input asp-for="CreateRequest.AsnBatch"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                        placeholder="@L["EnterBatch"]" />
+                </div>
+
+                <div>
+                    <label asp-for="CreateRequest.EstimatedArrivalTime"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        @L["EstimatedArrivalTime"] <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="CreateRequest.EstimatedArrivalTime" type="text" id="estimatedArrivalTime"
+                        class="datetime-picker bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                        placeholder="dd/mm/yyyy" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" required />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">@L["TotalWeight"]
+                        </label>
+                        <input asp-for="CreateRequest.Weight" id="total-weight" type="number" step="0.01"
+                            class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white cursor-not-allowed"
+                            readonly />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">@L["TotalVolume"]
+                        </label>
+                        <input asp-for="CreateRequest.Volume" id="total-volume" type="number" step="0.01"
+                            class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white cursor-not-allowed"
+                            readonly />
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label asp-for="CreateRequest.GoodsOwnerId"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                        @L["GoodsOwner"] <span class="text-red-500">*</span>
+                    </label>
+                    <select asp-for="CreateRequest.GoodsOwnerId" id="goodsOwnerSelect"
+                        onchange="onGoodsOwnerChange(this)" required
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                        <option value="">@L["SelectGoodsOwner"]</option>
+                    </select>
+                    <input type="hidden" asp-for="CreateRequest.GoodsOwnerName" />
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-6 space-y-4">
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                            </path>
+                        </svg>
+                        @L["ASNDetailItems"]
+                    </h2>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="openImportModal()"
+                            class="text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 font-medium rounded-lg text-sm px-4 py-2 flex items-center gap-2 transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            @L["ImportFromPO"]
+                        </button>
+                        <button type="button" onclick="resetImportedPo()"
+                            class="text-red-600 bg-white border border-red-300 hover:bg-red-50 font-medium rounded-lg text-sm px-4 py-2 flex items-center gap-2 transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                </path>
+                            </svg>
+                            @L["ResetPO"]
+                        </button>
+                        <button type="button" onclick="addDetailItem()"
+                            class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 flex items-center gap-2 transition shadow-sm hover:shadow">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            @L["AddItem"]
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div id="detail-items-container" class="space-y-4 pb-4">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 w-full mt-6">
+            <a href="/Inbound/ASN"
+                class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 w-full md:w-auto text-center">
+                @L["Cancel"]
+            </a>
+            <button type="submit"
+                class="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/30 w-full md:w-auto transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                @L["CreateASN"]
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Import PO Modal (Alpine.js Tree Grid) -->
+<div id="po-tree-modal" x-data="poTreeModal()" x-show="isModalOpen" x-cloak @@keydown.escape.window="closeModal()"
+    class=" fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center sm:p-0 sm:ml-64">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @@click="closeModal()"></div>
+
+        <!-- Modal Panel -->
+        <div
+            class="relative inline-block bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-5xl sm:w-full">
+            <!-- Header -->
+            <div class="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@L["SelectPurchaseOrder"]</h3>
+                    <button @@click="closeModal()" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body - Tree Grid -->
+            <div class="px-6 py-4 max-h-[60vh] overflow-y-auto">
+                <!-- Loading State -->
+                <div x-show="isLoading" class="flex justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+
+                <!-- Empty State -->
+                <template x-if="!isLoading && poList.length === 0">
+                    <div class="text-center py-8 text-gray-500">@L["NoOpenPOFound"]</div>
+                </template>
+
+                <!-- PO Tree List -->
+                <div x-show="!isLoading && poList.length > 0" class="space-y-2">
+                    <template x-for="po in poList" :key="po.id">
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                            <!-- Parent Row (PO Header) -->
+                            <div class="flex items-center justify-between px-4 py-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                @@click="toggleExpand(po)">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <!-- Expand Icon -->
+                                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                                        :class="{'rotate-90': isExpanded(po.id)}" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                    <!-- PO Info -->
+                                    <div>
+                                        <p class="text-base font-semibold text-gray-900 dark:text-white"
+                                            x-text="po.po_no"></p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400" x-text="po.supplier_name">
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <!-- expected_delivery_date -->
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-400">@L["ExpectedDeliveryDate"]:</span>
+                                        <span class="text-sm text-gray-600 ml-1"
+                                            x-text="formatDate(po.expected_delivery_date)"></span>
+                                    </div>
+                                    <!-- Total Qty -->
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-400">@L["TotalQty"]:</span>
+                                        <span class="text-sm text-gray-600 ml-1" x-text="po.total_qty"></span>
+                                    </div>
+                                    <!-- Order Date -->
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-400">@L["OrderDate"]:</span>
+                                        <span class="text-sm text-gray-600 ml-1"
+                                            x-text="formatDate(po.order_date)"></span>
+                                    </div>
+                                    <!-- Used Badge -->
+                                    <span x-show="isPoUsed(po.id)"
+                                        class="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded font-medium">@L["Used"]</span>
+                                    <!-- Select Button -->
+                                    <button type="button" @@click.stop="selectPo(po)"
+                                        :class="isPoUsed(po.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                                        class="px-4 py-2 text-sm font-medium text-white rounded transition">@L["Select"]</button>
+                                </div>
+                            </div>
+
+                            <!-- Child Rows (PO Details) - Sub Grid -->
+                            <div x-show="isExpanded(po.id)"
+                                class="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+                                <!-- Detail Loading -->
+                                <div x-show="isLoadingDetails(po.id)" class="text-center py-4 text-xs text-gray-500">
+                                    Loading details...</div>
+
+                                <!-- Detail Table - Full Grid -->
+                                <table x-show="!isLoadingDetails(po.id)" class="min-w-full text-sm">
+                                    <thead class="bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th
+                                                class="px-4 py-2 text-left text-gray-600 dark:text-gray-300 font-medium">
+                                                @L["SkuName"]</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-gray-600 dark:text-gray-300 font-medium">
+                                                @L["UnitPrice"]</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-gray-600 dark:text-gray-300 font-medium">
+                                                @L["ExpiryDate"]</th>
+                                            <th
+                                                class="px-4 py-2 text-right text-gray-600 dark:text-gray-300 font-medium">
+                                                @L["QtyOrdered"]</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody
+                                        class="divide-y divide-gray-200 dark:divide-gray-600 bg-white dark:bg-gray-800">
+                                        <template x-for="detail in getPoDetails(po.id)" :key="detail.id">
+                                            <tr>
+                                                <td class="px-4 py-2 text-gray-900 dark:text-white font-medium"
+                                                    x-text="detail.sku_name"></td>
+                                                <td class="px-4 py-2 text-gray-900 dark:text-white font-medium"
+                                                    x-text="detail.unit_price"></td>
+                                                <td class="px-4 py-2 text-gray-900 dark:text-white font-medium"
+                                                    x-text="formatDate(detail.expiry_date)"></td>
+                                                <td class="px-4 py-2 text-right text-gray-600 dark:text-gray-400"
+                                                    x-text="formatNumber(detail.qty_ordered)"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="bg-gray-50 dark:bg-gray-900 px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button type="button" @@click="closeModal()"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">@L["Close"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script>
+        // Ensure function is globally available
+        window.initFlatpickr = function (scope = document) {
+            console.log("initFlatpickr called");
+            if (typeof flatpickr === 'undefined') {
+                console.error("Flatpickr library not loaded yet!");
+                return;
+            }
+
+            // Init for Expiry Date (dd/mm/yyyy)
+            const dateInputs = scope.querySelectorAll('.date-picker');
+            if (dateInputs.length > 0) {
+                flatpickr(dateInputs, {
+                    dateFormat: "d/m/Y",
+                    allowInput: true,
+                    minDate: "today"
+                });
+                console.log(`Initialized ${dateInputs.length} date pickers`);
+            }
+
+            // Init for Estimated Arrival (dd/mm/yyyy HH:mm)
+            const datetimeInputs = scope.querySelectorAll('.datetime-picker');
+            if (datetimeInputs.length > 0) {
+                flatpickr(datetimeInputs, {
+                    dateFormat: "d/m/Y H:i",
+                    enableTime: true,
+                    time_24hr: false, // PM/AM as per screenshot
+                    allowInput: true,
+                    // defaultDate: new Date(),
+                    minDate: "today"
+                });
+                console.log(`Initialized ${datetimeInputs.length} datetime pickers`);
+            }
+        };
+
+        /**
+         * Alpine.js component for the Import PO Modal (Tree Grid).
+         * Handles: Loading PO list, Expand/Collapse with lazy loading, Import Selection.
+         * Returns Object - Alpine.js component data and methods.
+         */
+        function poTreeModal() {
+            return {
+                isModalOpen: false,
+                isLoading: false,
+                poList: [],
+                expandedPoIds: [],
+                poDetailsCache: {}, // Cache: { poId: [details] }
+                loadingDetailIds: [],
+                currentImportedPoId: null, // Single PO tracking (only 1 PO allowed per ASN)
+
+                // Initialize: Expose reset function globally
+                init() {
+                    // Expose resetPoTracking so it can be called from outside Alpine
+                    window.resetPoTracking = () => {
+                        // 1. Remove only PO-imported items (data-po-item="true")
+                        const container = document.getElementById('detail-items-container');
+                        if (container) {
+                            const poItems = container.querySelectorAll('.detail-item[data-po-item="true"]');
+                            console.log(`Found ${poItems.length} PO items to remove`);
+                            poItems.forEach(item => item.remove());
+                        }
+
+                        // 2. Clear PO ID from hidden field
+                        const poIdInput = document.querySelector('input[name="CreateRequest.PoId"]');
+                        if (poIdInput) poIdInput.value = '';
+
+                        // 3. Reset Alpine state
+                        this.currentImportedPoId = null;
+
+                        // 4. Recalculate totals
+                        if (typeof calculateTotals === 'function') calculateTotals();
+                    };
+                },
+
+                // Check if a PO is the currently imported one
+                isPoUsed(poId) {
+                    return this.currentImportedPoId === poId;
+                },
+
+                // Check if ANY PO has been imported
+                hasImportedPo() {
+                    return this.currentImportedPoId !== null;
+                },
+
+                // Mark a PO as the current imported one
+                markPoAsUsed(poId) {
+                    this.currentImportedPoId = poId;
+                },
+
+                /**
+                 * Resets imported PO - removes only PO-imported items, keeps manual items.
+                 */
+                resetImportedPo() {
+                    if (typeof window.resetPoTracking === 'function') {
+                        window.resetPoTracking();
+                        Notify.info('@L["POResetSuccess"]');
+                    }
+                },
+
+                /**
+                 * Opens the modal and loads the initial list of open POs.
+                 */
+                async openModal() {
+                    this.isModalOpen = true;
+                    this.isLoading = true;
+                    this.expandedPoIds = [];
+                    try {
+                        const response = await fetch('?handler=LoadOpenPos');
+                        const result = await response.json();
+                        const poData = result?.data ?? [];
+                        // Calculate total_qty for each PO by summing qty_ordered from details
+                        this.poList = poData.map(po => ({
+                            ...po,
+                            total_qty: po.details ? po.details.reduce((sum, d) => sum + (d.qty_ordered || 0), 0) : 0
+                        }));
+                    } catch (error) {
+                        console.error("Error loading POs", error);
+                        Notify.error("Failed to load open POs");
+                        this.poList = [];
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                /**
+                 * Closes the modal.
+                 */
+                closeModal() {
+                    this.isModalOpen = false;
+                },
+
+                /**
+                 * Checks if a PO is currently expanded.
+                 * Param poId (number) - The PO ID.
+                 * Returns boolean
+                */
+                isExpanded(poId) {
+                    return this.expandedPoIds.includes(poId);
+                },
+
+                /**
+                 * Checks if details are being loaded for a PO.
+                 * Param poId (number) - The PO ID.
+                 * Returns boolean
+                */
+                isLoadingDetails(poId) {
+                    return this.loadingDetailIds.includes(poId);
+                },
+
+                /**
+                 * Gets the cached details for a PO.
+                 * Param poId (number) - The PO ID.
+                 * Returns Array
+                */
+                getPoDetails(poId) {
+                    return this.poDetailsCache[poId] || [];
+                },
+
+                /**
+                 * Toggles the expand/collapse state for a PO row.
+                 * Loads details via lazy loading if not cached.
+                 * Param po (Object) - The PO object.
+                 */
+                async toggleExpand(po) {
+                    const poId = po.id;
+                    if (this.isExpanded(poId)) {
+                        this.expandedPoIds = this.expandedPoIds.filter(id => id !== poId);
+                        return;
+                    }
+
+                    this.expandedPoIds.push(poId);
+
+                    // Lazy load details if not cached
+                    if (!this.poDetailsCache[poId]) {
+                        this.loadingDetailIds.push(poId);
+                        try {
+                            const response = await fetch(`?handler=LoadPoDetail&id=${poId}`);
+                            const result = await response.json();
+                            if (result?.data?.details) {
+                                this.poDetailsCache[poId] = result.data.details;
+                            } else {
+                                this.poDetailsCache[poId] = [];
+                            }
+                        } catch (error) {
+                            console.error(`Error loading details for PO ${poId}`, error);
+                            this.poDetailsCache[poId] = [];
+                        } finally {
+                            this.loadingDetailIds = this.loadingDetailIds.filter(id => id !== poId);
+                        }
+                    }
+                },
+
+                /**
+                 * Handles the selection of a PO for import.
+                 * Triggers the global importPoData function.
+                 * Param po (Object) - The PO object.
+                 */
+                async selectPo(po) {
+                    // Ensure details are loaded before calling import
+                    if (!this.poDetailsCache[po.id]) {
+                        this.loadingDetailIds.push(po.id);
+                        try {
+                            const response = await fetch(`?handler=LoadPoDetail&id=${po.id}`);
+                            const result = await response.json();
+                            if (result?.data) {
+                                await importPoData(result.data);
+                                this.markPoAsUsed(po.id); // Mark as used after import
+                            }
+                        } catch (e) {
+                            Notify.error("Failed to load PO data for import.");
+                        } finally {
+                            this.loadingDetailIds = this.loadingDetailIds.filter(id => id !== po.id);
+                        }
+                    } else {
+                        const response = await fetch(`?handler=LoadPoDetail&id=${po.id}`);
+                        const result = await response.json();
+                        if (result?.data) {
+                            await importPoData(result.data);
+                            this.markPoAsUsed(po.id); // Mark as used after import
+                        }
+                    }
+                    this.closeModal();
+                },
+
+                formatDate(val) {
+                    return typeof GlobalFormatDate !== 'undefined' ? GlobalFormatDate(val) : new Date(val).toLocaleDateString('vi-VN');
+                },
+                formatNumber(val) {
+                    return typeof GlobalFormatNumber !== 'undefined' ? GlobalFormatNumber(val) : val;
+                }
+            };
+        }
+
+        /**
+         * Opens the Import PO Modal by triggering the Alpine component.
+         * Called from the "Import from PO" button.
+         */
+        function openImportModal() {
+            const modalEl = document.querySelector('[x-data]');
+            if (modalEl) {
+                // Alpine.js v3 syntax
+                if (typeof Alpine !== 'undefined' && Alpine.$data) {
+                    Alpine.$data(modalEl).openModal();
+                } else if (modalEl._x_dataStack && modalEl._x_dataStack[0]) {
+                    // Fallback for Alpine v3 without global
+                    modalEl._x_dataStack[0].openModal();
+                } else if (modalEl.__x) {
+                    // Fallback for Alpine v2
+                    modalEl.__x.$data.openModal();
+                } else {
+                    console.error("Cannot access Alpine component data");
+                }
+            }
+        }
+
+        function closeImportModal() {
+            const modalEl = document.querySelector('[x-data]');
+            if (modalEl) {
+                if (typeof Alpine !== 'undefined' && Alpine.$data) {
+                    Alpine.$data(modalEl).closeModal();
+                } else if (modalEl._x_dataStack && modalEl._x_dataStack[0]) {
+                    modalEl._x_dataStack[0].closeModal();
+                } else if (modalEl.__x) {
+                    modalEl.__x.$data.closeModal();
+                }
+            }
+        }
+
+        /**
+         * Resets the imported PO, clearing form data and allowing new PO selection.
+         * Called from the "Reset PO" button.
+         */
+        function resetImportedPo() {
+            const modalEl = document.querySelector('[x-data]');
+            if (modalEl) {
+                if (typeof Alpine !== 'undefined' && Alpine.$data) {
+                    Alpine.$data(modalEl).resetImportedPo();
+                } else if (modalEl._x_dataStack && modalEl._x_dataStack[0]) {
+                    modalEl._x_dataStack[0].resetImportedPo();
+                } else if (modalEl.__x) {
+                    modalEl.__x.$data.resetImportedPo();
+                }
+            }
+        }
+
+        /**
+         * Formats a date value to dd/mm/yyyy format.
+         * Param {string|Date} dateValue - The date to format.
+         * Returns {string} - Formatted date string (dd/mm/yyyy) or empty string.
+         */
+        function formatDateToDdMmYyyy(dateValue) {
+            if (!dateValue) return '';
+            const date = new Date(dateValue);
+            if (isNaN(date.getTime())) return '';
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        /**
+         * Imports PO data into the ASN form.
+         * ACCUMULATION MODE: Adds PO items without clearing existing manual items.
+         * SINGLE PO CONSTRAINT: Only one PO can be imported per ASN.
+         * Param {Object} po - Full PO object with header and details.
+         */
+        async function importPoData(po) {
+            const container = document.getElementById('detail-items-container');
+            const poIdInput = document.querySelector('input[name="CreateRequest.PoId"]');
+            const currentPoId = poIdInput ? poIdInput.value : '';
+
+            // 1. ENFORCE SINGLE PO CONSTRAINT
+            if (currentPoId && currentPoId !== '' && parseInt(currentPoId) !== po.id) {
+                Notify.error('@L["OnlyOnePOAllowed"]');
+                return;
+            }
+
+            // 2. If same PO is re-imported, remove existing PO items first to avoid duplicates
+            if (currentPoId && parseInt(currentPoId) === po.id) {
+                const existingPoItems = container.querySelectorAll('.detail-item[data-po-item="true"]');
+                existingPoItems.forEach(item => item.remove());
+            }
+
+            // 3. Set Header Info (ETA from PO)
+            const etaInput = document.querySelector('input[name="CreateRequest.EstimatedArrivalTime"]');
+            if (etaInput && po.expected_delivery_date) {
+                const parsedDate = new Date(po.expected_delivery_date);
+                if (etaInput._flatpickr) {
+                    etaInput._flatpickr.setDate(parsedDate, true);
+                } else {
+                    etaInput.value = formatDateToDdMmYyyy(po.expected_delivery_date);
+                }
+            }
+
+            // 4. Set PO ID
+            if (poIdInput) poIdInput.value = po.id;
+
+            // 5. Populate detail items from PO (ACCUMULATE - do not clear existing items)
+            if (po.details && po.details.length > 0) {
+                po.details.forEach(d => {
+                    const openQty = d.qty_ordered - d.qty_received;
+                    if (openQty > 0) {
+                        addDetailItem();
+                        const lastItem = container.lastElementChild;
+                        const index = lastItem.dataset.detailIndex;
+
+                        // Mark as PO-imported item for tracking
+                        lastItem.setAttribute('data-po-item', 'true');
+
+                        // Set SKU
+                        const skuSelect = lastItem.querySelector(`select[name="CreateRequest.DetailList[${index}].SkuId"]`);
+                        if (skuSelect) {
+                            skuSelect.value = d.sku_id;
+                            onSkuChange(skuSelect, index);
+                        }
+
+                        // Override Qty
+                        const qtyInput = lastItem.querySelector(`input[name="CreateRequest.DetailList[${index}].AsnQty"]`);
+                        if (qtyInput) {
+                            qtyInput.value = openQty;
+                            qtyInput.setAttribute('data-max-qty', openQty);
+                        }
+
+                        // Set Price and format it
+                        const priceInput = lastItem.querySelector(`input[name="CreateRequest.DetailList[${index}].Price"]`);
+                        if (priceInput && d.unit_price) {
+                            priceInput.value = formatNumber(d.unit_price.toString());
+                            priceInput.setAttribute('data-po-price', d.unit_price);
+                        }
+
+                        // Lock Supplier (Readonly from PO Header)
+                        const supplierNameInput = lastItem.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierName"]`);
+                        const supplierIdInput = lastItem.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierId"]`);
+                        if (supplierNameInput) {
+                            supplierNameInput.value = po.supplier_name;
+                            supplierNameInput.readOnly = true;
+                        }
+                        if (supplierIdInput) supplierIdInput.value = po.supplier_id;
+
+                        // Set Expiry Date from PO detail (formatted to dd/mm/yyyy)
+                        const expiryInput = lastItem.querySelector(`input[name="CreateRequest.DetailList[${index}].ExpiryDate"]`);
+                        if (expiryInput && d.expiry_date) {
+                            expiryInput.value = formatDateToDdMmYyyy(d.expiry_date);
+                        }
+
+                        // LOCK SKU SELECT for PO-imported items
+                        if (skuSelect) {
+                            skuSelect.disabled = true;
+                            skuSelect.classList.add('bg-gray-200', 'cursor-not-allowed', 'opacity-75');
+                        }
+
+                        // SHOW 'From PO' badge
+                        const poBadge = lastItem.querySelector('.po-badge');
+                        if (poBadge) {
+                            poBadge.classList.remove('hidden');
+                        }
+
+                        // ADD visual indicator border
+                        lastItem.classList.add('border-blue-300', 'border-l-4');
+                        lastItem.classList.remove('border-gray-200');
+                    }
+                });
+
+                calculateTotals();
+                Notify.success(`@L["ImportedPO"] ${po.po_no}`);
+            } else {
+                Notify.warning("@L["NoOpenItemsInPO"]");
+            }
+        }
+
+        // Keep importPo for backward compatibility (if called directly)
+        async function importPo(id) {
+            try {
+                const response = await fetch(`?handler=LoadPoDetail&id=${id}`);
+                const result = await response.json();
+                if (result && result.data) {
+                    await importPoData(result.data);
+                    closeImportModal();
+                }
+            } catch (error) {
+                console.error("Error importing PO", error);
+                Notify.error("Failed to import PO");
+            }
+        }
+
+        let globalSkuList = [];
+        let globalOpenPosList = []; // Pre-loaded open POs
+        let globalSupplierList = [];
+        let detailItemIndex = 0;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Explicitly init header picker
+            const headerInput = document.getElementById('CreateRequest_EstimatedArrivalTime');
+            if (headerInput && window.initFlatpickr) {
+                console.log("Found header input, initializing Flatpickr...", headerInput);
+                flatpickr(headerInput, {
+                    dateFormat: "d/m/Y H:i",
+                    enableTime: true,
+                    time_24hr: false,
+                    allowInput: true,
+                    minDate: "today"
+                });
+            } else {
+                console.error("Header input not found or initFlatpickr not loaded", headerInput);
+                if (window.initFlatpickr) window.initFlatpickr();
+            }
+
+            Promise.all([
+                fetchData('?handler=LoadGoodsOwner'),
+                fetchData('?handler=LoadSkuSelect'),
+                fetchData('?handler=LoadOpenPos')
+            ]).then(([owners, skus, openPos]) => {
+                // 1. Store SKU list globally
+                globalSkuList = (skus && skus.data) ? skus.data : [];
+
+                // 2. Render Goods Owner
+                if (owners && owners.data) renderGoodsOwnerOptions(owners.data);
+
+                // 3. Store Open POs globally for modal use
+                globalOpenPosList = (openPos && openPos.data) ? openPos.data : [];
+
+            }).catch(err => {
+                console.error("Failed to load master data:", err);
+                Notify.error('@Html.Raw(L["FailedToLoadMasterData"])');
+            });
+        });
+
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        }
+
+        // --- Helper Functions for Formatting and Warnings ---
+        function formatNumber(value) {
+            if (!value) return '';
+            // Remove existing dots to avoid confusion
+            value = value.replace(/\./g, '');
+            // Format with dots
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function parseNumber(value) {
+            if (!value) return 0;
+            if (typeof value === 'number') return value;
+            // Remove dots and parse
+            return parseFloat(value.replace(/\./g, '')) || 0;
+        }
+
+        function toggleWarning(element, condition, message) {
+            let warningEl = element.parentNode.querySelector('.warning-text');
+            if (condition) {
+                if (!warningEl) {
+                    warningEl = document.createElement('p');
+                    warningEl.className = 'warning-text text-xs text-yellow-600 dark:text-yellow-400 mt-1';
+                    element.parentNode.appendChild(warningEl);
+                }
+                warningEl.textContent = message;
+                warningEl.style.display = 'block';
+            } else {
+                if (warningEl) warningEl.style.display = 'none';
+            }
+        }
+
+        function updateHelperText(element, text) {
+            let helperEl = element.parentNode.querySelector('.input-helper-text');
+            if (element.value === '' || element.value === null) {
+                if (helperEl) helperEl.style.display = 'none';
+                return;
+            }
+
+            if (!helperEl) {
+                helperEl = document.createElement('p');
+                helperEl.className = 'input-helper-text text-xs text-gray-500 dark:text-gray-400 mt-1 italic';
+                element.parentNode.appendChild(helperEl);
+            }
+            helperEl.textContent = text;
+            helperEl.style.display = 'block';
+        }
+
+        function onPriceInput(input) {
+            // 1. Format Currency
+            let originalValue = input.value;
+            let numericValue = originalValue.replace(/[^\d]/g, '');
+            let formatted = formatNumber(numericValue);
+            input.value = formatted;
+
+            let val = parseNumber(formatted);
+
+            // Helper text
+            if (typeof GlobalFormatCurrency !== 'undefined') {
+                updateHelperText(input, GlobalFormatCurrency(val) + " ₫");
+            }
+
+            // PO Validation
+            const poPrice = parseFloat(input.getAttribute('data-po-price'));
+            if (!isNaN(poPrice)) {
+                toggleWarning(input, val !== poPrice, `@Html.Raw(L["PriceDiffersFromPO"]) : ${GlobalFormatNumber(poPrice)}`);
+            } else {
+                toggleWarning(input, false, "");
+            }
+        }
+
+        function onQtyInput(input) {
+            if (input.value.includes('-')) {
+                input.value = input.value.replace(/-/g, '');
+            }
+            calculateTotals();
+            let val = parseFloat(input.value) || 0;
+
+            // Helper text
+            if (typeof GlobalFormatNumber !== 'undefined') {
+                updateHelperText(input, `@Html.Raw(L["Entered"]): ${GlobalFormatNumber(val)}`);
+            }
+
+            // PO Validation
+            const maxQty = parseFloat(input.getAttribute('data-max-qty'));
+            if (!isNaN(maxQty)) {
+                toggleWarning(input, val > maxQty, `@Html.Raw(L["QuantityExceedsPO"]) : ${GlobalFormatNumber(maxQty)}`);
+            } else {
+                toggleWarning(input, false, "");
+            }
+        }
+
+        function onDimensionInput(input) {
+            if (input.value.includes('-')) {
+                input.value = input.value.replace(/-/g, '');
+            }
+            calculateTotals();
+            let val = parseFloat(input.value) || 0;
+
+            // Helper text
+            if (typeof GlobalFormatNumber !== 'undefined') {
+                updateHelperText(input, `@Html.Raw(L["Entered"]): ${GlobalFormatNumber(val)}`);
+            }
+            toggleWarning(input, false, "");
+        }
+
+        // ... (Keep renderGoodsOwnerOptions, generateDetailItemHtml functions as is) ...
+        function renderGoodsOwnerOptions(data) {
+            const select = document.getElementById('goodsOwnerSelect');
+            let html = `<option value="">@L["SelectGoodsOwner"]</option>`;
+            data.forEach(item => {
+                html += `<option value="${item.id}" data-name="${item.goods_owner_name}">${item.goods_owner_name}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        /**
+         * Generates HTML for a single detail item row.
+         * Layout matches PO Create page: Row1 Product+Delete, Row2 other fields.
+         * Param index (number) - The index of the detail item.
+         * Returns string - HTML string for the detail item.
+         */
+        function generateDetailItemHtml(index) {
+            let skuOptions = `<option value="">@L["SelectProduct"]</option>`;
+            globalSkuList.forEach(s => {
+                const weight = s.weight ?? '';
+                const volume = s.volume ?? '';
+                const expireDate = s.expire_date ?? '';
+                skuOptions += `<option value="${s.sku_id}" 
+                                                        data-spu-id="${s.spu_id}" 
+                                                        data-spu-code="${s.spu_code}" 
+                                                        data-spu-name="${s.spu_name}" 
+                                                        data-sku-code="${s.sku_code}" 
+                                                        data-sku-name="${s.sku_name}" 
+                                                        data-origin="${s.origin}" 
+                                                        data-supplier-id="${s.supplier_id}" 
+                                                        data-supplier-name="${s.supplier_name}"
+                                                        data-weight="${weight}"
+                                                        data-volume="${volume}"
+                                                        data-expire-date="${expireDate}">${s.sku_code} - ${s.sku_name}</option>`;
+            });
+
+            return `
+                                                <div class="detail-item bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative" data-detail-index="${index}">
+                                                    <!-- Row 1: Product (full width) + Delete button -->
+                                                    <div class="flex items-end gap-4 mb-4">
+                                                        <div class="flex-1">
+                                                            <div class="flex items-center mb-1">
+                                                                <label class="block text-xs font-medium text-gray-500 uppercase">@L["Product"] <span class="text-red-500">*</span></label>
+                                                                <span class="po-badge hidden px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded ml-2 font-medium">@L["FromPO"]</span>
+                                                            </div>
+                                                            <select name="CreateRequest.DetailList[${index}].SkuId" required onchange="onSkuChange(this, ${index})" class="sku-select w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">${skuOptions}</select>
+                                                        </div>
+                                                        <button type="button" onclick="removeDetailItem(${index})" class="text-gray-400 hover:text-red-500 p-2 rounded-md transition mb-1" title="@L["Delete"]">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Row 2: Supplier, Quantity, Price, Expiry Date, Weight, Volume -->
+                                                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["Supplier"]</label>
+                                                            <input type="text" name="CreateRequest.DetailList[${index}].SupplierName" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm rounded-lg text-gray-600 dark:bg-gray-600 dark:text-gray-300 cursor-not-allowed" />
+                                                            <input type="hidden" name="CreateRequest.DetailList[${index}].SupplierId" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["Quantity"] <span class="text-red-500">*</span></label>
+                                                            <input name="CreateRequest.DetailList[${index}].AsnQty" type="number" min="1" required oninput="onQtyInput(this)" class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-right" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["Price"]</label>
+                                                            <input name="CreateRequest.DetailList[${index}].Price" type="text" oninput="onPriceInput(this)" class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-right" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["ExpiryDate"]</label>
+                                                            <input name="CreateRequest.DetailList[${index}].ExpiryDate" type="text" placeholder="dd/mm/yyyy" class="date-picker w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["Weight"]</label>
+                                                            <input name="CreateRequest.DetailList[${index}].Weight" type="number" step="0.01" oninput="onDimensionInput(this)" class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-right" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">@L["Volume"]</label>
+                                                            <input name="CreateRequest.DetailList[${index}].Volume" type="number" step="0.01" oninput="onDimensionInput(this)" class="w-full px-3 py-2 bg-white border border-gray-300 text-sm rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white text-right" />
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Hidden Fields -->
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].SpuId" />
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].SpuCode" />
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].SpuName" />
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].SkuCode" />
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].SkuName" />
+                                                    <input type="hidden" name="CreateRequest.DetailList[${index}].Origin" />
+                                                </div>`;
+        }
+
+
+        function onGoodsOwnerChange(selectElement) {
+            const selectedOption = selectElement.selectedOptions[0];
+            const hiddenInput = document.querySelector('input[name="CreateRequest.GoodsOwnerName"]');
+            if (hiddenInput) hiddenInput.value = selectedOption.value ? (selectedOption.dataset.name || selectedOption.text) : '';
+        }
+
+        function onSkuChange(selectElement, index) {
+            const option = selectElement.selectedOptions[0];
+            const itemEl = selectElement.closest('.detail-item');
+
+            // Check if this is a PO-imported item being modified
+            // PO-imported items check removed: SKU select is locked so user cannot change SKU.
+            // Keeping the attribute allows correct tracking for Reset functionality.
+
+            if (option.value) {
+                // Set hidden fields
+                const mapping = {
+                    'SpuId': 'spuId', 'SpuCode': 'spuCode', 'SpuName': 'spuName',
+                    'SkuCode': 'skuCode', 'SkuName': 'skuName', 'Origin': 'origin'
+                };
+                for (const [field, dataKey] of Object.entries(mapping)) {
+                    const input = document.querySelector(`input[name="CreateRequest.DetailList[${index}].${field}"]`);
+                    if (input) input.value = option.dataset[dataKey] || '';
+                }
+
+                // Set Supplier
+                const supplierNameInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierName"]`);
+                const supplierIdInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierId"]`);
+                const supId = option.dataset.supplierId;
+                const supName = option.dataset.supplierName || "@Html.Raw(L["DefaultSupplier"])";
+                if (supplierIdInput) supplierIdInput.value = supId || "0";
+                if (supplierNameInput) supplierNameInput.value = supName;
+
+                // Set Weight from SKU if available
+                const weightInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].Weight"]`);
+                if (weightInput && option.dataset.weight) {
+                    weightInput.value = option.dataset.weight;
+                }
+
+                // Set Volume from SKU if available
+                const volumeInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].Volume"]`);
+                if (volumeInput && option.dataset.volume) {
+                    volumeInput.value = option.dataset.volume;
+                }
+
+                // Set Expiry Date from SKU if available
+                const expiryInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].ExpiryDate"]`);
+                if (expiryInput && option.dataset.expireDate) {
+                    expiryInput.value = option.dataset.expireDate;
+                }
+
+            } else {
+                // Clear all fields when no SKU selected
+                const supplierNameInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierName"]`);
+                const supplierIdInput = document.querySelector(`input[name="CreateRequest.DetailList[${index}].SupplierId"]`);
+                if (supplierIdInput) supplierIdInput.value = "";
+                if (supplierNameInput) supplierNameInput.value = "";
+            }
+        }
+
+        /**
+         * Checks if any PO items remain. If not, resets PO tracking.
+         */
+        function checkAndResetPoTracking() {
+            const container = document.getElementById('detail-items-container');
+            const remainingPoItems = container.querySelectorAll('.detail-item[data-po-item="true"]');
+
+            if (remainingPoItems.length === 0) {
+                // No more PO items, reset tracking
+                const poIdInput = document.querySelector('input[name="CreateRequest.PoId"]');
+                if (poIdInput) poIdInput.value = '';
+
+                // Reset Alpine component state using global function
+                if (typeof window.resetPoTracking === 'function') {
+                    window.resetPoTracking();
+                } else {
+                    console.error('window.resetPoTracking not available');
+                }
+            }
+        }
+
+        function calculateTotals() {
+            let totalWeight = 0;
+            let totalVolume = 0;
+
+            const items = document.querySelectorAll('.detail-item');
+            items.forEach(item => {
+                const qty = parseFloat(item.querySelector('input[name*="AsnQty"]').value) || 0;
+                const weight = parseFloat(item.querySelector('input[name*="Weight"]').value) || 0;
+                const volume = parseFloat(item.querySelector('input[name*="Volume"]').value) || 0;
+
+                totalWeight += qty * weight;
+                totalVolume += qty * volume;
+            });
+
+            const wInput = document.getElementById('total-weight');
+            if (wInput) wInput.value = totalWeight.toFixed(2);
+
+            const vInput = document.getElementById('total-volume');
+            if (vInput) vInput.value = totalVolume.toFixed(2);
+        }
+
+        function addDetailItem() {
+            if (globalSkuList.length === 0 && globalSupplierList.length === 0) return;
+            const container = document.getElementById('detail-items-container');
+            const itemHtml = generateDetailItemHtml(detailItemIndex);
+            container.insertAdjacentHTML('beforeend', itemHtml);
+            const newItem = container.lastElementChild;
+            initFlatpickr(newItem);
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            detailItemIndex++;
+        }
+
+        function removeDetailItem(index) {
+            const item = document.querySelector(`[data-detail-index="${index}"]`);
+            if (item) {
+                // Check if this was a PO item before removing
+                const wasPoItem = item.getAttribute('data-po-item') === 'true';
+                item.remove();
+                calculateTotals();
+                // If it was a PO item, check if we need to reset PO tracking
+                if (wasPoItem) {
+                    console.log('Removing PO item, checking if PO tracking needs reset');
+                    checkAndResetPoTracking();
+                }
+            }
+        }
+
+        async function removeSelectedItems() {
+            const checkboxes = document.querySelectorAll('.detail-checkbox:checked');
+            if (checkboxes.length === 0) {
+                Notify.warning("@Html.Raw(L["NoItemsSelected"])");
+                return;
+            }
+            const isConfirmed = await Notify.confirm("@Html.Raw(L["ConfirmDelete"])", `@Html.Raw(L["AreYouSureDelete"]) ${checkboxes.length} @Html.Raw(L["Items"])?`);
+
+            if (isConfirmed) {
+                checkboxes.forEach(checkbox => {
+                    const item = checkbox.closest('.detail-item');
+                    if (item) item.remove();
+                });
+                calculateTotals();
+
+                Notify.success("@Html.Raw(L["ItemsRemoved"])");
+            }
+        }
+
+        // Parses a date string in dd/mm/yyyy format to ISO format.
+        function parseDate(dateStr) {
+            if (!dateStr) return new Date().toISOString();
+            // Split date and time
+            const [datePart, timePart] = dateStr.split(" ");
+            const [day, month, year] = datePart.split("/").map(Number);
+            const [hours, minutes] = timePart.split(":").map(Number);
+
+            // Create a Date object (months are 0-based in JS)
+            const dateObj = new Date(year, month - 1, day, hours, minutes);
+
+            // Convert to ISO string
+            return dateObj.toISOString();
+
+            // const parts = dateStr.split('/');
+            // if (parts.length !== 3) return new Date().toISOString();
+            // // Format: dd/mm/yyyy -> yyyy-mm-dd
+            // return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00`;
+        }
+
+        function parseDateDMY(dateStr) {
+            if (!dateStr) return new Date().toISOString();
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return new Date().toISOString();
+            // Format: dd/mm/yyyy -> yyyy-mm-dd
+            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00`;
+        }
+
+        /**
+         * Validates the ASN form before submission.
+         * Checks: Required fields, Duplicate {SkuId, ExpiryDate} combinations, Quantity > 0.
+         * Returns boolean - True if valid, false otherwise.
+         */
+        function validateForm() {
+            let errors = [];
+            const asnNo = document.querySelector('input[name="CreateRequest.AsnNo"]').value.trim();
+            if (!asnNo) errors.push("@Html.Raw(L["ASNNumberRequired"])");
+
+            const owner = document.querySelector('select[name="CreateRequest.GoodsOwnerId"]').value;
+            if (!owner) errors.push("@Html.Raw(L["GoodsOwnerRequired"])");
+
+            const eta = document.querySelector('input[name="CreateRequest.EstimatedArrivalTime"]').value;
+            if (!eta) errors.push("@Html.Raw(L["EstimatedArrivalTimeRequired"])");
+
+            const items = document.querySelectorAll('.detail-item');
+            // Use Map<SkuId, Set<ExpiryDate>> for proper duplicate detection
+            const detailsMap = new Map();
+
+            if (items.length === 0) {
+                errors.push("@Html.Raw(L["AtLeastOneItemRequired"])");
+            } else {
+                items.forEach((item, i) => {
+                    const skuSelect = item.querySelector('select[name*="SkuId"]');
+                    const qtyInput = item.querySelector('input[name*="AsnQty"]');
+                    const expiryInput = item.querySelector('input[name*="ExpiryDate"]');
+
+                    const skuId = skuSelect.value;
+                    const qty = qtyInput.value;
+                    const expiryDate = expiryInput ? expiryInput.value.trim() : '';
+
+                    skuSelect.classList.remove('border-red-500');
+                    if (expiryInput) expiryInput.classList.remove('border-red-500');
+
+                    if (!skuId) {
+                        errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["ProductRequired"])`);
+                    } else {
+                        // Duplicate check using Map<SkuId, Set<ExpiryDate>>
+                        if (detailsMap.has(skuId)) {
+                            if (detailsMap.get(skuId).has(expiryDate)) {
+                                errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["DuplicateSkuWithSameExpiryDate"])`);
+                                skuSelect.classList.add('border-red-500');
+                                if (expiryInput) expiryInput.classList.add('border-red-500');
+                            } else {
+                                detailsMap.get(skuId).add(expiryDate);
+                            }
+                        } else {
+                            detailsMap.set(skuId, new Set([expiryDate]));
+                        }
+                    }
+
+                    // Check quantity
+                    if (!qty || parseFloat(qty) <= 0) {
+                        errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["ValidQuantityRequired"])`);
+                    }
+
+                    const price = parseNumber(item.querySelector('input[name*="Price"]').value);
+                    const weight = item.querySelector('input[name*="Weight"]').value;
+                    const volume = item.querySelector('input[name*="Volume"]').value;
+
+                    if (price && price < 0) errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["PriceCannotBeNegative"])`);
+                    if (weight && parseFloat(weight) < 0) errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["WeightCannotBeNegative"])`);
+                    if (volume && parseFloat(volume) < 0) errors.push(`@Html.Raw(L["Item"]) ${i + 1}: @Html.Raw(L["VolumeCannotBeNegative"])`);
+                });
+            }
+
+            // --- 3. Display errors ---
+            if (errors.length > 0) {
+                errors.forEach(error => {
+                    Notify.warning(error);
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        // --- 5. UPDATED: SUBMIT FORM ---
+        async function submitAsnForm(event) {
+            event.preventDefault();
+
+            if (!validateForm()) return;
+
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="animate-spin inline-block mr-2">↻</span> Processing...';
+
+            try {
+                const getInt = (val) => val ? parseInt(val) : 0;
+                const getFloat = (val) => val ? parseFloat(val) : 0;
+                const getString = (val) => val ? val.trim() : "";
+                const getDate = (val) => val ? val : null;
+
+                const payload = {
+                    asn_no: getString(document.querySelector('input[name="CreateRequest.AsnNo"]').value),
+                    asn_batch: getString(document.querySelector('input[name="CreateRequest.AsnBatch"]').value),
+                    estimated_arrival_time: parseDate(document.getElementById('estimatedArrivalTime').value),
+                    weight: getFloat(document.querySelector('input[name="CreateRequest.Weight"]').value),
+                    volume: getFloat(document.querySelector('input[name="CreateRequest.Volume"]').value),
+                    goods_owner_id: getInt(document.querySelector('select[name="CreateRequest.GoodsOwnerId"]').value),
+                    goods_owner_name: getString(document.querySelector('input[name="CreateRequest.GoodsOwnerName"]').value),
+                    po_id: getInt(document.querySelector('input[name="CreateRequest.PoId"]').value) || null,
+                    asn_status: 1,
+                    creator: "System",
+                    detailList: []
+                };
+
+                const items = document.querySelectorAll('.detail-item');
+                items.forEach((item) => {
+                    const v = (namePart) => {
+                        const el = item.querySelector(`[name*="${namePart}"]`);
+                        return el ? el.value : "";
+                    };
+                    payload.detailList.push({
+                        id: 0, asnmaster_id: 0,
+                        sku_id: getInt(v('SkuId')),
+                        supplier_id: getInt(v('SupplierId')), // Helper input
+                        supplier_name: getString(v('SupplierName')), // Input type=text
+                        asn_qty: getInt(v('AsnQty')),
+                        actual_qty: 0,
+                        price: parseNumber(v('Price')),
+                        weight: getFloat(v('Weight')),
+                        volume: getFloat(v('Volume')),
+                        expiry_date: parseDateDMY(getDate(v('ExpiryDate'))),
+                        spu_id: getInt(v('SpuId')),
+                        spu_code: getString(v('SpuCode')),
+                        spu_name: getString(v('SpuName')),
+                        sku_code: getString(v('SkuCode')),
+                        sku_name: getString(v('SkuName')),
+                        origin: getString(v('Origin')),
+                        is_valid: true
+                    });
+                });
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const response = await fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Notify.success(result.message);
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl;
+                    }, 100);
+                } else {
+                    Notify.error(result.message);
+                }
+
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                Notify.error('@Html.Raw(L["ErrorSendingData"])');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
+
+    </script>
+}

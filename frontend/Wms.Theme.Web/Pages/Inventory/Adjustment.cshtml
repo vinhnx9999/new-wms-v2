@@ -1,0 +1,229 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.AdjustmentModel
+@{
+    ViewData["Title"] = Html.Raw(L["InventoryAdjustment"]);
+}
+
+@Html.AntiForgeryToken()
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Card 1: Pending -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 flex items-center justify-between transition-colors duration-200">
+        <div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">@Html.Raw(L["Pending"]):</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">@Model.PendingCount
+                @Html.Raw(L["Tickets"])</h3>
+        </div>
+        <div class="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-full text-yellow-600 dark:text-yellow-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card 2: Approved Today -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 flex items-center justify-between transition-colors duration-200">
+        <div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">@Html.Raw(L["ApprovedToday"]):</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">@Model.ApprovedTodayCount
+                @Html.Raw(L["Tickets"])
+            </h3>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-full text-emerald-600 dark:text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- Card 3: Total Adjustment Loss -->
+    <div
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 flex items-center justify-between transition-colors duration-200">
+        <div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm font-medium">@Html.Raw(L["TotalAdjustmentLoss"]):</p>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-1">@Model.TotalLossQuantity
+                @Html.Raw(L["Unit"])</h3>
+        </div>
+        <div class="p-3 bg-red-50 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+    </div>
+</div>
+
+<div x-data="AlpineDataTable(tableConfig)" x-init="init()" class="space-y-4">
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">
+
+        <!-- Wrapper: Left + Right -->
+        <div class="flex flex-col lg:flex-row justify-between items-end gap-4">
+
+            <!-- Left: Filters -->
+            <div class="w-full lg:w-2/5 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text" x-model.debounce.100ms="filters.keyword" @@input="reload()"
+                       class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block transition-colors duration-200 placeholder-gray-500 dark:placeholder-gray-400"
+                       placeholder="@Html.Raw(L["SearchPlaceholder"])">
+            </div>
+
+            <!-- Right: Actions -->
+            <div class="flex flex-wrap gap-3 items-end justify-end w-full lg:w-auto">
+                <a href="Adjustment/Create"
+                   class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition shadow-sm focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    @Html.Raw(L["CreateNew"])
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200 overflow-hidden">
+        <partial name="Components/_AlpineDataTable" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js"></script>
+    <script>
+        // Localization Strings from Razor
+        const i18n = {
+            confirmDelete: '@Html.Raw(L["ConfirmDelete"])',
+            deleteSuccess: '@Html.Raw(L["DeleteSuccess"])',
+            deleteError: '@Html.Raw(L["DeleteError"])',
+            errorOccurred: '@Html.Raw(L["ErrorOccurred"])', // Ensure this key exists or fallback
+            pending: '@Html.Raw(L["Pending"])',
+            approved: '@Html.Raw(L["Approved"])',
+            processing: '@Html.Raw(L["Processing"])',
+            new: '@Html.Raw(L["New"])'
+        };
+
+        const tableConfig = {
+            apiUrl: '?handler=TableData',
+            columns: [
+                {
+                    title: '@Html.Raw(L["JobCode"])',
+                    field: 'job_code',
+                    minWidth: '125',
+                    render: (row) => `<a href="/Inventory/Adjustment/Detail?id=${row.id}" class="font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">${row.job_code}</a>`
+                },                
+                { title: '@Html.Raw(L["SeriesNumber"])', 
+                    field: 'series_number', 
+                    maxWidth: "35vw",
+                    truncate: true 
+                },
+                {
+                    title: '@Html.Raw(L["CreatedDate"])',
+                    field: 'create_time',
+                    render: (row) => row && row.create_time ? new Date(row.create_time).toLocaleString('@(System.Globalization.CultureInfo.CurrentCulture.Name)') : '-'
+                },
+                { 
+                    title: '@Html.Raw(L["Processor"])', 
+                    field: 'processor', 
+                    render: (row) => (row && row.processor) ? row.processor : '-' },
+                {
+                    title: '@Html.Raw(L["ProcessDate"])',
+                    field: 'process_time',
+                    render: (row) => row && row.process_time ? new Date(row.process_time).toLocaleString('@(System.Globalization.CultureInfo.CurrentCulture.Name)') : '-'
+                },
+                { 
+                    title: '@Html.Raw(L["AdjustStockQuantities"])', 
+                    align: 'text-right', 
+                    field: 'qty', 
+                    class: 'text-right' 
+                },
+                {
+                    title: '@Html.Raw(L["Status"])',
+                    field: 'adjust_status',
+                    align: 'center',
+                    render: (row) => {                        
+                        if (row.adjust_status) {
+                            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                                                    ${i18n.approved}
+                                                                </span>`;
+                        } else {
+
+                            if(row.process_status) {
+                                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-300">
+                                                                    ${i18n.processing}
+                                                                </span>`;
+                            }
+
+                            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+                                                                    ${i18n.new}
+                                                                </span>`;
+                        }
+                    }
+                },
+                {
+                    title: '@Html.Raw(L["Actions"])',
+                    align: 'center',
+                    render: (row) => (row.process_status || row.adjust_status) ? "" : `
+                        <div class="flex items-center justify-center gap-2">                                                        
+                             <button onclick="deleteAdjustment(${row.id})" 
+                                     class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" 
+                                     title="@Html.Raw(L["Delete"])">
+                                  <i class="fas fa-trash"></i>
+                              </button>
+                        </div>`
+                }
+            ],
+            filters: {
+                keyword: '',
+                status: '',
+                fromDate: '',
+                toDate: ''
+            },
+            options: {
+                selection: false,
+                pageSize: 10
+            }
+        };
+
+        async function deleteAdjustment(id) {
+            const isConfirmed = await Notify.confirm(i18n.confirmDelete);
+            if (!isConfirmed) { return; }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const url = `?handler=RemoveAdjustment&id=${id}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Notify.success((result.message.value ?? result.message) ?? i18n.deleteSuccess);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 100);
+                } else {
+                    Notify.error(result.message ?? i18n.deleteError);
+                }
+            } catch (err) {
+                Notify.error(i18n.deleteError);
+                console.error(err);
+            }
+        }
+    </script>
+}

@@ -1,0 +1,439 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Outbound.ShippingModel
+
+@{
+    ViewData["Title"] = L["Shipping"];
+}
+
+
+<div class="p-6" x-data="AlpineDataTable(getShippingConfig())" @@datatable-reload.window="reload()">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <button @@click="confirmDelivery($data)" :disabled="!canConfirmDelivery($data)"
+                class="px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <span>@L["ConfirmDispatch"]</span>
+            </button>
+            <button @@click="confirmSign($data)" :disabled="!canSign($data)"
+                class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <span>@L["ConfirmPOD"]</span>
+            </button>
+        </div>
+
+        <div
+            class="flex items-center gap-2 bg-white dark:bg-gray-800 p-1.5 rounded-xl border border-slate-200 dark:border-gray-700 shadow-sm w-full md:w-80">
+            <div class="pl-3 text-slate-400">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <input type="text" x-model="filters.sales_order_no" @@input.debounce.500ms="reload()"
+                placeholder="@L["SearchDispatchNo"]..."
+                class="w-full border-none focus:ring-0 bg-transparent text-sm placeholder-slate-400 dark:text-white">
+        </div>
+    </div>
+
+    @await Html.PartialAsync("~/Pages/Shared/Components/_AlpineDataTable.cshtml")
+</div>
+
+@Html.AntiForgeryToken()
+
+
+<div id="modalDelivery" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-blue-50">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                @L["ConfirmDispatch"]
+            </h3>
+            <button onclick="closeModal('modalDelivery')"
+                class="text-gray-400 hover:text-red-600 font-bold text-xl">✕</button>
+        </div>
+
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+            <p class="text-sm text-gray-600 mb-4">@L["DispatchListToConfirm"]</p>
+
+            <table class="min-w-full divide-y divide-gray-200 border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase">@L["DispatchCode"]
+                        </th>
+                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase">
+                            @L["QuantityDetails"]</th>
+                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase">@L["Status"]</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyDelivery" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+            <button onclick="closeModal('modalDelivery')"
+                class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-700">@L["Cancel"]</button>
+            <button onclick="submitDelivery()"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm flex items-center gap-2">
+                <span>@L["ConfirmShipment"]</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3">
+                    </path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modalSign" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-indigo-50">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                @L["ConfirmPOD"]
+            </h3>
+            <button onclick="closeModal('modalSign')"
+                class="text-gray-400 hover:text-red-600 font-bold text-xl">✕</button>
+        </div>
+
+        <div class="p-6 max-h-[60vh] overflow-y-auto">
+            <p class="text-sm text-gray-600 mb-4">@L["CheckDamageBeforeSign"]</p>
+
+            <table class="min-w-full divide-y divide-gray-200 border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase">@L["DispatchCode"]
+                        </th>
+                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase">@L["Status"]</th>
+                        <th class="px-4 py-2 text-center text-xs font-bold text-gray-600 uppercase w-32">@L["DamageQty"]
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="bodySign" class="bg-white divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+            <button onclick="closeModal('modalSign')"
+                class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-700">@L["Cancel"]</button>
+            <button onclick="submitSign()"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm flex items-center gap-2">
+                <span>@L["CompleteSign"]</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/components/alpine-datatable.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('shippingPage', () => ({
+                init() { }
+            }));
+        });
+
+        function getShippingConfig() {
+            return {
+                apiUrl: '?handler=DataTable',
+                options: {
+                    selection: true
+                },
+                columns: [
+                    { title: '@Html.Raw(L["dispatch_no"])', field: 'dispatchNo', sortable: true, class: 'font-medium text-gray-900 dark:text-white' },
+                    { title: '@Html.Raw(L["customer_name"])', field: 'customerName', sortable: true },
+                    { title: '@Html.Raw(L["Status"])', field: 'dispatchStatus', render: (row) => renderStatusBadge(row.dispatchStatus) },
+                    { title: '@Html.Raw(L["Qty"])', field: 'qty', class: 'text-right', render: (row) => formatNumber(row.qty) },
+                    { title: '@Html.Raw(L["Weight"])', field: 'weight', class: 'text-right', render: (row) => formatNumber(row.weight, 2) },
+                    { title: '@Html.Raw(L["Volume"])', field: 'volume', class: 'text-right', render: (row) => formatNumber(row.volume, 2) },
+                    { title: '@Html.Raw(L["Creator"])', field: 'creator' },
+                    { title: '@Html.Raw(L["PickedQty"])', field: 'pickedQty', class: 'text-right font-bold text-blue-600', render: (row) => formatNumber(row.pickedQty) },
+                ],
+                searchFields: [
+                    { name: 'sales_order_no', placeholder: '@Html.Raw(L["sales_order_no"])' },
+                    { name: 'customer_name', placeholder: '@Html.Raw(L["customer_name"])' }
+                ]
+            };
+        }
+
+        window.getShippingConfig = getShippingConfig;
+
+        function renderStatusBadge(status) {
+            const statusMap = {
+                0: { text: '@Html.Raw(L["StatusNew"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' },
+                1: { text: '@Html.Raw(L["StatusWaitPickup"])', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+                2: { text: '@Html.Raw(L["StatusPicked"])', class: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-300' },
+                3: { text: '@Html.Raw(L["StatusPacking"])', class: 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300' },
+                4: { text: '@Html.Raw(L["StatusPacked"])', class: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+                5: { text: '@Html.Raw(L["StatusWeighed"])', class: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' },
+                6: { text: '@Html.Raw(L["StatusExported"])', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' },
+                7: { text: '@Html.Raw(L["StatusCompleted"])', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }
+            };
+            const s = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
+            return `<span class="px-2 py-1 rounded text-xs font-semibold ${s.class}">${s.text}</span>`;
+        }
+
+        function formatNumber(value, decimals = 0) {
+            if (value === null || value === undefined) return '';
+            return new Intl.NumberFormat('vi-VN', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+
+        /**
+        * Get CSRF Token from hidden input tag in Razor Page form.
+        * This token is required to include in POST request header to avoid 400 Bad Request error.
+        * @@returns {string|null} Token value or null if not found.
+        */
+        function getCsrfToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        }
+
+        /*
+         * Get data from selected rows (checkboxes) on the table.
+         * Data is retrieved from Alpine state consistently.
+         */
+        function getSelectedRowsData(data) {
+            if (!data || !data.selectedRows) return [];
+
+            return data.selectedRows.map(row => ({
+                id: row.id,
+                dispatchNo: row.dispatchNo,
+                pickedQty: row.pickedQty,
+                status: row.dispatchStatus
+            }));
+        }
+
+        function canConfirmDelivery(data) {
+            const rows = getSelectedRowsData(data);
+            // Allow if at least one selected AND all status == 5 (Weighed)
+            return rows.length > 0 && rows.every(r => r.status === 5);
+        }
+
+        function canSign(data) {
+            const rows = getSelectedRowsData(data);
+            // Allow if at least one selected AND all status == 6 (Exported)
+            return rows.length > 0 && rows.every(r => r.status === 6);
+        }
+
+
+
+        /**
+         * Close Modal by adding 'hidden' class to element.
+         * @@param {string} id - ID of the Modal to close (Example: 'modalPacking', 'modalWeighing').
+         */
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        /**
+         * Checkbox 'Select All' Logic
+         * This function is called when the header checkbox changes
+         */
+        /**
+         * Checkbox 'Select All' Logic
+         * This function is called when the header checkbox changes
+         */
+        function toggleAllCheckboxes(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+            updateSelectAllCheckbox();
+        }
+
+        /**
+         * This function is called when a row checkbox changes
+         * Check if all are selected to update the header checkbox
+         */
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+
+            if (selectAllCheckbox) {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                selectAllCheckbox.checked = checkedCount === checkboxes.length && checkboxes.length > 0;
+                selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+            }
+        }
+
+
+        /**
+         *  Open Modal and show list of dispatches to deliver
+         */
+        function confirmDelivery(data) {
+            const selectedData = getSelectedRowsData(data);
+
+            // Validation
+            if (selectedData.length === 0) {
+                Notify.warning("@L["SelectAtLeastOneToDeliver"]");
+                return;
+            }
+
+            const tbody = document.getElementById('bodyDelivery');
+            tbody.innerHTML = '';
+
+            selectedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                        <td class="px-4 py-2 text-sm font-medium text-gray-900">
+                            ${item.dispatchNo}
+                            <input type="hidden" class="delivery-input"
+                                    data-id="${item.id}"
+                                    data-no="${item.dispatchNo}"
+                                    data-status="${item.status}"
+                                    data-picked="${item.pickedQty}">
+                        </td>
+                        <td class="px-4 py-2 text-center text-sm text-gray-700">${item.pickedQty}</td>
+                        <td class="px-4 py-2 text-center">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                @L["Ready"]
+                            </span>
+                        </td>
+                    `;
+                tbody.appendChild(tr);
+            });
+
+            // Open Modal
+            document.getElementById('modalDelivery').classList.remove('hidden');
+        }
+
+        /**
+         * Step 2: Send Ajax to Server
+         * Handler: ?handler=ConfirmDispatchHasDeliveried
+         */
+        async function submitDelivery() {
+            // 1. Collect data from modal
+            const inputs = document.querySelectorAll('.delivery-input');
+
+            // 2. Map data to DTO: DispatchListDeliveryDTO
+            const payload = Array.from(inputs).map(inp => ({
+                id: parseInt(inp.getAttribute('data-id')),
+                dispatch_no: inp.getAttribute('data-no'),
+
+                // Business Logic:
+                // 1. If backend needs CURRENT status to check concurrency -> get from data-status
+                // 2. If backend needs TARGET status (6) -> set to 6
+                // Here we set 6 (Delivered) following the flow.
+                dispatch_status: 6,
+
+                picked_qty: parseInt(inp.getAttribute('data-picked'))
+            }));
+
+            try {
+                const response = await fetch('?handler=ConfirmDispatchHasDeliveried', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                console.log("Submit response:", result); // Debug log
+
+                if (response.ok && (result.Status === true || result.success === true || result.status === true)) {
+                    Notify.success(result.Message || result.message);
+                    closeModal('modalDelivery');
+
+                    console.log("Dispatching reload-table event"); // Debug log
+                    // Instead of reloading page, dispatch event for Alpine to reload table
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.Message || result.message || "@L["DeliveryFailed"]");
+                }
+
+            } catch (error) {
+                console.error(error);
+                Notify.error("@L["ServerConnectionError"]");
+            }
+        }
+
+        function confirmSign(data) {
+            const selectedData = getSelectedRowsData(data);
+
+            if (selectedData.length === 0) {
+                Notify.warning("@L["SelectAtLeastOneToSign"]");
+                return;
+            }
+
+            const tbody = document.getElementById('bodySign');
+            tbody.innerHTML = '';
+
+            selectedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                            <td class="px-4 py-2 text-sm font-medium text-gray-900">
+                                ${item.dispatchNo}
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                ${renderStatusBadge(item.status)}
+                            </td>
+                            <td class="px-4 py-2 text-center">
+                                <input type="number" class="sign-input w-24 text-center border border-gray-300 rounded focus:ring-indigo-500 py-1"
+                                        value="0"
+                                        min="0"
+                                        onkeydown="return !['e', 'E', '-', '+'].includes(event.key)"
+                                        data-id="${item.id}"
+                                        data-no="${item.dispatchNo}"
+                                        data-status="${item.status}">
+                            </td>
+                        `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('modalSign').classList.remove('hidden');
+        }
+
+
+        async function submitSign() {
+            // 1. Collect data from modal
+            const inputs = document.querySelectorAll('.sign-input');
+
+            // 2. Map data to DTO: DispatchListSignDTO
+            const payload = Array.from(inputs).map(inp => ({
+                id: parseInt(inp.getAttribute('data-id')),
+                dispatch_no: inp.getAttribute('data-no'),
+
+                dispatch_status: parseInt(inp.getAttribute('data-status')),
+
+                damage_qty: parseInt(inp.value) || 0 // Damaged quantity
+            }));
+
+            // Validate payload
+            if (payload.some(i => i.damage_qty < 0)) {
+                Notify.error("@L["InvalidQuantity"]");
+                return;
+            }
+
+            try {
+                const response = await fetch('?handler=SignDispatchList', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success === true || result.status === true || result.Status === true) {
+                    Notify.success(result.message || result.Message);
+                    closeModal('modalSign');
+                    // Instead of reloading page, dispatch event for Alpine to reload table
+                    console.log("Dispatching reload-table event from Sign");
+                    window.dispatchEvent(new CustomEvent('datatable-reload'));
+                } else {
+                    Notify.error(result.message || "@L["SignFailed"]");
+                }
+
+            } catch (error) {
+                console.error(error);
+                Notify.error("@L["ServerConnectionError"]");
+            }
+        }
+
+    </script>
+}

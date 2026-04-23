@@ -1,0 +1,555 @@
+﻿@page
+@model Wms.Theme.Web.Pages.Inventory.Adjustment.CreateModel
+@{
+    ViewData["Title"] = L["CreateInventoryAdjustment"];
+}
+@Html.AntiForgeryToken()
+
+<div x-data="adjustmentCreate()" x-cloak class="space-y-6">
+    <!-- Header -->
+    <div
+        class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors duration-200">
+        <div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">@L["CreateInventoryAdjustment"]</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">@L["InventoryAdjustmentCreateTagline"]</p>
+        </div>
+        <div class="text-left sm:text-right">
+            <span class="block text-sm font-medium text-gray-500 dark:text-gray-400">@L["CreatedDate"]</span>
+            <span
+                class="block text-lg font-bold text-gray-800 dark:text-white">@DateTime.UtcNow.ToString("dd/MM/yyyy")</span>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div
+        class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">@L["InventoryAdjustmentDetail"]</h3>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[1000px] text-sm text-left text-gray-500 dark:text-gray-400"
+                id="adjustmentTable">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-200">
+                    <tr>
+                        <th class="py-3 px-4 w-[350px]">@Html.Raw(L["SelectStockSource"])</th>
+                        <th class="py-3 px-4">@Html.Raw(L["Code"])</th> <!-- Using generic Code key -->
+                        <th class="py-3 px-4">@Html.Raw(L["ItemName"])</th> <!-- Using generic ItemName key -->
+                        <th class="py-3 px-4">@Html.Raw(L["LotNo"])</th> <!-- Using generic LotNo key -->
+                        <th class="text-right py-3 px-4 w-24">@Html.Raw(L["SystemStock"])</th>
+                        <th class="py-3 px-4 w-32">@Html.Raw(L["ActualStock"])</th>
+                        <th class="text-right py-3 px-4 w-24">@Html.Raw(L["Difference"])</th>
+                        <th class="w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <template x-for="(row, index) in rows" :key="index">
+                        <tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <td class="p-2 align-top">
+                                <div class="relative cursor-pointer group" @@click="openModal(index)">
+                                    <input type="text" readonly
+                                        class="w-full py-2 pl-3 pr-8 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition placeholder-gray-400 dark:placeholder-gray-500"
+                                        :value="getRowDisplayValue(row)" placeholder="@L["ClickToSelectStock"]">
+                                    <div
+                                        class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-400 group-hover:text-blue-500">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-2 align-middle font-mono text-gray-600 dark:text-gray-300"
+                                x-text="row.sku_code || '-'"></td>
+                            <td class="p-2 align-middle text-gray-600 dark:text-gray-300 truncate max-w-[150px]"
+                                x-text="row.sku_name || '-'"></td>
+                            <td class="p-2 align-middle font-mono text-xs text-gray-600 dark:text-gray-300"
+                                x-text="row.series_number || '-'"></td>
+                            <td class="p-2 align-middle text-right font-bold text-gray-800 dark:text-gray-200 bg-blue-50 dark:bg-blue-900/20 rounded px-2"
+                                x-text="row.qty_available"></td>
+                            <td class="p-2 align-top">
+                                <input type="number" x-model="row.actual_qty" @@input="calculateDelta(row)"
+                                    @@keydown="if(['-', '+', 'e', 'E'].includes($event.key)) $event.preventDefault()"
+                                    :disabled="!row.sku_id"
+                                    class="w-full py-2 px-3 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-medium disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
+                                    placeholder="...">
+                            </td>
+                            <td class="p-2 align-middle text-right text-sm font-bold" :class="{
+                                    'text-gray-400 dark:text-gray-500': !row.deltaString, 
+                                    'text-green-600 dark:text-green-400': row.delta > 0, 
+                                    'text-red-600 dark:text-red-400': row.delta < 0,
+                                    'text-gray-500 dark:text-gray-400': row.delta === 0
+                                }" x-text="row.deltaString || '-'">
+                            </td>
+                            <td class="p-2 align-middle text-center">
+                                <button type="button" @@click="removeRow(index)"
+                                    class="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            <button type="button" @@click="addNewRow()"
+                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-blue-500 dark:border-blue-500 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-600 transition text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                @L["AddRow"]
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
+        <a href="/Inventory/Adjustment"
+           class="px-6 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+                </path>
+            </svg>
+            @Html.Raw(L["BackToList"])
+        </a>
+        <div x-data="{ loading: false }">
+            <button type="button"
+                    @@click.prevent ="if (!loading) { loading = true; submitForm().finally(() => loading = false) }"
+                    :disabled="loading"
+                    class="px-5 py-2 bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <span x-show="!loading">@L["CompleteAdjustment"]</span>
+                <span x-show="loading">@L["Processing"]...</span>
+            </button>
+        </div>
+    </div>
+
+    @* <button @@click.prevent ="submitForm()"
+            class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-sm font-medium shadow-md transition focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+            @L["CompleteAdjustment"]
+        </button> *@
+
+    <!-- Modal -->
+    <div x-show="modalOpen" style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto"
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+
+            <div x-show="modalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @@click="closeModal()"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="modalOpen" x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border border-gray-200 dark:border-gray-700">
+
+                <!-- Modal Header -->
+                <div class="bg-blue-700 px-4 py-3 sm:px-6 flex justify-between items-center">
+                    <h3 class="text-lg leading-6 font-medium text-white" id="modal-title">
+                        @L["SearchAndSelectStock"]
+                    </h3>
+                    <button type="button" @@click="closeModal()"
+                        class="text-white hover:text-gray-200 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Search -->
+                <div
+                    class="bg-gray-50 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600 flex gap-2">
+                    <div class="relative w-full">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" x-model="searchKeyword" @@input.debounce.500ms="searchStock(1)"
+                            class="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm transition shadow-sm"
+                            placeholder="@L["StockSearchPlaceholder"]" autocomplete="off">
+                        <div x-show="loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Data -->
+                <div class="px-0 py-0 h-[450px] overflow-y-auto bg-white dark:bg-gray-800">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0 shadow-sm z-10">
+                            <tr>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-32">
+                                    @L["Location"]</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    @L["Code"]</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    @L["ItemName"]</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-40">
+                                    @L["LotNo"]</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-40">
+                                    @L["ExpiryDate"]</th>
+                                @* <th
+                                    class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-24">
+                                    @L["Stock"]</th> *@
+                                <th
+                                    class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-24">
+                                    @L["Availability"]</th>
+                                <th
+                                    class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-20">
+                                    @L["Select"]</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <template x-for="(item, index) in stockData" :key="index">
+                                <tr class="border-b border-gray-100 dark:border-gray-700"
+                                    :class="item.qty_available > 0 ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer' : 'opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-800/50'"
+                                    @@click="item.qty_available > 0 && selectStockItem(item)">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
+                                        x-text="item.location_name"></td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-400">
+                                        <div class="font-bold text-blue-700 dark:text-blue-400" x-text="item.sku_code">
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-900">
+                                        <div class="text-xs text-gray-700 dark:text-gray-900 truncate max-w-[200px]"
+                                             x-text="item.sku_name"></div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                                        <div><span x-text="item.series_number || '-'"></span></div>                                        
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                                        <div class="text-xs text-gray-700 dark:text-gray-600">
+                                           <span x-text="formatDate(item.expiry_date)"></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold"
+                                        :class="item.qty_available > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'"
+                                        x-text="item.qty_available"></td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                        <template x-if="item.qty_available > 0">
+                                            <button
+                                                class="text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded px-2 py-1 text-xs">@L["Select"]</button>
+                                        </template>
+                                        <template x-if="item.qty_available <= 0">
+                                            <span class="text-gray-400 text-xs">@L["OutOfStock"]</span>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    <div x-show="loading" class="flex flex-col items-center justify-center py-10">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">@L["LoadingData"]</span>
+                    </div>
+
+                    <div x-show="!loading && stockData.length === 0"
+                        class="flex flex-col items-center justify-center py-10 text-gray-500 dark:text-gray-400">
+                        <span>@L["NoDataFound"]</span>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div
+                    class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
+                    <div class="text-sm text-gray-500 dark:text-gray-300"><span x-text="totalRecords"></span>
+                        @L["Results"]</div>
+                    <div class="flex gap-2">
+                        <button @@click="changePage(-1)" :disabled="page <= 1"
+                            class="bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-white px-3 py-1 rounded-md text-sm hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50">@L["Previous"]</button>
+                        <span
+                            class="px-3 py-1 text-sm font-medium text-gray-700 dark:text-white bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md flex items-center"
+                            x-text="`@L["Page"] ${page} / ${totalPages}`"></span>
+                        <button @@click="changePage(1)" :disabled="page >= totalPages || totalRecords === 0"
+                            class="bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-white px-3 py-1 rounded-md text-sm hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50">@L["Next"]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const i18n = {
+            createSuccess: '@L["CreateSuccess"]',
+            errorInputActualQty: '@L["ErrorInputActualQty"]',
+            errorNoRows: '@L["ErrorNoRows"]',
+            errorSystem: '@L["ErrorSystem"]'
+        };
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('adjustmentCreate', () => ({
+                rows: [],
+                modalOpen: false,
+                loading: false,
+                stockData: [],
+                searchKeyword: '',
+                page: 1,
+                pageSize: 10,
+                totalRecords: 0,
+                totalPages: 0,
+                currentRowIndex: null,
+
+                init() {
+                    this.rows.push(this.createEmptyRow());
+                },
+
+                createEmptyRow() {
+                    return {
+                        sku_id: 0,
+                        sku_code: '',
+                        sku_name: '',
+                        location_name: '',
+                        series_number: '',
+                        qty_available: 0,
+                        actual_qty: '',
+                        delta: 0,
+                        deltaString: '',
+                        // Hidden fields
+                        goods_location_id: 0,
+                        goods_owner_id: 0,
+                        goods_owner_name: '',
+                        price: 0,
+                        expiry_date: '',
+                        putaway_date: '',
+                        spu_code: '',
+                        spu_name: '',
+                        warehouse_name: ''
+                    };
+                },
+
+                addNewRow() {
+                    this.rows.push(this.createEmptyRow());
+                },
+
+                removeRow(index) {
+                    if (this.rows.length > 1) {
+                        this.rows.splice(index, 1);
+                    } else {
+                        // If only one row, just clear it
+                        this.rows[0] = this.createEmptyRow();
+                    }
+                },
+
+                getRowDisplayValue(row) {
+                    if (!row.sku_id) return '';
+                    const lotText = row.series_number ? ` | @Html.Raw(L["LotNo"]): ${row.series_number}` : "";
+                    if((row.location_name ?? "").length < 1) {
+                        return `[${row.sku_code}] Avail: ${row.qty_available} ${lotText}`;
+                    }
+
+                    return `[${row.location_name}] ${row.sku_code} (Avail: ${row.qty_available}) ${lotText}`;
+                },
+
+                calculateDelta(row) {
+                    if (row.actual_qty) {
+                        // Sanitize input: remove any non-digit characters
+                        row.actual_qty = row.actual_qty.toString().replace(/[^0-9]/g, '');
+                    }
+
+                    if (row.actual_qty === '' || row.actual_qty === null) {
+                        row.deltaString = '';
+                        row.delta = 0;
+                        return;
+                    }
+                    const actual = parseInt(row.actual_qty);
+                    const sys = parseInt(row.qty_available);
+                    row.delta = actual - sys;
+                    row.deltaString = row.delta > 0 ? `+${row.delta}` : `${row.delta}`;
+                },
+
+                openModal(index) {
+                    this.currentRowIndex = index;
+                    this.modalOpen = true;
+                    this.searchKeyword = '';
+                    this.page = 1;
+                    this.searchStock(1);
+                },
+
+                closeModal() {
+                    this.modalOpen = false;
+                    this.currentRowIndex = null;
+                },
+
+                async searchStock(page) {
+                    this.page = page;
+                    this.loading = true;
+                    this.stockData = [];
+
+                    try {
+                        const url = `?handler=StockData&searchKey=${encodeURIComponent(this.searchKeyword)}&pageIndex=${page}`;
+                        const response = await fetch(url);
+                        const result = await response.json();
+
+                        if (result.success) {
+                            this.stockData = result.data || [];
+                            this.totalRecords = result.totals || 0;
+                            this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
+                        } else {
+                            this.stockData = [];
+                            this.totalRecords = 0;
+                            this.totalPages = 0;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        Notify.error(i18n.errorSystem);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                changePage(dir) {
+                    const newPage = this.page + dir;
+                    if (newPage > 0 && newPage <= this.totalPages) {
+                        this.searchStock(newPage);
+                    }
+                },
+
+                selectStockItem(item) {
+                    if (this.currentRowIndex === null) return;
+
+                    const row = this.rows[this.currentRowIndex];
+                    row.sku_id = item.sku_id;
+                    row.sku_code = item.sku_code;
+                    row.sku_name = item.sku_name;
+                    row.location_name = item.location_name;
+                    row.series_number = item.series_number;
+                    row.qty_available = item.qty_available;
+
+                    row.goods_location_id = item.goods_location_id;
+                    row.goods_owner_id = item.goods_owner_id;
+                    row.goods_owner_name = item.goods_owner_name;
+                    row.price = item.price;
+                    row.expiry_date = item.expiry_date;
+                    row.putaway_date = item.putaway_date;
+                    row.spu_code = item.spu_code;
+                    row.spu_name = item.spu_name;
+                    row.warehouse_name = item.warehouse_name;
+
+                    // Reset input
+                    row.actual_qty = '';
+                    this.calculateDelta(row);
+
+                    this.closeModal();
+                },
+
+                formatDate(dateString) {
+                    if (!dateString || dateString.startsWith('0001')) return '-';
+                    return new Date(dateString).toLocaleDateString('@(System.Globalization.CultureInfo.CurrentCulture.Name)');
+                },
+
+                async submitForm() {
+                    const detailList = [];
+                    let hasError = false;
+                    for (const row of this.rows) {
+                        if (!row.sku_id) continue;
+
+                        if (row.actual_qty === '' || row.actual_qty === null) {
+                            hasError = true;
+                            break;
+                        }
+
+                        const delta = row.delta;
+                        if (delta === 0) continue;
+
+                        let finalQty = 0;
+                        let isSource = false;
+                        if (delta < 0) {
+                            isSource = true;
+                            finalQty = Math.abs(delta);
+                        } else {
+                            isSource = false;
+                            finalQty = delta;
+                        }
+
+                        detailList.push({
+                            sku_id: row.sku_id,
+                            goods_location_id: row.goods_location_id,
+                            goods_owner_id: row.goods_owner_id,
+                            qty: finalQty,
+                            is_source: isSource,
+                            is_update_stock: false,
+                            series_number: row.series_number || "",
+                            price: row.price || 0,
+                            expiry_date: row.expiry_date || new Date().toISOString(),
+                            putaway_date: row.putaway_date || new Date().toISOString(),
+                            sku_code: row.sku_code || "",
+                            spu_code: row.spu_code || "",
+                            spu_name: row.spu_name || "",
+                            location_name: row.location_name || "",
+                            unit: ""
+                        });
+                    }
+
+                    if (hasError) {
+                        Notify.warning(i18n.errorInputActualQty);
+                        return;
+                    }
+                    if (detailList.length === 0) {
+                        Notify.warning(i18n.errorNoRows);
+                        return;
+                    }
+
+                    const payload = {
+                        id: 0,
+                        job_type: true,
+                        job_code: "",
+                        process_status: false,
+                        detailList: detailList
+                    };
+
+                    try {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const response = await fetch('?handler=Async', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            Notify.success(i18n.createSuccess);
+                            setTimeout(() => {
+                                window.location.href = '/Inventory/Adjustment';
+                            }, 100);
+                        } else {
+                            Notify.error(result.message || i18n.errorSystem);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        Notify.error(i18n.errorSystem);
+                    }
+                }
+            }));
+        });
+    </script>
+}

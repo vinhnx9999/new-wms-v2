@@ -1,0 +1,264 @@
+@page
+@model Wms.Theme.Web.Pages.System.UsersModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> Localizer
+
+@{
+    ViewData["Title"] = L["Users"];
+}
+
+<div class="flex items-start justify-between p-4">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">@L["Users"]</h1>
+        <p class="mt-1 text-gray-600 dark:text-gray-300">@L["ManageSystemUsersAndRoles"]</p>
+    </div>
+    <div class="flex gap-3">
+        <button type="button"
+                title="@L["NewUser"]"
+                onclick="openNewUserModal()"
+                class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-r-md text-gray-600 hover:bg-gray-200 hover:text-blue-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    </div>
+</div>
+    
+<div class="bg-white rounded-lg shadow overflow-hidden">       
+    <div class="overflow-x-auto">
+        <div id="gridCurrentUsers" class="ag-theme-quartz" style="height: 500px; width: 100%;"></div>            
+    </div>
+</div>
+
+@await Html.PartialAsync("ManageUsers/_NewUserModal")
+
+@section Scripts {
+    <script>
+
+        function closeNewUserModal() {
+          document.getElementById("newUserModal").classList.remove("flex");
+          document.getElementById("newUserModal").classList.add("hidden");
+        }
+
+        function openNewUserModal() {
+            document.getElementById("newUserModal").classList.remove("hidden");
+            document.getElementById("newUserModal").classList.add("flex");
+        }
+
+        async function saveNewUser() {
+            const name = document.getElementById('newUserName').value.trim();
+            const displayName = document.getElementById('newUserDisplayName').value.trim();
+            const contactTel = document.getElementById('newUserContactTel').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+
+                const response = await fetch('?handler=AddUserName', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        userName: name,
+                        email: email,
+                        displayName: displayName,
+                        contactTel: contactTel
+                    })
+                });
+
+                const result = await response.json();
+                if(result.success) {
+                        Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                        closeNewUserModal();
+                        setTimeout(() => {
+                            location.reload();
+                        }, 750);
+                    } else {
+                        Notify.info(result.message || 'Failed to activate warehouse');
+                    }
+            } catch (error) {
+                console.error('Error saving warehouse:', error);
+            }
+        }
+
+        const rowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data));
+
+        const colUserDefs = [
+            { 
+                field: "Username",
+                headerName: '@Html.Raw(Localizer["Username"])',
+                pinned: 'left',
+                sortable: true, 
+                filter: true
+            },
+            { 
+                field: "DisplayName",
+                headerName: '@Html.Raw(Localizer["DisplayName"])',
+                sortable: true,
+                filter: true,
+                editable: true  
+            },
+            { 
+                field: "Email",
+                headerName: '@Html.Raw(Localizer["Email"])',
+                sortable: true, 
+                editable: true,
+                filter: true 
+            },          
+            {
+              headerName: '@Html.Raw(Localizer["Role"])',
+              field: "Role",
+              editable: true,
+              cellEditor: 'agSelectCellEditor',
+              cellEditorParams: {
+                values: ['Guest', 'Operator', 'Admin']
+              }
+            },
+            { 
+                field: "CellPhone",
+                headerName: '@Html.Raw(Localizer["CreateReceipt_Phone"])',
+                sortable: true, 
+                filter: true,
+                editable: true 
+            },
+            { 
+                field: "Id",
+                headerName: "@Html.Raw(Localizer["Status"])", 
+                cellRenderer: (params) => {
+                      if(params.data.IsActive){
+                          const txtActive = document.createElement("span");
+                          txtActive.classList.add("badge", "bg-success");
+                          txtActive.title = "@Html.Raw(Localizer["Active"])";
+                          txtActive.innerHTML = "@Html.Raw(Localizer["Active"])";
+                          return txtActive;
+                      }
+
+                      return "";
+                  }
+              },
+              {
+                headerName: '',
+                field: "Actions",
+                width: 100,
+                pinned: 'right',
+                sortable: false,
+                filter: false,
+                cellRenderer: (params) => {
+            
+                    const container = document.createElement("div");
+                    container.className = "flex items-center gap-2 h-full";
+
+                    if(!params.data.CanActive) return container;
+
+                    const btnToggleStatus = document.createElement("button");
+                    btnToggleStatus.classList.add("btn", "btn-ghost", "btn-sm", "p-1");
+        
+                    if(params.data.IsActive) {
+                        btnToggleStatus.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 hover:text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>`;
+                        btnToggleStatus.title = "Deactive";
+                        btnToggleStatus.addEventListener("click", () => {
+                            params.api.applyTransaction({ remove: [params.node.data] });
+                            deActiveUser(params.data.Id);
+                        });
+                    } else {
+                        btnToggleStatus.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 hover:text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>`;
+                        btnToggleStatus.title = "Active";
+                        btnToggleStatus.addEventListener("click", () => {
+                            params.api.applyTransaction({ remove: [params.node.data] });
+                            activeUser(params.data.Id);
+                        });
+                    }
+                    container.appendChild(btnToggleStatus);
+
+                    if(params.data.IsActive) {
+                        const btnReset = document.createElement("button");
+                        btnReset.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500 hover:text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>`;
+                        btnReset.title = "Reset Password";
+                        btnReset.classList.add("btn", "btn-ghost", "btn-sm", "p-1");
+
+                        btnReset.addEventListener("click", () => {
+                            resetUserPassword(params.data.Id);
+                        });
+                        container.appendChild(btnReset);
+                    }
+
+                     return container;
+                    },
+                }
+            ];
+
+        const gridUserOptions = {
+            columnDefs: colUserDefs,
+            rowData: rowData,
+            pagination: true,
+            paginationPageSize: 10,
+            paginationPageSizeSelector: [10, 20, 50],
+            defaultColDef: {
+                sortable: true,
+                filter: true,
+                resizable: true,
+            },
+            onCellValueChanged: function(event) {          
+              postData('?handler=UpdateUserInfo', event.data)
+                .then((result) => {
+                    Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gridDiv = document.querySelector('#gridCurrentUsers');
+            agGrid.createGrid(gridDiv, gridUserOptions);
+        });
+
+        function deActiveUser(id) {
+            postData('?handler=DeActiveUser', { userId: id })
+            .then((result) => {
+                 Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            });
+        }   
+
+        function activeUser(id) {
+            postData('?handler=ActiveUser', { userId: id })
+            .then((result) => {
+                Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            });
+        }
+
+        function resetUserPassword(id) {
+                postData('?handler=ResetUserPassword', { Id: id })
+                .then((result) => {
+                    Notify.info('@Html.Raw(Localizer["OperationSuccessful"])');
+                });
+            }
+
+        async function postData(url, data) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify(data)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return await response.json();
+                
+                }
+    </script>
+    }

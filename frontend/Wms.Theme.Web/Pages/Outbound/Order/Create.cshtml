@@ -1,0 +1,1069 @@
+﻿@page "/Outbound/Order/Create"
+@model Wms.Theme.Web.Pages.Outbound.Order.CreateModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Wms.Theme.Web.SharedResource> L
+@{
+    ViewData["Title"] = L["CreateOutboundOrder"];
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+        display: flex;
+        padding-bottom: 2rem;
+    }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::after {
+            content: "";
+            position: absolute;
+            left: 5.5px;
+            top: 18px;
+            bottom: -6px;
+            width: 1.5px;
+            background-color: #e2e8f0;
+            z-index: 0;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+    .timeline-item-point {
+        width: 12px;
+        height: 12px;
+        margin-top: 6px;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px #e2e8f0;
+    }
+
+    .timeline-item-content {
+        flex: 1;
+        padding-left: 1.5rem;
+    }
+
+    .timeline-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+</style>
+
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 lg:col-span-9 bg-white p-4 rounded-lg shadow-sm">
+        <h2 class="font-bold text-gray-800 mb-4 border-b pb-2">Thông tin chung</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Mã đối tượng</label>
+                    <select id="goodsOwnerSelect" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500 bg-white">
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Kho xuất <span class="text-red-500">*</span></label>
+                    <select id="warehouseSelect" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500 bg-white">
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Người thực hiện</label>
+                    <input id="creator" type="text" value="@Model.Creator" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Khách hàng</label>
+                    <select id="customerSelect" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500 bg-white">
+                        <option value="">Chọn khách hàng</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Diễn giải</label>
+                    <input id="description" type="text" value="Lệnh xuất kho hàng hóa" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                </div>
+                <div class="input-group">
+                    <label class="block text-gray-700 font-medium mb-1">Tham chiếu</label>
+                    <div class="relative">
+                        <input id="reference" type="text" class="w-full border border-gray-300 rounded px-3 py-2 pr-8 focus:outline-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute right-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Số lệnh xuất kho <span class="text-red-500">*</span></label>
+                    <input id="dispatchNo" type="text" value="@Model.DispatchNo" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Ngày lập lệnh</label>
+                    <div class="relative">
+                        <input id="createTime" type="text" value="@Model.CurrentDate" class="datetime-picker w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Ngày giao dự kiến</label>
+                    <div class="relative">
+                        <input id="estimatedDelivery" type="text" value="@Model.CurrentDate" class="datetime-picker w-full border border-gray-300 rounded px-3 py-2 focus:outline-blue-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-3 bg-white p-4 rounded-lg shadow-sm h-full">
+        <h2 class="font-bold text-gray-800 mb-4 border-b pb-2">Theo dõi tình trạng</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-item-point rounded-full bg-blue-500"></div>
+                <div class="timeline-item-content">
+                    <div class="timeline-item-header">
+                        <span class="font-medium text-gray-800 text-sm">Tạo mới</span>
+                        <span class="text-xs text-gray-400">@Model.CurrentDate</span>
+                    </div>
+                    <p class="text-xs text-gray-500">Đang tạo lệnh xuất kho</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="p-6" x-data="outboundDetailTable()">
+    <h3 class="font-bold text-lg text-gray-800 mb-4">Hàng hóa xuất kho</h3>
+
+    <div class="mb-4">
+        <div class="relative w-full max-w-sm">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                </svg>
+            </div>
+            <input type="text" x-model="searchKeyword" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5" placeholder="Tìm kiếm...">
+        </div>
+    </div>
+
+    <div class="overflow-x-auto border rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-2 py-2 w-12">#</th>
+                    <th scope="col" class="px-2 py-2 w-48">Mã hàng</th>
+                    <th scope="col" class="px-2 py-2 w-40">Tên hàng</th>
+                    <th scope="col" class="px-2 py-2 w-28">ĐVT</th>
+                    <th scope="col" class="px-2 py-2 w-24">Tồn kho</th>
+                    <th scope="col" class="px-2 py-2 w-24">SL yêu cầu</th>
+                    <th scope="col" class="px-2 py-2 w-24">SL thực xuất</th>
+                    <th scope="col" class="px-2 py-2 w-18 text-center">Đánh dấu đủ</th>
+                    <th scope="col" class="px-2 py-2 w-28">Số lô</th>
+                    <th scope="col" class="px-2 py-2 w-28">Vị trí</th>
+                    <th scope="col" class="px-2 py-2 w-36">Hạn sử dụng</th>
+                    <th scope="col" class="px-2 py-2 w-20"></th>
+                </tr>
+            </thead>
+            <template x-for="(item, index) in paginatedItems" :key="getRealIndex(index)">
+                <tbody>
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-1 py-1" x-text="getRealIndex(index) + 1"></td>
+                        <td class="px-1 py-1">
+                            <select x-model="item.skuId" @@change="onSkuChange(getRealIndex(index), $event.target.value)" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                <option value="">Chọn hàng hóa</option>
+                                <template x-for="sku in skuOptions" :key="sku.sku_id">
+                                    <option :value="sku.sku_id" x-text="sku.sku_code + ' - ' + sku.sku_name"></option>
+                                </template>
+                            </select>
+                        </td>
+                        <td class="px-1 py-1 relative">
+                            <div class="sku-search-container" :data-row-index="getRealIndex(index)">
+                                <input type="text" x-model="item.skuName"
+                                       @@focus="openSkuSearch(getRealIndex(index))"
+                                       @@input="debounceSkuSearch($event.target.value, getRealIndex(index))"
+                                       @@keydown.escape="closeSkuSearch(getRealIndex(index))"
+                                       @@keydown.arrow-down.prevent="navigateSkuResult(getRealIndex(index), 'down')"
+                                       @@keydown.arrow-up.prevent="navigateSkuResult(getRealIndex(index), 'up')"
+                                       @@keydown.enter.prevent="selectHighlightedSku(getRealIndex(index))"
+                                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded block w-full p-1.5 pr-8"
+                                       placeholder="Nhập tên SKU...">
+                                <div class="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <div x-show="skuSearchState[getRealIndex(index)]?.loading" class="absolute inset-y-0 right-8 flex items-center">
+                                    <svg class="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <div x-show="skuSearchState[getRealIndex(index)]?.isOpen && skuSearchState[getRealIndex(index)]?.results?.length > 0"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     @@click.away="closeSkuSearch(getRealIndex(index))"
+                                     class="absolute z-50 mt-1 w-80 max-h-60 overflow-auto bg-white border border-gray-300 rounded-lg shadow-lg">
+                                    <ul class="py-1">
+                                        <template x-for="(sku, skuIdx) in skuSearchState[getRealIndex(index)]?.results || []" :key="sku.sku_id">
+                                            <li @@click="selectSkuFromSearch(getRealIndex(index), sku)"
+                                                @@mouseenter="skuSearchState[getRealIndex(index)].highlightIndex = skuIdx"
+                                                :class="{'bg-blue-50': skuSearchState[getRealIndex(index)]?.highlightIndex === skuIdx}"
+                                                class="px-3 py-2 cursor-pointer hover:bg-gray-100 border-b border-gray-100 last:border-0">
+                                                <div class="flex justify-between items-start">
+                                                    <div class="flex-1">
+                                                        <div class="font-medium text-gray-900 text-sm" x-text="sku.sku_code"></div>
+                                                        <div class="text-gray-600 text-xs" x-text="sku.sku_name"></div>
+                                                        <div class="text-gray-400 text-xs" x-text="sku.spu_name"></div>
+                                                    </div>
+                                                    <div class="text-right ml-2">
+                                                        <div class="text-green-600 font-semibold text-sm" x-text="sku.qty_available"></div>
+                                                        <div class="text-gray-400 text-xs">Khả dụng</div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                                <div x-show="skuSearchState[getRealIndex(index)]?.isOpen && skuSearchState[getRealIndex(index)]?.searched && skuSearchState[getRealIndex(index)]?.results?.length === 0 && !skuSearchState[getRealIndex(index)]?.loading"
+                                     class="absolute z-50 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-gray-500 text-sm text-center">
+                                    Không tìm thấy SKU nào
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-1 py-1">
+                            <select x-model="item.unit" @@change="onUomChange(getRealIndex(index), item.unit)" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                                <option value="">Đơn vị</option>
+                                <template x-for="uom in getUomOptions(item.skuId)" :key="uom.unitName">
+                                    <option :value="uom.unitName" x-text="uom.unitName" :selected="item.unit === uom.unitName"></option>
+                                </template>
+                            </select>
+                        </td>
+                        <td class="px-1 py-1">
+                            <input type="number" x-model="item.stockAvailable" readonly class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded block w-full p-1.5 text-right cursor-not-allowed">
+                        </td>
+                        <td class="px-1 py-1">
+                            <input type="number" x-model="item.qtyRequiredDecimal" min="0" step="0.01" :max="item.stockAvailable" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 text-right">
+                        </td>
+                        <td class="px-1 py-1">
+                            <input type="number" x-model="item.qtyDispatchedDecimal" min="0" step="0.01" :max="item.qtyRequiredDecimal" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 text-right">
+                        </td>
+                        <td class="px-1 py-1 text-center">
+                            <input type="checkbox" x-model="item.isFull" @@change="toggleFull(index)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                        </td>
+                        <td class="px-1 py-1">
+                            <input type="text" x-model="item.lotNo" class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                        </td>
+
+                       <td class="px-1 py-1 align-top">
+                            <button @@click="openLocationModal(index)"
+                                    class="w-full bg-blue-50 border border-blue-500 text-blue-600 px-2 py-1.5 rounded hover:bg-blue-500 hover:text-white transition-colors text-xs font-medium flex items-center justify-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <span x-show="!item.palletSelections || item.palletSelections.length === 0">Chọn Pallet</span>
+                                <span x-show="item.palletSelections && item.palletSelections.length > 0" 
+                                    x-text="'Đã chọn ' + item.palletSelections.length"></span>
+                            </button>
+
+                            <div x-show="item.palletSelections && item.palletSelections.length > 0" 
+                                class="mt-1.5 flex flex-col gap-1 max-h-24 overflow-y-auto pr-1">
+                                <template x-for="(sel, sIdx) in item.palletSelections" :key="sIdx">
+                                    <div class="text-[11px] bg-gray-50 border border-gray-200 rounded px-1.5 py-1 flex justify-between items-center shadow-sm">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-gray-700" x-text="sel.pallet_code"></span>
+                                            <span class="text-gray-400" style="font-size: 10px;" x-text="sel.location_name"></span>
+                                        </div>
+                                        <span class="text-blue-600 font-bold bg-blue-100 px-1.5 py-0.5 rounded" x-text="sel.pick_qty"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </td>
+
+                        <td class="px-1 py-1">
+                            <input type="text" x-model="item.expiryDate" readonly class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded block w-full p-1.5 cursor-not-allowed" placeholder="dd/mm/yyyy">
+                        </td>
+                        <td class="px-1 py-1 flex gap-1.5">
+                            <button @@click="toggleNote(getRealIndex(index))" type="button" class="font-medium hover:bg-gray-100 p-1 rounded" :class="item.showNote ? 'text-blue-600' : 'text-gray-400'" title="Thêm ghi chú">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                            </button>
+                            <button @@click="removeRow(getRealIndex(index))" type="button" class="font-medium text-red-600 hover:underline">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr x-show="item.showNote" class="bg-gray-50 border-b">
+                        <td class="px-2 py-1.5"></td>
+                        <td class="px-2 py-1.5"></td>
+                        <td class="px-2 py-1.5" colspan="10">
+                            <input type="text" x-model="item.description" placeholder="Nhập ghi chú..." class="bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">
+                        </td>
+                    </tr>
+                </tbody>
+            </template>
+            <tbody>
+                <tr class="bg-gray-50 font-bold text-gray-700">
+                    <td colspan="5" class="px-4 py-2 text-right">Tổng số: <span x-text="items.length"></span></td>
+                    <td class="px-4 py-2 text-right" x-text="totalQtyRequired()"></td>
+                    <td class="px-4 py-2 text-right" x-text="totalQtyDispatched()"></td>
+                    <td colspan="5"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex items-center justify-end mt-4 gap-2 text-sm text-gray-600">
+        <span>Số dòng/trang</span>
+        <select class="border border-gray-300 rounded p-1 focus:outline-blue-500" x-model="pageSize" @@change="changePageSize($event.target.value)">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+        <span>
+            <span x-text="startIndex"></span> - <span x-text="endIndex"></span> của <span x-text="items.length"></span>
+        </span>
+        <div class="flex gap-1">
+            <button @@click="firstPage()" :disabled="currentPage === 1" class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                    <path fill-rule="evenodd" d="M15.79 14.77a.75.75 0 0 1-1.06.02l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 1 1 1.04 1.08L11.832 10l3.938 3.71a.75.75 0 0 1 .02 1.06Zm-6 0a.75.75 0 0 1-1.06.02l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 1 1 1.04 1.08L5.832 10l3.938 3.71a.75.75 0 0 1 .02 1.06Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <button @@click="prevPage()" :disabled="currentPage === 1" class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1-.02 1.06L8.832 10l3.938 3.71a.75.75 0 1 1-1.04 1.08l-4.5-4.25a.75.75 0 0 1 0-1.08l4.5-4.25a.75.75 0 0 1 1.06.02Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <button @@click="nextPage()" :disabled="currentPage === totalPages || totalPages === 0" class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                    <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <button @@click="lastPage()" :disabled="currentPage === totalPages || totalPages === 0" class="p-1 px-2 border rounded hover:bg-gray-100 disabled:opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                    <path fill-rule="evenodd" d="M4.21 6.23a.75.75 0 0 1 1.06-.02l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 1 1-1.04-1.08L8.168 10 4.23 6.29a.75.75 0 0 1-.02-1.06Zm6 0a.75.75 0 0 1 1.06-.02l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 1 1-1.04-1.08L14.168 10 10.23 6.29a.75.75 0 0 1-.02-1.06Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mt-4">
+        <button @@click="addRow()" type="button" class="flex items-center gap-1 px-3 py-1.5 text-blue-600 border border-blue-600 rounded hover:bg-blue-50 font-medium text-sm transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Thêm dòng
+        </button>
+        <button @@click="clearAll()" type="button" class="flex items-center gap-1 px-3 py-1.5 text-gray-700 border border-gray-300 rounded hover:bg-gray-50 font-medium text-sm transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>
+            Xóa hết dòng
+        </button>
+    </div>
+
+    <div x-show="palletModal.open" class="fixed inset-0 z-[60] flex items-center justify-center" style="display:none">
+        <div class="absolute inset-0 bg-black/50" @@click="closePalletModal()"></div>
+        <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">
+                        Chọn Pallet — <span class="text-blue-600" x-text="palletModal.skuName"></span>
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        SL yêu cầu: <span class="font-semibold text-gray-700" x-text="palletModal.requiredQty"></span>
+                    </p>
+                </div>
+                <button @@click="closePalletModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div x-show="palletModal.loading" class="p-8 text-center text-gray-500">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-2 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Đang tải dữ liệu pallet...
+            </div>
+            <div x-show="!palletModal.loading" class="overflow-auto flex-1 p-4">
+                <div x-show="palletModal.pallets.length === 0" class="text-center py-8 text-gray-400">
+                    Không tìm thấy pallet khả dụng cho SKU này.
+                </div>
+                <table x-show="palletModal.pallets.length > 0" class="w-full text-sm text-left border">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2">Mã Pallet</th>
+                            <th class="px-3 py-2">Vị trí</th>
+                            <th class="px-3 py-2">Kho</th>
+                            <th class="px-3 py-2">HSD</th>
+                            <th class="px-3 py-2 text-right">SL khả dụng</th>
+                            <th class="px-3 py-2 text-right">SL đề xuất</th>
+                            <th class="px-3 py-2 text-right w-32">SL lấy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(p, pi) in palletModal.pallets" :key="pi">
+                            <tr class="border-b hover:bg-gray-50" :class="p.pick_qty > 0 ? 'bg-blue-50' : ''">
+                                <td class="px-3 py-2 font-mono text-xs" x-text="p.pallet_code"></td>
+                                <td class="px-3 py-2" x-text="p.location_name"></td>
+                                <td class="px-3 py-2" x-text="p.warehouse_name"></td>
+                                <td class="px-3 py-2 text-xs" x-text="p.expiry_date ? new Date(p.expiry_date).toLocaleDateString('vi-VN') : '—'"></td>
+                                <td class="px-3 py-2 text-right font-medium" x-text="p.qty_available"></td>
+                                <td class="px-3 py-2 text-right">
+                                    <span x-show="p.suggested_qty > 0" class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium" x-text="p.suggested_qty"></span>
+                                    <span x-show="p.suggested_qty <= 0" class="text-gray-300">—</span>
+                                </td>
+                                <td class="px-3 py-2 text-right">
+                                    <input type="number" x-model.number="p.pick_qty" min="0" :max="p.qty_available" step="1" 
+                                        @@input="if(p.pick_qty > p.qty_available) p.pick_qty = p.qty_available;" 
+                                        class="w-24 border border-gray-300 rounded text-sm p-1 text-right focus:ring-blue-500 focus:border-blue-500">
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+            <div x-show="!palletModal.loading && palletModal.pallets.length > 0" class="p-4 border-t flex items-center justify-between">
+                <div class="text-sm">
+                    Tổng SL đã chọn:
+                    <span class="font-bold text-lg" :class="palletTotalPickQty() >= palletModal.requiredQty ? 'text-green-600' : 'text-orange-500'" x-text="palletTotalPickQty()"></span>
+                    <span class="text-gray-400">/ <span x-text="palletModal.requiredQty"></span></span>
+                    <span x-show="palletTotalPickQty() < palletModal.requiredQty" class="text-orange-500 text-xs ml-2">Chưa đủ số lượng</span>
+                    <span x-show="palletTotalPickQty() >= palletModal.requiredQty" class="text-green-600 text-xs ml-2">Đủ số lượng</span>
+                </div>
+                <div class="flex gap-2">
+                    <button @@click="closePalletModal()" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 font-medium text-sm">
+                        Hủy
+                    </button>
+                    <button @@click="confirmPalletSelection()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm">
+                        Xác nhận chọn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="h-20"></div>
+
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+    <div class="container mx-auto flex justify-end items-center gap-3">
+        <button type="button" onclick="window.location.href='@Url.Page("/Outbound/Order/Index")'" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+            Hủy
+        </button>
+        <button type="button" onclick="window.saveDraftForm()" class="px-4 py-2 border border-blue-600 rounded text-blue-600 hover:bg-blue-50 transition-colors font-medium">
+            Lưu tạm
+        </button>
+        <button type="button" onclick="window.submitOrderForm()" class="px-4 py-2 bg-blue-600 border border-blue-600 rounded text-white hover:bg-blue-700 transition-colors font-medium shadow-sm">
+            Hoàn thành
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+
+    <script>
+        window.initFlatpickr = function (scope = document) {
+            if (typeof flatpickr === 'undefined') return;
+
+            // DateTime Pickers
+            const datetimeInputs = scope.querySelectorAll('.datetime-picker');
+            if (datetimeInputs.length > 0) {
+                flatpickr(datetimeInputs, {
+                    dateFormat: "d/m/Y H:i",
+                    enableTime: true,
+                    time_24hr: true,
+                    allowInput: true,
+                    defaultDate: new Date()
+                });
+            }
+
+            // Date Pickers
+            const dateInputs = scope.querySelectorAll('.date-picker');
+            if (dateInputs.length > 0) {
+                flatpickr(dateInputs, {
+                    dateFormat: "d/m/Y",
+                    allowInput: true
+                });
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", function () {
+            window.initFlatpickr();
+        });
+    </script>
+
+    <script>
+        let globalSkuList = [];
+        let globalSkuUomList = [];
+        let globalGoodsOwnerList = [];
+        let globalCustomerList = [];
+        let globalWarehouseList = [];
+        let globalStockLocationList = [];
+
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        }
+
+        async function postData(url, data) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        }
+
+        function renderGoodsOwnerOptions(data) {
+            const select = document.getElementById('goodsOwnerSelect');
+            if (!select) return;
+            let html = `<option value="">Chọn đối tượng</option>`;
+            data.forEach(item => {
+                html += `<option value="${item.id}" data-name="${item.goods_owner_name}">${item.goods_owner_name}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function renderCustomerOptions(data) {
+            const select = document.getElementById('customerSelect');
+            if (!select) return;
+            let html = `<option value="">Chọn khách hàng</option>`;
+            data.forEach(item => {
+                html += `<option value="${item.id}">${item.customer_name}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        function renderWarehouseOptions(data) {
+            const select = document.getElementById('warehouseSelect');
+            if (!select) return;
+            let html = `<option value="">Chọn kho</option>`;
+            data.forEach(item => {
+                const name = item.WarehouseName || item.warehouseName || item.warehouse_name || 'N/A';
+                html += `<option value="${item.id}">${name}</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadMasterData();
+        });
+
+        async function loadMasterData() {
+            try {
+                const [goodsOwnerRes, customerRes, warehouseRes] = await Promise.all([
+                    fetchData('?handler=LoadGoodsOwner'),
+                    fetchData('?handler=LoadCustomer'),
+                    fetchData('?handler=LoadWarehouse')
+                ]);
+
+                if (goodsOwnerRes?.data) {
+                    globalGoodsOwnerList = goodsOwnerRes.data;
+                    renderGoodsOwnerOptions(goodsOwnerRes.data);
+                }
+                if (customerRes?.data) {
+                    globalCustomerList = customerRes.data;
+                    renderCustomerOptions(customerRes.data);
+                }
+                if (warehouseRes?.data) {
+                    globalWarehouseList = warehouseRes.data;
+                    renderWarehouseOptions(warehouseRes.data);
+                }
+                window.dispatchEvent(new CustomEvent('master-data-loaded'));
+            } catch (error) {
+                console.error('Failed to load master data:', error);
+                window.dispatchEvent(new CustomEvent('master-data-loaded'));
+            }
+        }
+
+        // ==========================================
+        // ALPINE.JS COMPONENT: OutboundDetailTable
+        // ==========================================
+        function outboundDetailTable() {
+            return {
+                // --- State ---
+                dataLoaded: false,
+                items: [],
+                pageSize: 20,
+                currentPage: 1,
+                searchKeyword: '',
+
+                // --- SKU Search State ---
+                skuSearchState: {},
+                skuSearchDebounceTimers: {},
+
+                // --- Pallet Modal State ---
+                palletModal: {
+                    open: false,
+                    loading: false,
+                    itemIndex: -1,
+                    skuId: 0,
+                    skuName: '',
+                    requiredQty: 0,
+                    pallets: []
+                },
+
+                // --- Factory Method ---
+                createItem() {
+                    return {
+                        skuId: '', skuCode: '', skuName: '',
+                        spuId: 0, spuCode: '', spuName: '',
+                        uomId: 0, uomCode: '', unit: '',
+                        stockAvailable: 0,
+                        qtyRequired: 1, qtyRequiredDecimal: 1.00,
+                        qtyDispatched: 0, qtyDispatchedDecimal: 0.00,
+                        isFull: false,
+                        lotNo: '',
+                        locationId: null, locationName: '',
+                        expiryDate: '',
+                        description: '',
+                        showNote: false,
+                        palletSelections: []
+                    };
+                },
+
+                // --- Search & Dropdown Logic ---
+                initSkuSearchState(index) {
+                    if (!this.skuSearchState[index]) {
+                        this.skuSearchState[index] = {
+                            isOpen: false,
+                            loading: false,
+                            searched: false,
+                            results: [],
+                            highlightIndex: 0
+                        };
+                    }
+                    return this.skuSearchState[index];
+                },
+
+                openSkuSearch(index) {
+                    this.initSkuSearchState(index);
+                    this.skuSearchState[index].isOpen = true;
+
+                    // Initial search if empty
+                    const item = this.items[index];
+                    if (!this.skuSearchState[index].searched && !item.skuId) {
+                        this.searchSkuAvailable('', index);
+                    }
+                },
+
+                closeSkuSearch(index) {
+                    if (this.skuSearchState[index]) {
+                        this.skuSearchState[index].isOpen = false;
+                    }
+                },
+
+                debounceSkuSearch(keyword, index) {
+                    if (this.skuSearchDebounceTimers[index]) {
+                        clearTimeout(this.skuSearchDebounceTimers[index]);
+                    }
+                    this.skuSearchDebounceTimers[index] = setTimeout(() => {
+                        this.searchSkuAvailable(keyword, index);
+                    }, 300);
+                },
+
+                async searchSkuAvailable(keyword, index) {
+                    this.initSkuSearchState(index);
+                    const state = this.skuSearchState[index];
+
+                    state.loading = true;
+                    state.isOpen = true;
+
+                    try {
+                        const url = `?handler=SearchSkuAvailable&keyword=${encodeURIComponent(keyword)}&pageIndex=1&pageSize=20`;
+                        const response = await fetch(url);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            state.results = result.data || [];
+                        } else {
+                            state.results = [];
+                            console.error('SKU search failed:', result.message);
+                        }
+                    } catch (error) {
+                        console.error('Error searching SKU:', error);
+                        state.results = [];
+                    } finally {
+                        state.loading = false;
+                        state.searched = true;
+                    }
+                },
+
+                // --- Keyboard Navigation ---
+                navigateSkuResult(index, direction) {
+                    const state = this.skuSearchState[index];
+                    if (!state || !state.results.length) return;
+
+                    if (direction === 'down') {
+                        state.highlightIndex = Math.min(state.highlightIndex + 1, state.results.length - 1);
+                    } else if (direction === 'up') {
+                        state.highlightIndex = Math.max(state.highlightIndex - 1, 0);
+                    }
+                },
+
+                selectHighlightedSku(index) {
+                    const state = this.skuSearchState[index];
+                    if (!state || !state.results.length) return;
+
+                    const selectedSku = state.results[state.highlightIndex];
+                    if (selectedSku) {
+                        this.selectSkuFromSearch(index, selectedSku);
+                    }
+                },
+
+                selectSkuFromSearch(index, sku) {
+                    const item = this.items[index];
+
+                    // Map SKU Data
+                    Object.assign(item, {
+                        skuId: sku.sku_id,
+                        skuCode: sku.sku_code || '',
+                        skuName: sku.sku_name || '',
+                        spuId: sku.spu_id || 0,
+                        spuCode: sku.spu_code || '',
+                        spuName: sku.spu_name || '',
+                        unit: sku.unit || '',
+                        stockAvailable: sku.qty_available || 0
+                    });
+
+                    // Find matching UOM
+                    const uom = globalSkuUomList.find(u => u.skuId == sku.sku_id && (u.unitName === sku.unit || u.isBase));
+                    item.uomId = uom?.id || 0;
+                    item.unit = uom?.unitName || sku.unit || '';
+
+                    this.closeSkuSearch(index);
+                },
+
+                // --- Lifecycle ---
+                init() {
+                    this.items = [];
+                    Alpine.store('outboundItems', this.items);
+                    this.$watch('items', (v) => Alpine.store('outboundItems', v));
+
+                    window.addEventListener('master-data-loaded', () => {
+                        this.dataLoaded = true;
+                    });
+                    if (globalSkuList.length > 0) this.dataLoaded = true;
+
+                    // Bind global actions
+                    window.saveDraftForm = () => this.submitForm('Draft');
+                    window.submitOrderForm = () => this.submitForm('Submit');
+                },
+
+                // --- Table Actions ---
+                addRow() {
+                    this.items.push(this.createItem());
+                },
+
+                removeRow(index) {
+                    this.items.splice(index, 1);
+                },
+
+                clearAll() {
+                    this.items = [];
+                },
+
+                // --- Getters & Helpers ---
+                get skuOptions() { return globalSkuList; },
+
+                getUomOptions(skuId) {
+                    return skuId ? globalSkuUomList.filter(u => u.skuId == skuId) : [];
+                },
+
+                getLocationOptions(skuId) {
+                    return skuId ? globalStockLocationList.filter(l => l.sku_id == skuId) : [];
+                },
+
+                // --- Pagination ---
+                get totalPages() { return Math.ceil(this.filteredItems.length / this.pageSize); },
+                get startIndex() { return this.filteredItems.length ? (this.currentPage - 1) * this.pageSize + 1 : 0; },
+                get endIndex() { return Math.min(this.currentPage * this.pageSize, this.filteredItems.length); },
+
+                get filteredItems() {
+                    if (!this.searchKeyword) return this.items;
+                    const kw = this.searchKeyword.toLowerCase();
+                    return this.items.filter(i =>
+                        i.skuCode?.toLowerCase().includes(kw) ||
+                        i.skuName?.toLowerCase().includes(kw) ||
+                        i.lotNo?.toLowerCase().includes(kw)
+                    );
+                },
+
+                get paginatedItems() {
+                    const s = (this.currentPage - 1) * this.pageSize;
+                    return this.filteredItems.slice(s, s + this.pageSize);
+                },
+
+                getRealIndex(i) { return (this.currentPage - 1) * this.pageSize + i; },
+
+                goToPage(p) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; },
+                nextPage() { this.goToPage(this.currentPage + 1); },
+                prevPage() { this.goToPage(this.currentPage - 1); },
+                firstPage() { this.goToPage(1); },
+                lastPage() { this.goToPage(this.totalPages); },
+
+                changePageSize(s) {
+                    this.pageSize = parseInt(s);
+                    this.currentPage = 1;
+                },
+
+                // --- Business Logic ---
+                toggleFull(index) {
+                    const item = this.items[this.getRealIndex(index)];
+                    if (item.isFull) {
+                        item.qtyDispatchedDecimal = item.qtyRequiredDecimal;
+                        item.qtyDispatched = Math.floor(item.qtyRequiredDecimal);
+                    } else {
+                        item.qtyDispatchedDecimal = 0;
+                        item.qtyDispatched = 0;
+                    }
+                },
+
+                // --- Pallet Modal Logic ---
+                async openLocationModal(index) {
+                    const realIndex = this.getRealIndex(index);
+                    const item = this.items[realIndex];
+                    if (!item.skuId) {
+                        Notify.error('Vui lòng chọn SKU trước.');
+                        return;
+                    }
+                    const reqQty = parseFloat(item.qtyRequiredDecimal) || 0;
+                    if (reqQty <= 0) {
+                        Notify.error('Vui lòng nhập số lượng yêu cầu.');
+                        return;
+                    }
+
+                    this.palletModal.open = true;
+                    this.palletModal.loading = true;
+                    this.palletModal.itemIndex = realIndex;
+                    this.palletModal.skuId = item.skuId;
+                    this.palletModal.skuName = item.skuName || item.skuCode;
+                    this.palletModal.requiredQty = reqQty;
+                    this.palletModal.pallets = [];
+
+                    try {
+                        const res = await fetchData(`?handler=AvailablePallets&skuId=${item.skuId}&requiredQty=${reqQty}`);
+                        if (res?.success && res.data) {
+                            // Map existing selections if re-opening
+                            const existing = item.palletSelections || [];
+                           this.palletModal.pallets = res.data.map(p => {
+                                const prev = existing.find(e => e.pallet_id === p.pallet_id && e.location_id === p.location_id);
+                                return {
+                                    ...p,
+                                    pick_qty: prev ? prev.pick_qty : (p.suggested_qty || 0)
+                                };
+                            });
+                        } else {
+                            this.palletModal.pallets = [];
+                        }
+                    } catch (err) {
+                        console.error('Error loading pallets:', err);
+                        Notify.error('Lỗi tải dữ liệu pallet.');
+                    } finally {
+                        this.palletModal.loading = false;
+                    }
+                },
+
+                closePalletModal() {
+                    this.palletModal.open = false;
+                },
+
+
+                palletTotalPickQty() {
+                    return this.palletModal.pallets
+                        .reduce((s, p) => s + (parseFloat(p.pick_qty) || 0), 0);
+                },
+
+                confirmPalletSelection() {
+                    const item = this.items[this.palletModal.itemIndex];
+                    if (!item) return;
+
+                   
+                    const selected = this.palletModal.pallets
+                        .filter(p => (parseFloat(p.pick_qty) || 0) > 0)
+                        .map(p => ({
+                            pallet_id: p.pallet_id,
+                            pallet_code: p.pallet_code,
+                            location_id: p.location_id,
+                            location_name: p.location_name,
+                            pick_qty: parseFloat(p.pick_qty) || 0
+                        }));
+
+                    // save selections to item in state  
+                    item.palletSelections = selected;
+
+
+                    const totalPicked = selected.reduce((s, p) => s + p.pick_qty, 0);
+                    item.qtyDispatchedDecimal = totalPicked;
+                    item.qtyDispatched = Math.floor(totalPicked);
+
+                    if (selected.length > 0) {
+                        item.locationId = selected[0].location_id;
+                        item.locationName = selected[0].location_name;
+                    }
+
+                    this.palletModal.open = false;
+                    Notify.success(`Đã chọn ${selected.length} pallet.`);
+                },
+
+                onSkuChange(index, skuId) {
+                    const sku = globalSkuList.find(s => s.sku_id == skuId);
+                    const item = this.items[index];
+                    if (sku) {
+                        Object.assign(item, {
+                            skuId: sku.sku_id,
+                            skuCode: sku.sku_code || '',
+                            skuName: sku.sku_name || '',
+                            spuId: sku.spu_id || 0,
+                            spuCode: sku.spu_code || '',
+                            spuName: sku.spu_name || '',
+                            stockAvailable: sku.qty_available || 0
+                        });
+                        const uom = globalSkuUomList.find(u => u.skuId == sku.sku_id && (u.unitName === sku.unit || u.isBase));
+                        item.uomId = uom?.id || 0;
+                        item.unit = uom?.unitName || sku.unit || '';
+                    } else {
+                        Object.assign(item, {
+                            skuId: '', skuCode: '', skuName: '',
+                            spuId: 0, spuCode: '', spuName: '',
+                            unit: '', uomId: 0, stockAvailable: 0
+                        });
+                    }
+                },
+
+                onUomChange(index, unitName) {
+                    const item = this.items[index];
+                    const uom = globalSkuUomList.find(u => u.skuId == item.skuId && u.unitName === unitName);
+                    item.uomId = uom?.id || 0;
+                    item.unit = uom?.unitName || '';
+                },
+
+                onLocationChange(index, locationId) {
+                    const item = this.items[index];
+                    const loc = globalStockLocationList.find(l => l.id == locationId);
+                    if (loc) {
+                        item.locationId = loc.id;
+                        item.locationName = loc.location_name || '';
+                        item.lotNo = loc.batch_number || '';
+                        item.expiryDate = loc.expiry_date || '';
+                        item.stockAvailable = loc.qty_available || 0;
+                    }
+                },
+
+                totalQtyRequired() {
+                    return this.items.reduce((s, i) => s + parseFloat(i.qtyRequiredDecimal || 0), 0).toFixed(2);
+                },
+
+                totalQtyDispatched() {
+                    return this.items.reduce((s, i) => s + parseFloat(i.qtyDispatchedDecimal || 0), 0).toFixed(2);
+                },
+
+                toggleNote(i) {
+                    this.items[i].showNote = !this.items[i].showNote;
+                },
+
+                // --- Form Submission ---
+                async submitForm(action) {
+                    try {
+                        const indexUrl = '@Url.Page("/Outbound/Order/Index")';
+
+                        // Basic Validation
+                        if (this.items.some(i => i.skuId && (!i.spuCode || !i.spuName))) {
+                            Notify.error('Một số hàng thiếu thông tin SKU.');
+                            return;
+                        }
+
+                        const dispatchNo = document.getElementById('dispatchNo')?.value;
+                        const ws = document.getElementById('warehouseSelect');
+
+                        if (!dispatchNo) { Notify.error('Vui lòng nhập Số lệnh xuất kho'); return; }
+                        if (!ws?.value) { Notify.error('Vui lòng chọn Kho xuất'); return; }
+
+                        // Prepare Payload
+                        const requestData = {
+                            dispatch_no: dispatchNo,
+                            goods_owner_id: parseInt(document.getElementById('goodsOwnerSelect')?.value) || 0,
+                            goods_owner_name: document.getElementById('goodsOwnerSelect')?.selectedOptions[0]?.dataset.name || '',
+                            customer_id: parseInt(document.getElementById('customerSelect')?.value) || 0,
+                            customer_name: document.getElementById('customerSelect')?.selectedOptions[0]?.textContent?.trim() || '',
+                            warehouse_id: Number(ws.value) || ws.value,
+                            warehouse_name: ws.selectedOptions[0]?.textContent?.trim() || '',
+                            estimated_delivery_time: document.getElementById('estimatedDelivery')?.value || '',
+                            description: document.getElementById('description')?.value || '',
+                            detailList: this.items.filter(item => item.skuId).map(item => ({
+                                sku_id: parseInt(item.skuId) || 0,
+                                sku_code: item.skuCode,
+                                sku_name: item.skuName,
+                                spu_id: parseInt(item.spuId) || 0,
+                                spu_code: item.spuCode,
+                                spu_name: item.spuName,
+                                uom_id: parseInt(item.uomId) || null,
+                                dispatch_qty: Math.floor(parseFloat(item.qtyRequiredDecimal) || 0),
+                                dispatch_qty_decimal: parseFloat(item.qtyRequiredDecimal) || 0,
+                                actual_qty: Math.floor(parseFloat(item.qtyDispatchedDecimal) || 0),
+                                actual_qty_decimal: parseFloat(item.qtyDispatchedDecimal) || 0,
+                                batch_number: item.lotNo || '',
+                                goods_location_id: Number(item.locationId) || 0,
+                                expiry_date: item.expiryDate || null,
+                                description: item.description || '',
+                                selected_locations: (item.palletSelections || []).filter(p => p.pick_qty > 0).map(p => ({
+                                    pallet_id: p.pallet_id,
+                                    location_id: p.location_id,
+                                    pick_qty: p.pick_qty
+                                }))
+                            }))
+                        };
+
+                        // API Call
+                        const result = await postData(`?handler=${action}`, requestData);
+
+                        if (result.success) {
+                            Notify.success(result.message || 'Thành công!');
+                            window.location.href = result.redirectUrl || indexUrl;
+                        } else {
+                            Notify.error(result.message || 'Có lỗi xảy ra');
+                        }
+                    } catch (error) {
+                        Notify.error('Có lỗi: ' + error.message);
+                    }
+                }
+            };
+        }
+    </script>
+}
